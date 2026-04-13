@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保單服務記錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --tf: #0ABAB5;
+  --tf-light: #E0F7F6;
+  --tf-mid: #5DCEC9;
+  --tf-dark: #077B78;
+  --tf-deep: #045A58;
+  --mint: #F0FAFA;
+  --sage: #D4F0EE;
+  --hand: 'Caveat', cursive;
+}
+body { background: #F5FAFA; font-family: var(--hand); }
+.app { padding: 1.2rem 1rem; max-width: 580px; margin: 0 auto; }
+.app-header { background: var(--tf); border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.2rem; }
+.app-title { font-family: var(--hand); font-size: 28px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+.app-sub { font-family: var(--hand); font-size: 15px; color: rgba(255,255,255,0.85); margin-top: 2px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1.2rem; }
+.stat-card { background: var(--tf-light); border-radius: 20px; padding: 14px 10px; text-align: center; border: 1.5px solid var(--tf-mid); }
+.stat-num { font-family: var(--hand); font-size: 28px; font-weight: 600; color: var(--tf-dark); }
+.stat-label { font-family: var(--hand); font-size: 14px; color: var(--tf-dark); margin-top: 2px; }
+.card { background: #fff; border-radius: 22px; padding: 1.2rem 1.3rem; margin-bottom: 1.2rem; border: 1.5px solid var(--sage); }
+.card-header { background: var(--mint); border-radius: 16px; padding: 8px 14px; margin-bottom: 14px; border-left: 4px solid var(--tf); }
+.card-title { font-family: var(--hand); font-size: 17px; font-weight: 600; color: var(--tf-dark); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-row.full { grid-template-columns: 1fr; }
+.field label { font-family: var(--hand); font-size: 14px; color: var(--tf-dark); display: block; margin-bottom: 4px; font-weight: 600; }
+.field input, .field select, .field textarea {
+  width: 100%; font-family: var(--hand); font-size: 16px;
+  border: 1.5px solid var(--sage); border-radius: 14px;
+  padding: 9px 13px; background: var(--mint);
+  color: var(--tf-deep); outline: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--tf); background: #fff; }
+.field textarea { height: 70px; resize: none; }
+.extra-box { background: var(--tf-light); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; border: 1.5px dashed var(--tf-mid); }
+.extra-box-title { font-family: var(--hand); font-size: 14px; font-weight: 600; color: var(--tf-dark); margin-bottom: 8px; }
+.add-btn {
+  width: 100%; padding: 12px; font-family: var(--hand); font-size: 18px; font-weight: 600;
+  cursor: pointer; margin-top: 6px; border-radius: 18px;
+  background: var(--tf); color: #fff; border: none; letter-spacing: 0.5px;
+}
+.add-btn:active { opacity: 0.85; }
+.add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.search-input { width: 100%; font-family: var(--hand); font-size: 16px; border: 1.5px solid var(--sage); border-radius: 14px; padding: 9px 13px; background: var(--mint); color: var(--tf-deep); outline: none; }
+.search-input:focus { border-color: var(--tf); background: #fff; }
+.record { padding: 12px 0; border-bottom: 1.5px dashed var(--sage); }
+.record:last-child { border-bottom: none; }
+.record-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.record-name { font-family: var(--hand); font-size: 20px; font-weight: 600; color: var(--tf-deep); }
+.record-date { font-family: var(--hand); font-size: 14px; color: var(--tf-mid); }
+.tag { display: inline-block; font-family: var(--hand); font-size: 13px; padding: 3px 12px; border-radius: 20px; font-weight: 600; margin-top: 5px; }
+.tag-teal { background: var(--tf-light); color: var(--tf-dark); border: 1.5px solid var(--tf-mid); }
+.tag-green { background: #E6F4EA; color: #2E7D42; border: 1.5px solid #A8D5B2; }
+.tag-amber { background: #FFF4E0; color: #8A5C00; border: 1.5px solid #F5CC80; }
+.tag-red { background: #FDECEA; color: #B03030; border: 1.5px solid #F0A8A8; }
+.tag-purple { background: #F0EEFE; color: #4A3AAA; border: 1.5px solid #C5BDEF; }
+.record-extra { font-family: var(--hand); font-size: 14px; color: var(--tf-dark); margin-top: 5px; background: var(--mint); border-radius: 10px; padding: 5px 10px; display: inline-block; }
+.record-note { font-family: var(--hand); font-size: 15px; color: #666; margin-top: 5px; }
+.del-btn { font-family: var(--hand); font-size: 13px; color: #ccc; background: none; border: none; cursor: pointer; padding: 2px 6px; margin-left: 6px; }
+.del-btn:hover { color: #e57373; }
+.empty { font-family: var(--hand); font-size: 17px; color: var(--tf-mid); text-align: center; padding: 2rem 0; }
+.status-bar { font-family: var(--hand); font-size: 14px; padding: 8px 14px; border-radius: 14px; margin-bottom: 12px; text-align: center; }
+.status-loading { background: #FFF4E0; color: #8A5C00; border: 1px solid #F5CC80; }
+.status-ok { background: var(--tf-light); color: var(--tf-dark); border: 1px solid var(--tf-mid); }
+.status-err { background: #FDECEA; color: #B03030; border: 1px solid #F0A8A8; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="app-header">
+    <div class="app-title">保單服務記錄</div>
+    <div class="app-sub">隨時記錄，隨時查詢</div>
+  </div>
+
+  <div id="status-bar" class="status-bar status-loading">連線中，載入資料...</div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-label">總記錄</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-today">—</div><div class="stat-label">今日</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-clients">—</div><div class="stat-label">客戶數</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">新增保單服務記錄</div></div>
+    <div class="form-row">
+      <div class="field"><label>客戶姓名</label><input id="f-name" type="text" placeholder="王小明"></div>
+      <div class="field"><label>日期</label><input id="f-date" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>服務類型</label>
+        <select id="f-type" onchange="updateExtraFields()">
+          <option value="">請選擇</option>
+          <option>信用卡變更</option>
+          <option>保費繳費方式變更</option>
+          <option>理賠申請</option>
+          <option>加保</option>
+          <option>減保</option>
+          <option>保單復效</option>
+          <option>受益人變更</option>
+          <option>地址/聯絡更新</option>
+          <option>保單借款</option>
+          <option>契約轉換</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="field"><label>保險公司</label><input id="f-company" type="text" placeholder="國泰人壽"></div>
+    </div>
+
+    <div id="extra-fields" style="display:none;">
+      <div class="extra-box">
+        <div class="extra-box-title" id="extra-label">補充資料</div>
+        <div id="extra-content"></div>
+      </div>
+    </div>
+
+    <div class="form-row full">
+      <div class="field"><label>備註說明</label><textarea id="f-note" placeholder="補充細節，例如：已確認收件、待審核..."></textarea></div>
+    </div>
+    <button class="add-btn" id="add-btn" onclick="addRecord()">＋ 新增記錄</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">查詢記錄</div></div>
+    <input class="search-input" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">記錄列表</div></div>
+    <div id="list"><div class="empty">載入中...</div></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
+
+const EXTRA_FIELDS = {
+  '信用卡變更': {
+    label: '信用卡資料',
+    fields: [
+      { id: 'bank', label: '銀行名稱', type: 'text', placeholder: '玉山銀行', col: 'half' },
+      { id: 'expiry', label: '有效年月', type: 'month', col: 'half' }
+    ]
+  },
+  '保費繳費方式變更': {
+    label: '繳費資料',
+    fields: [
+      { id: 'pay-type', label: '繳費方式', type: 'select', options: ['年繳','半年繳','季繳','月繳'], col: 'full' },
+      { id: 'pay-bank', label: '銀行名稱', type: 'text', placeholder: '台灣銀行', col: 'half' },
+      { id: 'pay-account', label: '帳號末四碼', type: 'text', placeholder: '####', col: 'half', maxlength: 4 }
+    ]
+  }
+};
+
+const TYPE_TAG = {
+  '信用卡變更':'tag-teal','理賠申請':'tag-red','加保':'tag-green','減保':'tag-amber',
+  '保費繳費方式變更':'tag-amber','保單復效':'tag-green','受益人變更':'tag-purple',
+  '地址/聯絡更新':'tag-teal','保單借款':'tag-amber','契約轉換':'tag-purple','其他':'tag-teal'
+};
+
+let records = [];
+
+function setStatus(type, msg) {
+  const bar = document.getElementById('status-bar');
+  bar.className = 'status-bar status-' + type;
+  bar.textContent = msg;
+}
+
+async function loadRecords() {
+  try {
+    const res = await fetch(API);
+    const data = await res.json();
+    records = Array.isArray(data) ? data : [];
+    setStatus('ok', '已連線，資料同步自 Google Sheets');
+    renderRecords();
+  } catch(e) {
+    setStatus('err', '無法連線，請檢查網路或重新整理');
+    document.getElementById('list').innerHTML = '<div class="empty">連線失敗</div>';
+  }
+}
+
+function updateExtraFields() {
+  const type = document.getElementById('f-type').value;
+  const container = document.getElementById('extra-fields');
+  const content = document.getElementById('extra-content');
+  const lbl = document.getElementById('extra-label');
+  const cfg = EXTRA_FIELDS[type];
+  if (!cfg) { container.style.display = 'none'; content.innerHTML = ''; return; }
+  lbl.textContent = cfg.label;
+  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+  cfg.fields.forEach(f => {
+    const span = f.col === 'full' ? 'grid-column:1/-1;' : '';
+    html += '<div class="field" style="' + span + '"><label>' + f.label + '</label>';
+    if (f.type === 'select') {
+      html += '<select id="ex-' + f.id + '"><option value="">請選擇</option>' + f.options.map(o => '<option>' + o + '</option>').join('') + '</select>';
+    } else {
+      html += '<input id="ex-' + f.id + '" type="' + f.type + '" placeholder="' + (f.placeholder||'') + '" ' + (f.maxlength ? 'maxlength="' + f.maxlength + '"' : '') + '>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  content.innerHTML = html;
+  container.style.display = 'block';
+}
+
+function getExtraValues() {
+  const type = document.getElementById('f-type').value;
+  const cfg = EXTRA_FIELDS[type];
+  if (!cfg) return {};
+  const vals = {};
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('ex-' + f.id);
+    if (el) vals[f.label] = el.value;
+  });
+  return vals;
+}
+
+async function addRecord() {
+  const name = document.getElementById('f-name').value.trim();
+  const date = document.getElementById('f-date').value;
+  const type = document.getElementById('f-type').value;
+  const company = document.getElementById('f-company').value.trim();
+  const note = document.getElementById('f-note').value.trim();
+  if (!name || !date || !type) { alert('請填寫客戶姓名、日期及服務類型'); return; }
+  const extra = getExtraValues();
+  const record = { action: 'add', id: Date.now(), name, date, type, company, note, extra };
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true; btn.textContent = '儲存中...';
+  setStatus('loading', '儲存至 Google Sheets...');
+  try {
+    await fetch(API, { method: 'POST', body: JSON.stringify(record) });
+    records.unshift(record);
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-type').value = '';
+    document.getElementById('f-company').value = '';
+    document.getElementById('f-note').value = '';
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('extra-fields').style.display = 'none';
+    document.getElementById('extra-content').innerHTML = '';
+    setStatus('ok', '已儲存並同步至 Google Sheets');
+    renderRecords();
+  } catch(e) {
+    setStatus('err', '儲存失敗，請重試');
+  }
+  btn.disabled = false; btn.textContent = '＋ 新增記錄';
+}
+
+async function deleteRecord(id) {
+  if (!confirm('確定刪除這筆記錄？')) return;
+  setStatus('loading', '刪除中...');
+  try {
+    await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
+    records = records.filter(function(r) { return String(r.id) !== String(id); });
+    setStatus('ok', '已刪除並同步至 Google Sheets');
+    renderRecords();
+  } catch(e) {
+    setStatus('err', '刪除失敗，請重試');
+  }
+}
+
+function renderRecords() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const filtered = q ? records.filter(function(r) { return r.name && r.name.toLowerCase().includes(q); }) : records;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('s-total').textContent = records.length;
+  document.getElementById('s-today').textContent = records.filter(function(r) { return r.date === today; }).length;
+  document.getElementById('s-clients').textContent = new Set(records.map(function(r) { return r.name; })).size;
+  const list = document.getElementById('list');
+  if (!filtered.length) { list.innerHTML = '<div class="empty">尚無記錄</div>'; return; }
+  list.innerHTML = filtered.map(function(r) {
+    const tagClass = TYPE_TAG[r.type] || 'tag-teal';
+    const extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
+    const extraItems = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('　｜　');
+    return '<div class="record">'
+      + '<div class="record-top">'
+      + '<span class="record-name">' + (r.name||'') + '</span>'
+      + '<span style="display:flex;align-items:center;gap:4px;">'
+      + '<span class="record-date">' + (r.date||'') + '</span>'
+      + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')">✕</button>'
+      + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">'
+      + '<span class="tag ' + tagClass + '">' + (r.type||'') + '</span>'
+      + (r.company ? '<span style="font-family:var(--hand);font-size:14px;color:#888;">' + r.company + '</span>' : '')
+      + '</div>'
+      + (extraItems ? '<div class="record-extra">' + extraItems + '</div>' : '')
+      + (r.note ? '<div class="record-note">' + r.note + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+loadRecords();
+</script>
+</body>
+</html>
