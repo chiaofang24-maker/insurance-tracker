@@ -254,6 +254,8 @@ function initDateSelects(){
   // 到期年份 今年~今年+10
   var eysel = document.getElementById('fex-y');
   for(var y=curY;y<=curY+10;y++){var o=document.createElement('option');o.value=y;o.textContent=y+'年';eysel.appendChild(o);}
+  // 預設到期年為今年
+  eysel.value=curY;
   // 月份 1~12
   ['fb-m','fex-m'].forEach(function(id){
     var s=document.getElementById(id);
@@ -394,7 +396,7 @@ async function saveRenew(rid,name,expiry){
   var renew=sel.value,renewreason=rrInput.value||'';
   setSb('sl2','更新中...');
   try{
-    await fetch(API,{method:'POST',body:JSON.stringify({action:'update_renew',name:name,expiry:expiry,renew:renew,renewreason:renewreason})});
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'update_renew',name:name,expiry:expiry,renew:renew,renewreason:renewreason})});
     recs.forEach(function(r){if(r.name===name&&r.expiry===expiry){r.renew=renew;r.renewreason=renewreason;}});
     setSb('sok','已更新續保狀態');
     document.getElementById('re-'+rid).style.display='none';
@@ -500,7 +502,7 @@ async function addR(){
   var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='儲存中...';
   setSb('sl2','儲存至 Google Sheets...');
   try{
-    await fetch(API,{method:'POST',body:JSON.stringify(rec)});
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
     recs.unshift(rec);setSb('sok','已儲存並同步至 Google Sheets');updSt();
     ['fn','fid','fph','fpl','fad','fnt','fotn','frnrv','fcn','ftx','ffire-pr','ffire-am','ffire-bank'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     ['ftp','fco','fct','fdt'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
@@ -516,7 +518,7 @@ async function delR(name,expiry){
   if(!confirm('確定刪除 '+name+' 的這筆保單？'))return;
   setSb('sl2','刪除中...');
   try{
-    await fetch(API,{method:'POST',body:JSON.stringify({action:'delete',name:name,expiry:expiry})});
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',name:name,expiry:expiry})});
     recs=recs.filter(function(r){return!(r.name===name&&r.expiry===expiry);});
     setSb('sok','已刪除');rendS();rendE();updSt();
   }catch(e){setSb('ser','刪除失敗，請重試');}
