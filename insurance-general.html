@@ -95,7 +95,13 @@ body{background:#F5FAFA;font-family:var(--h);}
 <div id="pf">
   <div class="row">
     <div class="f"><label>身分證字號</label><input id="fid" type="text" placeholder="A123456789" maxlength="10" oninput="vId()"><div class="em" id="eid"></div></div>
-    <div class="f"><label>生日</label><input id="fb" type="date"></div>
+    <div class="f"><label>生日</label>
+      <div style="display:flex;gap:5px;">
+        <select id="fb-y" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">年</option></select>
+        <select id="fb-m" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">月</option></select>
+        <select id="fb-d" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">日</option></select>
+      </div>
+    </div>
   </div>
 </div>
 <div id="cf" style="display:none">
@@ -121,7 +127,7 @@ body{background:#F5FAFA;font-family:var(--h);}
   <div class="f"><label>險種</label>
     <select id="ftp" onchange="updType()">
       <option value="">請選擇</option>
-      <option>車險</option><option>強制險</option><option>住宅火險</option>
+      <option>車險</option><option>住宅火險</option>
       <option>商業火險</option><option>公共意外責任險</option><option>產品責任險</option>
       <option>家庭責任險</option><option>雇主僱補險</option><option>團險</option><option>其他</option>
     </select>
@@ -171,7 +177,13 @@ body{background:#F5FAFA;font-family:var(--h);}
 </div>
 
 <div class="row">
-  <div class="f"><label>到期日</label><input id="fex" type="date"></div>
+  <div class="f"><label>到期日</label>
+    <div style="display:flex;gap:5px;">
+      <select id="fex-y" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">年</option></select>
+      <select id="fex-m" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">月</option></select>
+      <select id="fex-d" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">日</option></select>
+    </div>
+  </div>
   <div class="f"><label>負責人</label><select id="fow"><option>巧</option><option>吳忠皇</option><option>小剛</option></select></div>
 </div>
 <div class="row">
@@ -205,7 +217,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 
 <script>
 const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eWq4LQvMNPQGuX7L14_0zp1Sx6fB9W9CD1QaD1XCGA/exec';
-const DET=['體傷','財損','超額','拖吊','駕傷','全險'];
+const DET=['強制險','體傷','財損','超額','拖吊','駕傷','全險'];
 const CITIES={
   '台北市':['中正區','大同區','中山區','松山區','大安區','萬華區','信義區','士林區','北投區','內湖區','南港區','文山區'],
   '新北市':['板橋區','新莊區','中和區','永和區','土城區','樹林區','三重區','蘆洲區','汐止區','新店區','淡水區','三峽區'],
@@ -232,6 +244,40 @@ const CITIES={
 };
 let recs=[],selM=new Date().getMonth()+1;
 
+
+function initDateSelects(){
+  var now = new Date();
+  var curY = now.getFullYear();
+  // 生日年份 1940~今年
+  var ysel = document.getElementById('fb-y');
+  for(var y=curY;y>=1940;y--){var o=document.createElement('option');o.value=y;o.textContent=y+'年';ysel.appendChild(o);}
+  // 到期年份 今年~今年+10
+  var eysel = document.getElementById('fex-y');
+  for(var y=curY;y<=curY+10;y++){var o=document.createElement('option');o.value=y;o.textContent=y+'年';eysel.appendChild(o);}
+  // 月份 1~12
+  ['fb-m','fex-m'].forEach(function(id){
+    var s=document.getElementById(id);
+    for(var m=1;m<=12;m++){var o=document.createElement('option');o.value=String(m).padStart(2,'0');o.textContent=m+'月';s.appendChild(o);}
+  });
+  // 日 1~31
+  ['fb-d','fex-d'].forEach(function(id){
+    var s=document.getElementById(id);
+    for(var d=1;d<=31;d++){var o=document.createElement('option');o.value=String(d).padStart(2,'0');o.textContent=d+'日';s.appendChild(o);}
+  });
+}
+function getBirthday(){
+  var y=document.getElementById('fb-y').value,m=document.getElementById('fb-m').value,d=document.getElementById('fb-d').value;
+  return (y&&m&&d)?y+'-'+m+'-'+d:'';
+}
+function getExpiry(){
+  var y=document.getElementById('fex-y').value,m=document.getElementById('fex-m').value,d=document.getElementById('fex-d').value;
+  return (y&&m&&d)?y+'-'+m+'-'+d:'';
+}
+function resetDateSelects(){
+  ['fb-y','fb-m','fb-d','fex-y','fex-m','fex-d'].forEach(function(id){
+    var e=document.getElementById(id);if(e)e.selectedIndex=0;
+  });
+}
 function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 function sw(t){
   document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','search','expiry'][i]===t);});
@@ -257,7 +303,7 @@ function vTx(){var v=document.getElementById('ftx').value,ok=/^[0-9]{8}$/.test(v
 function updType(){
   var t=document.getElementById('ftp').value;
   document.getElementById('xcar').style.display=t==='車險'?'block':'none';
-  document.getElementById('xmand').style.display=t==='強制險'?'block':'none';
+  document.getElementById('xmand').style.display='none';
   document.getElementById('xfire').style.display=t==='住宅火險'?'block':'none';
   document.getElementById('xoth').style.display=(t&&t!=='車險'&&t!=='強制險'&&t!=='住宅火險')?'block':'none';
   document.getElementById('xotn').style.display=t==='其他'?'block':'none';
@@ -368,11 +414,15 @@ function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
   if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';return;}
   var f=recs.filter(function(r){
-    var name=String(r.name||r[0]||r['客戶姓名']||'').toLowerCase();
-    var plate=String(r.plate||r[5]||r['車牌號碼']||'').toLowerCase();
+    var name=String(r.name||'').toLowerCase();
+    var plate=String(r.plate||'').toLowerCase();
     return name.includes(q)||plate.includes(q);
   });
-  document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">找不到相關記錄（共'+recs.length+'筆資料）</div>';
+  if(!f.length){
+    document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';
+    return;
+  }
+  document.getElementById('slist').innerHTML=f.map(function(r){return rHTML(r,true);}).join('');
 }
 
 function initM(){
@@ -411,7 +461,7 @@ function cpMsg(btn,enc){
 }
 
 async function addR(){
-  var name=document.getElementById('fn').value.trim(),type=document.getElementById('ftp').value,expiry=document.getElementById('fex').value;
+  var name=document.getElementById('fn').value.trim(),type=document.getElementById('ftp').value,expiry=getExpiry();
   if(!name||!type||!expiry){alert('請填寫姓名、險種及到期日');return;}
   var idno=document.getElementById('fid').value,phone=document.getElementById('fph').value;
   if(idno&&!/^[A-Za-z][0-9]{9}$/.test(idno)){alert('身分證字號格式錯誤，請確認');return;}
@@ -422,8 +472,6 @@ async function addR(){
       var c=document.getElementById('c'+d);
       if(c&&c.checked){var p=parseInt(document.getElementById('p'+d).value)||0,a=document.getElementById('a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
     });
-  }else if(type==='強制險'){
-    tot=parseInt(document.getElementById('fmp').value)||0;
   }else if(type==='住宅火險'){
     tot=parseInt(document.getElementById('ffire-pr').value)||0;
     loanbank=document.getElementById('ffire-bank').value.trim();
@@ -433,7 +481,7 @@ async function addR(){
   var city=document.getElementById('fct').value,dist=document.getElementById('fdt').value,addr=document.getElementById('fad').value.trim();
   var rec={
     action:'add',name:name,idno:idno,
-    birthday:document.getElementById('fb').value,
+    birthday:getBirthday(),
     phone:phone,address:city+dist+addr,
     plate:document.getElementById('fpl').value.trim(),
     identity:document.getElementById('fi').value,
@@ -456,9 +504,9 @@ async function addR(){
     recs.unshift(rec);setSb('sok','已儲存並同步至 Google Sheets');updSt();
     ['fn','fid','fph','fpl','fad','fnt','fotn','frnrv','fcn','ftx','ffire-pr','ffire-am','ffire-bank'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     ['ftp','fco','fct','fdt'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-    document.getElementById('fb').value='';document.getElementById('fex').value='';
+    resetDateSelects();
     document.getElementById('frn').value='待確認';
-    ['xcar','xmand','xfire','xoth','xotn','frnr'].forEach(function(id){document.getElementById(id).style.display='none';});
+    ['xcar','xfire','xoth','xotn','frnr'].forEach(function(id){document.getElementById(id).style.display='none';});
     initCar();
   }catch(e){setSb('ser','儲存失敗，請重試');}
   btn.disabled=false;btn.textContent='＋ 新增保單';
@@ -474,7 +522,7 @@ async function delR(name,expiry){
   }catch(e){setSb('ser','刪除失敗，請重試');}
 }
 
-initCities();initCar();initM();loadR();
+initCities();initCar();initM();initDateSelects();loadR();
 </script>
 </div>
 </body>
