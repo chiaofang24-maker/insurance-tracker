@@ -279,7 +279,12 @@ function calcT(){
 async function loadR(){
   try{
     var res=await fetch(API),d=await res.json();
-    recs=Array.isArray(d)?d:[];
+    if(Array.isArray(d)){
+      recs=d.map(function(r){
+        if(typeof r==='object'&&!Array.isArray(r)) return r;
+        return {name:r[0],idno:r[1],birthday:r[2],phone:r[3],address:r[4],plate:r[5],identity:r[6],type:r[7],detail:r[8],company:r[9],premium:r[10],amount:r[11],expiry:r[12],renew:r[13],renewreason:r[14],owner:r[15],note:r[16],totalpremium:r[17],cardetails:r[18],othertype:r[19],loanbank:r[20]};
+      });
+    }else{recs=[];}
     setSb('sok','已連線，資料同步自 Google Sheets');
     updSt();
   }catch(e){setSb('ser','無法連線，請檢查網路');}
@@ -362,8 +367,12 @@ function cpR(btn,enc){
 function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
   if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';return;}
-  var f=recs.filter(function(r){return(r.name&&r.name.toLowerCase().includes(q))||(r.plate&&r.plate.toLowerCase().includes(q));});
-  document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">找不到相關記錄</div>';
+  var f=recs.filter(function(r){
+    var name=String(r.name||r[0]||r['客戶姓名']||'').toLowerCase();
+    var plate=String(r.plate||r[5]||r['車牌號碼']||'').toLowerCase();
+    return name.includes(q)||plate.includes(q);
+  });
+  document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">找不到相關記錄（共'+recs.length+'筆資料）</div>';
 }
 
 function initM(){
