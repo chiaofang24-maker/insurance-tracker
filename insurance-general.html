@@ -396,7 +396,8 @@ async function saveRenew(rid,name,expiry){
   var renew=sel.value,renewreason=rrInput.value||'';
   setSb('sl2','更新中...');
   try{
-    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'update_renew',name:name,expiry:expiry,renew:renew,renewreason:renewreason})});
+    var url=API+'?action=update_renew&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&renew='+encodeURIComponent(renew)+'&renewreason='+encodeURIComponent(renewreason);
+    await fetch(url);
     recs.forEach(function(r){if(r.name===name&&r.expiry===expiry){r.renew=renew;r.renewreason=renewreason;}});
     setSb('sok','已更新續保狀態');
     document.getElementById('re-'+rid).style.display='none';
