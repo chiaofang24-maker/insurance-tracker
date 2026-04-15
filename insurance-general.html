@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>產險管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:'Caveat',cursive;}
+body{background:#F5FAFA;font-family:var(--h);}
+.app{padding:1rem 1rem;max-width:640px;margin:0 auto;}
+.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
+.hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
+.hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.tab{font-family:var(--h);font-size:16px;font-weight:600;padding:10px;border-radius:16px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;}
+.tab.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.pnl{display:none;}.pnl.on{display:block;}
+.card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
+.ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.row1{display:grid;grid-template-columns:1fr;margin-bottom:10px;}
+.f label{font-family:var(--h);font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
+.f input,.f select{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;}
+.f input:focus,.f select:focus{border-color:var(--tf);background:#fff;}
+.f input.err{border-color:#E24B4A;background:#FFF5F5;}
+.em{font-family:var(--h);font-size:12px;color:#B03030;margin-top:3px;}
+.xtra{background:var(--tfl);border-radius:16px;padding:12px 14px;margin-bottom:10px;border:1.5px dashed var(--tfm);}
+.xtra-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:10px;}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.ci{display:flex;align-items:center;gap:8px;font-family:var(--h);font-size:16px;color:var(--tfdp);}
+.ci input[type=checkbox]{width:18px;height:18px;accent-color:var(--tf);}
+.di{background:#fff;border-radius:12px;padding:8px 12px;margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap;}
+.di.show{display:flex;}
+.di span{font-family:var(--h);font-size:13px;color:var(--tfd);}
+.di input{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:90px;outline:none;background:var(--mint);}
+.tot{background:var(--tfl);border-radius:14px;padding:8px 14px;margin-top:8px;font-family:var(--h);font-size:16px;font-weight:600;color:var(--tfd);}
+.abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
+.abtn:disabled{opacity:0.5;cursor:not-allowed;}
+.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:12px;}
+.st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
+.sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
+.rc{background:#fff;border-radius:18px;padding:1rem 1.2rem;margin-bottom:10px;border:1.5px solid var(--sage);}
+.rc.exp{border-color:#F5CC80;background:#FFFBF0;}
+.rc.exd{border-color:#F0A8A8;background:#FFF5F5;}
+.rn{font-family:var(--h);font-size:20px;font-weight:600;color:var(--tfdp);}
+.rrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.bg{font-family:var(--h);font-size:13px;padding:3px 10px;border-radius:18px;font-weight:600;}
+.bt{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
+.ba{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.br{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
+.bg2{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
+.bx{background:#F5F5F5;color:#666;border:1.5px solid #DDD;}
+.rd{font-family:var(--h);font-size:14px;color:#777;margin-top:6px;line-height:1.8;}
+.cb{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.db{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
+.emp{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
+.sb{font-family:var(--h);font-size:14px;padding:8px 14px;border-radius:14px;margin-bottom:10px;text-align:center;}
+.sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
+.sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
+.ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
+.mb{font-family:var(--h);font-size:14px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;margin:3px;}
+.mb.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.gb{font-family:var(--h);font-size:15px;font-weight:600;padding:8px 18px;border-radius:14px;background:var(--tf);color:#fff;border:none;cursor:pointer;margin-top:10px;}
+.msg{background:var(--mint);border:1.5px solid var(--sage);border-radius:14px;padding:12px;margin-top:8px;font-family:var(--h);font-size:14px;color:var(--tfdp);white-space:pre-wrap;line-height:1.7;}
+.co-label{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:6px;}
+.renew-edit{background:var(--mint);border-radius:14px;padding:10px 12px;margin-top:8px;border:1.5px solid var(--sage);}
+.renew-edit-t{font-family:var(--h);font-size:13px;font-weight:600;color:var(--tfd);margin-bottom:8px;}
+.renew-edit select{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
+.renew-edit input{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
+.save-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:7px 16px;border-radius:12px;background:var(--tf);color:#fff;border:none;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr"><h1>產險管理系統</h1><p>輸入・查詢・到期提醒</p></div>
+<div id="sb" class="sb sl2">連線中，載入資料...</div>
+<div class="tabs">
+  <div class="tab on" onclick="sw('input')">輸入保單</div>
+  <div class="tab" onclick="sw('search')">查詢</div>
+  <div class="tab" onclick="sw('expiry')">到期提醒</div>
+</div>
+
+<div id="pnl-input" class="pnl on">
+<div class="card">
+<div class="ch">客戶基本資料</div>
+<div class="row">
+  <div class="f"><label>身份</label><select id="fi" onchange="togId()"><option>個人</option><option>公司</option></select></div>
+  <div class="f"><label>姓名／負責人</label><input id="fn" type="text" placeholder="王小明"></div>
+</div>
+<div id="pf">
+  <div class="row">
+    <div class="f"><label>身分證字號</label><input id="fid" type="text" placeholder="A123456789" maxlength="10" oninput="vId()"><div class="em" id="eid"></div></div>
+    <div class="f"><label>生日</label><input id="fb" type="date"></div>
+  </div>
+</div>
+<div id="cf" style="display:none">
+  <div class="row">
+    <div class="f"><label>公司名稱</label><input id="fcn" type="text" placeholder="XX有限公司"></div>
+    <div class="f"><label>統一編號</label><input id="ftx" type="text" placeholder="12345678" maxlength="8" oninput="vTx()"><div class="em" id="etx"></div></div>
+  </div>
+</div>
+<div class="row">
+  <div class="f"><label>聯絡電話</label><input id="fph" type="tel" placeholder="0912345678" maxlength="10" oninput="vPh()"><div class="em" id="eph"></div></div>
+  <div class="f"><label>車牌號碼</label><input id="fpl" type="text" placeholder="ABC-1234"></div>
+</div>
+<div class="row">
+  <div class="f"><label>縣市</label><select id="fct" onchange="updDist()"><option value="">請選擇</option></select></div>
+  <div class="f"><label>行政區</label><select id="fdt"><option value="">請先選縣市</option></select></div>
+</div>
+<div class="row1"><div class="f"><label>詳細地址</label><input id="fad" type="text" placeholder="路/街 巷 弄 號"></div></div>
+</div>
+
+<div class="card">
+<div class="ch">保單資料</div>
+<div class="row">
+  <div class="f"><label>險種</label>
+    <select id="ftp" onchange="updType()">
+      <option value="">請選擇</option>
+      <option>車險</option><option>強制險</option><option>住宅火險</option>
+      <option>商業火險</option><option>公共意外責任險</option><option>產品責任險</option>
+      <option>家庭責任險</option><option>雇主僱補險</option><option>團險</option><option>其他</option>
+    </select>
+  </div>
+  <div class="f"><label>保險公司</label>
+    <select id="fco">
+      <option value="">請選擇</option>
+      <option>華南</option><option>國泰</option><option>新光</option><option>富邦</option>
+      <option>明台</option><option>台產</option><option>和泰</option><option>第一</option>
+      <option>旺旺</option><option>泰安</option><option>中信產</option><option>新安東京</option>
+    </select>
+  </div>
+</div>
+
+<div id="xcar" style="display:none" class="xtra">
+  <div class="xtra-t">車險細項（可複選，分別填保費保額）</div>
+  <div class="cg" id="cg"></div>
+  <div class="tot">總保費：<span id="ctot">0</span> 元</div>
+</div>
+
+<div id="xmand" style="display:none" class="xtra">
+  <div class="xtra-t">強制險保費</div>
+  <div class="f" style="max-width:200px;"><label>保費（元）</label><input id="fmp" type="number" placeholder="0" oninput="calcT()"></div>
+</div>
+
+<div id="xfire" style="display:none" class="xtra">
+  <div class="xtra-t">住宅火險資料</div>
+  <div class="row">
+    <div class="f"><label>保費（元）</label><input id="ffire-pr" type="number" placeholder="0"></div>
+    <div class="f"><label>保額（萬）</label><input id="ffire-am" type="number" placeholder="0"></div>
+  </div>
+  <div class="row1">
+    <div class="f"><label>貸款銀行</label><input id="ffire-bank" type="text" placeholder="例：台灣銀行"></div>
+  </div>
+</div>
+
+<div id="xoth" style="display:none">
+  <div class="row3">
+    <div class="f"><label>保費（元）</label><input id="fpr" type="number" placeholder="0"></div>
+    <div class="f"><label>保額（萬）</label><input id="fam" type="number" placeholder="0"></div>
+    <div></div>
+  </div>
+</div>
+
+<div id="xotn" style="display:none" class="row1">
+  <div class="f"><label>其他險種說明</label><input id="fotn" type="text" placeholder="請填寫險種名稱"></div>
+</div>
+
+<div class="row">
+  <div class="f"><label>到期日</label><input id="fex" type="date"></div>
+  <div class="f"><label>負責人</label><select id="fow"><option>巧</option><option>吳忠皇</option><option>小剛</option></select></div>
+</div>
+<div class="row">
+  <div class="f"><label>續保狀態</label><select id="frn" onchange="togRn()"><option>待確認</option><option>已續保</option><option>不續保</option></select></div>
+  <div class="f" id="frnr" style="display:none"><label>不續保原因</label><input id="frnrv" type="text" placeholder="請填寫原因"></div>
+</div>
+<div class="row1"><div class="f"><label>備註</label><input id="fnt" type="text" placeholder="補充說明..."></div></div>
+<button class="abtn" id="abtn" onclick="addR()">＋ 新增保單</button>
+</div>
+</div>
+
+<div id="pnl-search" class="pnl">
+<div class="st">
+  <div class="sc"><div class="sn" id="stot">—</div><div class="sl">總保單數</div></div>
+  <div class="sc"><div class="sn" id="sexp">—</div><div class="sl">即將到期</div></div>
+  <div class="sc"><div class="sn" id="scli">—</div><div class="sl">客戶數</div></div>
+</div>
+<input class="si" id="sq" type="text" placeholder="輸入客戶姓名或車牌搜尋..." oninput="rendS()">
+<div id="slist"><div class="emp">輸入姓名開始搜尋</div></div>
+</div>
+
+<div id="pnl-expiry" class="pnl">
+<div class="card">
+  <div class="ch">選擇到期月份</div>
+  <div id="mbs"></div>
+  <button class="gb" onclick="genMsg()">產出各公司續保名單訊息</button>
+  <div id="rmsg"></div>
+</div>
+<div id="elist"></div>
+</div>
+
+<script>
+const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eWq4LQvMNPQGuX7L14_0zp1Sx6fB9W9CD1QaD1XCGA/exec';
+const DET=['體傷','財損','超額','拖吊','駕傷','全險'];
+const CITIES={
+  '台北市':['中正區','大同區','中山區','松山區','大安區','萬華區','信義區','士林區','北投區','內湖區','南港區','文山區'],
+  '新北市':['板橋區','新莊區','中和區','永和區','土城區','樹林區','三重區','蘆洲區','汐止區','新店區','淡水區','三峽區'],
+  '桃園市':['桃園區','中壢區','平鎮區','八德區','楊梅區','蘆竹區','大溪區','龜山區','龍潭區'],
+  '台中市':['中區','東區','南區','西區','北區','西屯區','南屯區','北屯區','豐原區','大里區','太平區'],
+  '台南市':['中西區','東區','南區','北區','安平區','安南區','永康區','歸仁區','新化區','左鎮區'],
+  '高雄市':['楠梓區','左營區','鼓山區','三民區','鹽埕區','前金區','苓雅區','前鎮區','旗津區','小港區','鳳山區','林園區'],
+  '基隆市':['仁愛區','信義區','中正區','中山區','安樂區','暖暖區','七堵區'],
+  '新竹市':['東區','北區','香山區'],
+  '嘉義市':['東區','西區'],
+  '新竹縣':['竹北市','竹東鎮','新埔鎮','關西鎮','湖口鄉','新豐鄉'],
+  '苗栗縣':['苗栗市','頭份市','竹南鎮','後龍鎮','通霄鎮','苑裡鎮'],
+  '彰化縣':['彰化市','員林市','和美鎮','鹿港鎮','溪湖鎮','二林鎮'],
+  '南投縣':['南投市','埔里鎮','草屯鎮','竹山鎮','集集鎮','名間鄉'],
+  '雲林縣':['斗六市','斗南鎮','虎尾鎮','西螺鎮','土庫鎮','北港鎮'],
+  '嘉義縣':['太保市','朴子市','布袋鎮','大林鎮','民雄鄉','溪口鄉'],
+  '屏東縣':['屏東市','潮州鎮','東港鎮','恆春鎮','萬丹鄉','長治鄉'],
+  '宜蘭縣':['宜蘭市','羅東鎮','蘇澳鎮','頭城鎮','礁溪鄉','壯圍鄉'],
+  '花蓮縣':['花蓮市','鳳林鎮','玉里鎮','新城鄉','吉安鄉','壽豐鄉'],
+  '台東縣':['台東市','成功鎮','關山鎮','卑南鄉','鹿野鄉','池上鄉'],
+  '澎湖縣':['馬公市','湖西鄉','白沙鄉','西嶼鄉','望安鄉','七美鄉'],
+  '金門縣':['金城鎮','金湖鎮','金沙鎮','金寧鄉','烈嶼鄉'],
+  '連江縣':['南竿鄉','北竿鄉','莒光鄉','東引鄉']
+};
+let recs=[],selM=new Date().getMonth()+1;
+
+function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
+function sw(t){
+  document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','search','expiry'][i]===t);});
+  document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
+  document.getElementById('pnl-'+t).classList.add('on');
+  if(t==='search') rendS();
+  if(t==='expiry'){initM();rendE();}
+}
+function togId(){var v=document.getElementById('fi').value;document.getElementById('pf').style.display=v==='個人'?'block':'none';document.getElementById('cf').style.display=v==='公司'?'block':'none';}
+function togRn(){document.getElementById('frnr').style.display=document.getElementById('frn').value==='不續保'?'block':'none';}
+function updDist(){
+  var c=document.getElementById('fct').value,s=document.getElementById('fdt');
+  s.innerHTML='<option value="">請選擇</option>';
+  (CITIES[c]||[]).forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d;s.appendChild(o);});
+}
+function initCities(){
+  var s=document.getElementById('fct');
+  Object.keys(CITIES).forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;s.appendChild(o);});
+}
+function vId(){var v=document.getElementById('fid').value,ok=/^[A-Za-z][0-9]{9}$/.test(v);document.getElementById('fid').className=v.length===10&&!ok?'err':'';document.getElementById('eid').textContent=v.length===10&&!ok?'格式錯誤：1英文+9數字':'';}
+function vPh(){var v=document.getElementById('fph').value,ok=/^[0-9]{10}$/.test(v);document.getElementById('fph').className=v.length===10&&!ok?'err':'';document.getElementById('eph').textContent=v.length===10&&!ok?'應為10位數字':'';}
+function vTx(){var v=document.getElementById('ftx').value,ok=/^[0-9]{8}$/.test(v);document.getElementById('ftx').className=v.length===8&&!ok?'err':'';document.getElementById('etx').textContent=v.length===8&&!ok?'應為8位數字':'';}
+function updType(){
+  var t=document.getElementById('ftp').value;
+  document.getElementById('xcar').style.display=t==='車險'?'block':'none';
+  document.getElementById('xmand').style.display=t==='強制險'?'block':'none';
+  document.getElementById('xfire').style.display=t==='住宅火險'?'block':'none';
+  document.getElementById('xoth').style.display=(t&&t!=='車險'&&t!=='強制險'&&t!=='住宅火險')?'block':'none';
+  document.getElementById('xotn').style.display=t==='其他'?'block':'none';
+}
+function initCar(){
+  var g=document.getElementById('cg');
+  g.innerHTML=DET.map(function(d){
+    return '<div><div class="ci"><input type="checkbox" id="c'+d+'" onchange="togD(\''+d+'\')"><label for="c'+d+'">'+d+'</label></div>'
+      +'<div class="di" id="d'+d+'"><span>保費</span><input type="number" id="p'+d+'" placeholder="0" oninput="calcT()">元<span>保額</span><input type="number" id="a'+d+'" placeholder="0">萬</div></div>';
+  }).join('');
+}
+function togD(d){var c=document.getElementById('c'+d),di=document.getElementById('d'+d);di.className='di'+(c.checked?' show':'');calcT();}
+function calcT(){
+  var t=0;
+  var mp=document.getElementById('fmp');if(mp&&mp.value)t+=parseInt(mp.value)||0;
+  DET.forEach(function(d){var c=document.getElementById('c'+d);if(c&&c.checked){var p=document.getElementById('p'+d);if(p)t+=parseInt(p.value)||0;}});
+  var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
+}
+async function loadR(){
+  try{
+    var res=await fetch(API),d=await res.json();
+    recs=Array.isArray(d)?d:[];
+    setSb('sok','已連線，資料同步自 Google Sheets');
+    updSt();
+  }catch(e){setSb('ser','無法連線，請檢查網路');}
+}
+function updSt(){
+  var td=new Date(),d45=new Date();d45.setDate(d45.getDate()+45);
+  document.getElementById('stot').textContent=recs.length;
+  document.getElementById('sexp').textContent=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45;}).length;
+  document.getElementById('scli').textContent=new Set(recs.map(function(r){return r.name;})).size;
+}
+function dl(ex){var t=new Date();t.setHours(0,0,0,0);var d=new Date(ex);d.setHours(0,0,0,0);return Math.round((d-t)/864e5);}
+function ebg(ex){var d=dl(ex);if(d<0)return '<span class="bg br">已到期</span>';if(d<=45)return '<span class="bg ba">剩'+d+'天</span>';return '<span class="bg bg2">剩'+d+'天</span>';}
+
+function rHTML(r,cp){
+  var d=dl(r.expiry),cls=d<0?'exd':d<=45?'exp':'';
+  var dets=[];try{dets=JSON.parse(r.cardetails||'[]');}catch(e){}
+  var ds=dets.map(function(x){return x.name+'：'+Number(x.premium).toLocaleString()+'元'+(x.amount?' / '+x.amount+'萬':'');}).join('、');
+  var rid='r'+r.name.replace(/\s/g,'')+r.expiry.replace(/-/g,'');
+  return '<div class="rc '+cls+'" id="'+rid+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<span class="rn">'+r.name+'</span>'
+    +'<button class="db" onclick="delR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
+    +'</div>'
+    +'<div class="rrow">'
+    +'<span class="bg bt">'+(r.type||'')+(r.othertype?' ('+r.othertype+')':'')+'</span>'
+    +'<span class="bg bx">'+(r.company||'')+'</span>'
+    +ebg(r.expiry)
+    +(r.renew==='已續保'?'<span class="bg bg2">已續保</span>':r.renew==='不續保'?'<span class="bg br">不續保</span>':'<span class="bg bx">待確認</span>')
+    +'</div>'
+    +'<div class="rd">'
+    +(r.plate?'車牌：'+r.plate+'　':'')
+    +(r.phone?'電話：'+r.phone+'　':'')
+    +'到期：'+r.expiry
+    +(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
+    +(ds?'<br>'+ds:'')
+    +(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')
+    +(r.renewreason?'<br>不續保原因：'+r.renewreason:'')
+    +(r.note?'<br>備註：'+r.note:'')
+    +'</div>'
+    +(cp?'<button class="cb" onclick="cpR(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">複製資料</button>':'')
+    +'<button class="cb" onclick="togRenewEdit(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\',\''+r.renew+'\')">更新續保狀態</button>'
+    +'<div class="renew-edit" id="re-'+rid+'" style="display:none;">'
+    +'<div class="renew-edit-t">更新續保狀態</div>'
+    +'<select id="rs-'+rid+'"><option>待確認</option><option>已續保</option><option>不續保</option></select>'
+    +'<input type="text" id="rr-'+rid+'" placeholder="不續保原因（選填）">'
+    +'<button class="save-btn" onclick="saveRenew(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
+    +'</div>'
+    +'</div>';
+}
+
+function togRenewEdit(rid,name,expiry,curRenew){
+  var box=document.getElementById('re-'+rid);
+  var show=box.style.display==='none';
+  box.style.display=show?'block':'none';
+  if(show){var sel=document.getElementById('rs-'+rid);if(sel)sel.value=curRenew||'待確認';}
+}
+
+async function saveRenew(rid,name,expiry){
+  var sel=document.getElementById('rs-'+rid);
+  var rrInput=document.getElementById('rr-'+rid);
+  var renew=sel.value,renewreason=rrInput.value||'';
+  setSb('sl2','更新中...');
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify({action:'update_renew',name:name,expiry:expiry,renew:renew,renewreason:renewreason})});
+    recs.forEach(function(r){if(r.name===name&&r.expiry===expiry){r.renew=renew;r.renewreason=renewreason;}});
+    setSb('sok','已更新續保狀態');
+    document.getElementById('re-'+rid).style.display='none';
+    rendS();rendE();
+  }catch(e){setSb('ser','更新失敗，請重試');}
+}
+
+function cpR(btn,enc){
+  var r=JSON.parse(decodeURIComponent(enc));
+  var dets=[];try{dets=JSON.parse(r.cardetails||'[]');}catch(e){}
+  var ds=dets.map(function(x){return x.name+'：'+Number(x.premium).toLocaleString()+'元'+(x.amount?' / '+x.amount+'萬':'');}).join('\n');
+  var t='【客戶資料】\n姓名：'+r.name+'\n車牌：'+(r.plate||'－')+'\n電話：'+(r.phone||'－')+'\n身分證：'+(r.idno||'－')+'\n\n【保單資料】\n險種：'+r.type+(r.othertype?' ('+r.othertype+')':'')+'\n保險公司：'+r.company+'\n到期日：'+r.expiry+'\n總保費：'+(r.totalpremium?Number(r.totalpremium).toLocaleString()+'元':'－')+(ds?'\n'+ds:'')+(r.loanbank?'\n貸款銀行：'+r.loanbank:'')+(r.note?'\n備註：'+r.note:'');
+  navigator.clipboard.writeText(t).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製資料';},2000);});
+}
+
+function rendS(){
+  var q=document.getElementById('sq').value.trim().toLowerCase();
+  if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';return;}
+  var f=recs.filter(function(r){return(r.name&&r.name.toLowerCase().includes(q))||(r.plate&&r.plate.toLowerCase().includes(q));});
+  document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">找不到相關記錄</div>';
+}
+
+function initM(){
+  var d=document.getElementById('mbs');
+  d.innerHTML=Array.from({length:12},function(_,i){var m=i+1;return '<button class="mb'+(m===selM?' on':'')+'" onclick="selMonth('+m+')">'+m+'月</button>';}).join('');
+}
+function selMonth(m){
+  selM=m;
+  document.querySelectorAll('.mb').forEach(function(b,i){b.classList.toggle('on',i+1===m);});
+  rendE();
+}
+function rendE(){
+  var mr=recs.filter(function(r){return r.expiry&&new Date(r.expiry).getMonth()+1===selM;});
+  document.getElementById('elist').innerHTML=mr.length?mr.map(function(r){return rHTML(r,false);}).join(''):'<div class="emp">'+selM+'月沒有到期保單</div>';
+}
+function genMsg(){
+  var mr=recs.filter(function(r){return r.expiry&&new Date(r.expiry).getMonth()+1===selM;});
+  if(!mr.length){document.getElementById('rmsg').innerHTML='<div class="emp">沒有資料可產出</div>';return;}
+  var bc={};
+  mr.forEach(function(r){var c=r.company||'未知';if(!bc[c])bc[c]=[];bc[c].push(r);});
+  var html='';
+  Object.entries(bc).forEach(function(entry){
+    var co=entry[0],list=entry[1];
+    var msg='您好，以下是'+selM+'月份到期需要續保的客戶名單，麻煩提供續保資料，謝謝！\n\n'
+      +list.map(function(r,i){return(i+1)+'、'+r.name+(r.plate?' / 車牌：'+r.plate:'')+(r.idno?' / 身分證：'+r.idno:'')+' / 險種：'+r.type;}).join('\n');
+    html+='<div style="margin-bottom:14px;">'
+      +'<div class="co-label">【'+co+'】</div>'
+      +'<div class="msg">'+msg+'</div>'
+      +'<button class="cb" onclick="cpMsg(this,\''+encodeURIComponent(msg)+'\')">複製此訊息</button>'
+      +'</div>';
+  });
+  document.getElementById('rmsg').innerHTML=html;
+}
+function cpMsg(btn,enc){
+  navigator.clipboard.writeText(decodeURIComponent(enc)).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製此訊息';},2000);});
+}
+
+async function addR(){
+  var name=document.getElementById('fn').value.trim(),type=document.getElementById('ftp').value,expiry=document.getElementById('fex').value;
+  if(!name||!type||!expiry){alert('請填寫姓名、險種及到期日');return;}
+  var idno=document.getElementById('fid').value,phone=document.getElementById('fph').value;
+  if(idno&&!/^[A-Za-z][0-9]{9}$/.test(idno)){alert('身分證字號格式錯誤，請確認');return;}
+  if(phone&&!/^[0-9]{10}$/.test(phone)){alert('電話應為10碼數字');return;}
+  var dets=[],tot=0,loanbank='';
+  if(type==='車險'){
+    DET.forEach(function(d){
+      var c=document.getElementById('c'+d);
+      if(c&&c.checked){var p=parseInt(document.getElementById('p'+d).value)||0,a=document.getElementById('a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
+    });
+  }else if(type==='強制險'){
+    tot=parseInt(document.getElementById('fmp').value)||0;
+  }else if(type==='住宅火險'){
+    tot=parseInt(document.getElementById('ffire-pr').value)||0;
+    loanbank=document.getElementById('ffire-bank').value.trim();
+  }else{
+    tot=parseInt(document.getElementById('fpr').value)||0;
+  }
+  var city=document.getElementById('fct').value,dist=document.getElementById('fdt').value,addr=document.getElementById('fad').value.trim();
+  var rec={
+    action:'add',name:name,idno:idno,
+    birthday:document.getElementById('fb').value,
+    phone:phone,address:city+dist+addr,
+    plate:document.getElementById('fpl').value.trim(),
+    identity:document.getElementById('fi').value,
+    type:type,detail:dets.map(function(x){return x.name;}).join('、'),
+    company:document.getElementById('fco').value,
+    premium:tot,
+    amount:type==='住宅火險'?document.getElementById('ffire-am').value:(document.getElementById('fam')?document.getElementById('fam').value:''),
+    expiry:expiry,renew:document.getElementById('frn').value,
+    renewreason:document.getElementById('frnrv').value||'',
+    owner:document.getElementById('fow').value,
+    note:document.getElementById('fnt').value.trim(),
+    totalpremium:tot,cardetails:JSON.stringify(dets),
+    othertype:type==='其他'?document.getElementById('fotn').value:'',
+    loanbank:loanbank
+  };
+  var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='儲存中...';
+  setSb('sl2','儲存至 Google Sheets...');
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify(rec)});
+    recs.unshift(rec);setSb('sok','已儲存並同步至 Google Sheets');updSt();
+    ['fn','fid','fph','fpl','fad','fnt','fotn','frnrv','fcn','ftx','ffire-pr','ffire-am','ffire-bank'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    ['ftp','fco','fct','fdt'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('fb').value='';document.getElementById('fex').value='';
+    document.getElementById('frn').value='待確認';
+    ['xcar','xmand','xfire','xoth','xotn','frnr'].forEach(function(id){document.getElementById(id).style.display='none';});
+    initCar();
+  }catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='＋ 新增保單';
+}
+
+async function delR(name,expiry){
+  if(!confirm('確定刪除 '+name+' 的這筆保單？'))return;
+  setSb('sl2','刪除中...');
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify({action:'delete',name:name,expiry:expiry})});
+    recs=recs.filter(function(r){return!(r.name===name&&r.expiry===expiry);});
+    setSb('sok','已刪除');rendS();rendE();updSt();
+  }catch(e){setSb('ser','刪除失敗，請重試');}
+}
+
+initCities();initCar();initM();loadR();
+</script>
+</div>
+</body>
+</html>
