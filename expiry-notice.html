@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>到期通知管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
+body{background:#F5FAFA;font-family:var(--h);}
+.app{padding:1rem 1rem;max-width:640px;margin:0 auto;}
+.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
+.hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
+.hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem;}
+.tab{font-family:var(--h);font-size:16px;font-weight:600;padding:10px;border-radius:16px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;}
+.tab.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.pnl{display:none;}.pnl.on{display:block;}
+.card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
+.ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.row1{display:grid;grid-template-columns:1fr;margin-bottom:10px;}
+.f label{font-family:var(--h);font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
+.f input,.f select,.f textarea{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--tf);background:#fff;}
+.f textarea{height:70px;resize:none;}
+.date-row{display:flex;gap:5px;}
+.date-row select{flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;}
+.abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
+.abtn:disabled{opacity:0.5;cursor:not-allowed;}
+.sb{font-family:var(--h);font-size:14px;padding:8px 14px;border-radius:14px;margin-bottom:10px;text-align:center;}
+.sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
+.sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
+.ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
+.st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
+.sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
+.rc{background:#fff;border-radius:18px;padding:1rem 1.2rem;margin-bottom:10px;border:1.5px solid var(--sage);}
+.rc.urgent{border-color:#F0A8A8;background:#FFF5F5;}
+.rc.soon{border-color:#F5CC80;background:#FFFBF0;}
+.rc.done{border-color:#A8D5B2;background:#F0FFF4;opacity:0.7;}
+.rn{font-family:var(--h);font-size:20px;font-weight:600;color:var(--tfdp);}
+.rrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.bg{font-family:var(--h);font-size:13px;padding:3px 10px;border-radius:18px;font-weight:600;}
+.bt{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
+.ba{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.br{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
+.bg2{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
+.bx{background:#F5F5F5;color:#666;border:1.5px solid #DDD;}
+.bp{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
+.rd{font-family:var(--h);font-size:14px;color:#777;margin-top:6px;line-height:1.8;}
+.cb{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.db{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
+.done-btn{font-family:var(--h);font-size:13px;color:#2E7D42;background:#E6F4EA;border:1px solid #A8D5B2;border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.emp{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
+.msg-box{background:var(--mint);border:1.5px solid var(--sage);border-radius:14px;padding:12px;margin-top:8px;font-family:var(--h);font-size:14px;color:var(--tfdp);white-space:pre-wrap;line-height:1.7;display:none;}
+.type-color-1{background:#E0F7F6;color:#077B78;border:1.5px solid #5DCEC9;}
+.type-color-2{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
+.type-color-3{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.fbtn{font-family:var(--h);font-size:14px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;}
+.fbtn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr"><h1>到期通知管理</h1><p>儲蓄險・生存年金・信用卡</p></div>
+<div id="sb" class="sb sl2">連線中，載入資料...</div>
+<div class="tabs">
+  <div class="tab on" onclick="sw('input')">新增通知項目</div>
+  <div class="tab" onclick="sw('list')">到期清單</div>
+</div>
+
+<div id="pnl-input" class="pnl on">
+<div class="card">
+  <div class="ch">新增到期通知</div>
+  <div class="row">
+    <div class="f"><label>客戶姓名</label><input id="fn" type="text" placeholder="王小明"></div>
+    <div class="f">
+      <label>通知類型</label>
+      <select id="ftp" onchange="updType()">
+        <option value="">請選擇</option>
+        <option value="儲蓄險到期">儲蓄險到期</option>
+        <option value="生存年金可申請">生存年金可申請</option>
+        <option value="信用卡效期到期">信用卡效期到期</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="xcc" style="display:none" class="row">
+    <div class="f"><label>銀行名稱</label><input id="fbank" type="text" placeholder="玉山銀行"></div>
+    <div class="f"><label>卡號末四碼</label><input id="fcard" type="text" placeholder="1234" maxlength="4"></div>
+  </div>
+
+  <div id="xsave" style="display:none" class="row1">
+    <div class="f"><label>保單號碼</label><input id="fpolicy" type="text" placeholder="選填"></div>
+  </div>
+
+  <div class="row1">
+    <div class="f">
+      <label>到期日／申請日</label>
+      <div class="date-row">
+        <select id="fex-y"><option value="">年</option></select>
+        <select id="fex-m"><option value="">月</option></select>
+        <select id="fex-d"><option value="">日</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="row1">
+    <div class="f"><label>備註</label><textarea id="fnt" placeholder="補充說明..."></textarea></div>
+  </div>
+  <button class="abtn" id="abtn" onclick="addR()">＋ 新增</button>
+</div>
+</div>
+
+<div id="pnl-list" class="pnl">
+  <div class="st">
+    <div class="sc"><div class="sn" id="stot">—</div><div class="sl">總筆數</div></div>
+    <div class="sc"><div class="sn" id="s30">—</div><div class="sl">30天內</div></div>
+    <div class="sc"><div class="sn" id="s90">—</div><div class="sl">90天內</div></div>
+  </div>
+  <div class="filter-row">
+    <button class="fbtn on" onclick="setFilter('all',this)">全部</button>
+    <button class="fbtn" onclick="setFilter('儲蓄險到期',this)">儲蓄險</button>
+    <button class="fbtn" onclick="setFilter('生存年金可申請',this)">生存年金</button>
+    <button class="fbtn" onclick="setFilter('信用卡效期到期',this)">信用卡</button>
+    <button class="fbtn" onclick="setFilter('待處理',this)">待處理</button>
+    <button class="fbtn" onclick="setFilter('已處理',this)">已處理</button>
+  </div>
+  <div id="rlist"><div class="emp">載入中...</div></div>
+</div>
+</div>
+
+<script>
+var API='https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
+var recs=[],curFilter='all';
+
+var TYPE_MSG={
+  '儲蓄險到期':'您好！您的儲蓄險保單即將到期，請問您有收到保險公司的通知了嗎？\n\n到期後您可以選擇：\n1. 領回滿期金\n2. 轉入其他保單\n\n需要提供的文件：\n・身分證正本\n・原保單\n・存摺封面\n\n請問您方便什麼時候來辦理呢？',
+  '生存年金可申請':'您好！您的生存年金已到達可申請日期 🎉\n\n申請方式：\n1. 臨櫃辦理\n2. 填寫申請書郵寄\n\n需要準備的文件：\n・身分證正本\n・存摺封面\n・印章\n\n請問您需要我協助安排辦理事宜嗎？',
+  '信用卡效期到期':'您好！您的信用卡即將到期，保費自動扣款可能會受到影響。\n\n請確認：\n1. 是否已收到新卡\n2. 啟用新卡後，請通知我更新保費扣款資料\n\n如需更換扣款信用卡，請提供：\n・新卡銀行名稱\n・新卡有效年月\n\n請問您的新卡是否已經收到了呢？'
+};
+
+function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
+function sw(t){
+  document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','list'][i]===t);});
+  document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
+  document.getElementById('pnl-'+t).classList.add('on');
+  if(t==='list') rendList();
+}
+function updType(){
+  var t=document.getElementById('ftp').value;
+  document.getElementById('xcc').style.display=t==='信用卡效期到期'?'grid':'none';
+  document.getElementById('xsave').style.display=(t==='儲蓄險到期'||t==='生存年金可申請')?'block':'none';
+}
+function initDates(){
+  var now=new Date(),cy=now.getFullYear();
+  var ys=document.getElementById('fex-y');
+  for(var y=cy;y<=cy+20;y++){var o=document.createElement('option');o.value=y;o.textContent=y+'年';ys.appendChild(o);}
+  var ms=document.getElementById('fex-m');
+  for(var m=1;m<=12;m++){var o=document.createElement('option');o.value=String(m).padStart(2,'0');o.textContent=m+'月';ms.appendChild(o);}
+  var ds=document.getElementById('fex-d');
+  for(var d=1;d<=31;d++){var o=document.createElement('option');o.value=String(d).padStart(2,'0');o.textContent=d+'日';ds.appendChild(o);}
+}
+function getExpiry(){
+  var y=document.getElementById('fex-y').value,m=document.getElementById('fex-m').value,d=document.getElementById('fex-d').value;
+  return(y&&m&&d)?y+'-'+m+'-'+d:'';
+}
+function resetForm(){
+  ['fn','fbank','fcard','fpolicy','fnt'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('ftp').value='';
+  ['fex-y','fex-m','fex-d'].forEach(function(id){document.getElementById(id).selectedIndex=0;});
+  document.getElementById('xcc').style.display='none';
+  document.getElementById('xsave').style.display='none';
+}
+async function loadR(){
+  try{
+    var res=await fetch(API),d=await res.json();
+    recs=Array.isArray(d)?d:[];
+    setSb('sok','已連線，資料同步自 Google Sheets');
+    updSt();
+  }catch(e){setSb('ser','無法連線，請檢查網路');}
+}
+function dl(ex){
+  var t=new Date();t.setHours(0,0,0,0);
+  var d=new Date(ex);d.setHours(0,0,0,0);
+  return Math.round((d-t)/864e5);
+}
+function updSt(){
+  var active=recs.filter(function(r){return r.status!=='已處理';});
+  document.getElementById('stot').textContent=active.length;
+  document.getElementById('s30').textContent=active.filter(function(r){var d=dl(r.expiry);return d>=0&&d<=30;}).length;
+  document.getElementById('s90').textContent=active.filter(function(r){var d=dl(r.expiry);return d>=0&&d<=90;}).length;
+}
+function setFilter(f,btn){
+  curFilter=f;
+  document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  rendList();
+}
+function typeBadge(t){
+  if(t==='儲蓄險到期') return '<span class="bg type-color-1">儲蓄險到期</span>';
+  if(t==='生存年金可申請') return '<span class="bg type-color-2">生存年金</span>';
+  if(t==='信用卡效期到期') return '<span class="bg type-color-3">信用卡到期</span>';
+  return '<span class="bg bx">'+t+'</span>';
+}
+function rHTML(r){
+  var d=dl(r.expiry);
+  var cls=r.status==='已處理'?'done':d<=30?'urgent':d<=90?'soon':'';
+  var rid='r'+r.name.replace(/\s/g,'')+r.expiry.replace(/-/g,'');
+  var dbadge=d<0?'<span class="bg br">已過期</span>':d<=30?'<span class="bg br">剩'+d+'天</span>':d<=90?'<span class="bg ba">剩'+d+'天</span>':'<span class="bg bg2">剩'+d+'天</span>';
+  return '<div class="rc '+cls+'" id="'+rid+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<span class="rn">'+r.name+'</span>'
+    +'<button class="db" onclick="delR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
+    +'</div>'
+    +'<div class="rrow">'
+    +typeBadge(r.type)
+    +dbadge
+    +(r.status==='已處理'?'<span class="bg bg2">已處理</span>':'<span class="bg bx">待處理</span>')
+    +'</div>'
+    +'<div class="rd">'
+    +'到期日：'+r.expiry
+    +(r.note?'　備註：'+r.note:'')
+    +'</div>'
+    +(r.status!=='已處理'?
+      '<button class="cb" onclick="togMsg(\''+rid+'\',\''+r.type+'\',\''+r.name+'\')">產出提醒訊息</button>'
+      +'<button class="done-btn" onclick="markDone(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\')">標記已處理</button>'
+      :'')
+    +'<div class="msg-box" id="msg-'+rid+'"></div>'
+    +'</div>';
+}
+function togMsg(rid,type,name){
+  var box=document.getElementById('msg-'+rid);
+  if(box.style.display==='block'){box.style.display='none';return;}
+  var msg=TYPE_MSG[type]||'請聯絡客戶確認相關事宜。';
+  box.textContent=msg;
+  box.style.display='block';
+  var cpbtn=document.createElement('button');
+  cpbtn.className='cb';cpbtn.textContent='複製訊息';
+  cpbtn.onclick=function(){
+    navigator.clipboard.writeText(msg).then(function(){cpbtn.textContent='已複製！';setTimeout(function(){cpbtn.textContent='複製訊息';},2000);});
+  };
+  if(!box.nextSibling||box.nextSibling.textContent!=='複製訊息'){
+    box.parentNode.insertBefore(cpbtn,box.nextSibling);
+  }
+}
+async function markDone(rid,name,expiry){
+  setSb('sl2','更新中...');
+  try{
+    var url=API+'?action=update_status&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&status=已處理';
+    await fetch(url);
+    recs.forEach(function(r){if(r.name===name&&r.expiry===expiry)r.status='已處理';});
+    setSb('sok','已標記為已處理');
+    rendList();updSt();
+  }catch(e){setSb('ser','更新失敗');}
+}
+async function delR(name,expiry){
+  if(!confirm('確定刪除？'))return;
+  setSb('sl2','刪除中...');
+  try{
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',name:name,expiry:expiry})});
+    recs=recs.filter(function(r){return!(r.name===name&&r.expiry===expiry);});
+    setSb('sok','已刪除');rendList();updSt();
+  }catch(e){setSb('ser','刪除失敗');}
+}
+function rendList(){
+  var f=recs;
+  if(curFilter==='待處理') f=recs.filter(function(r){return r.status!=='已處理';});
+  else if(curFilter==='已處理') f=recs.filter(function(r){return r.status==='已處理';});
+  else if(curFilter!=='all') f=recs.filter(function(r){return r.type===curFilter;});
+  f=f.slice().sort(function(a,b){return new Date(a.expiry)-new Date(b.expiry);});
+  document.getElementById('rlist').innerHTML=f.length?f.map(function(r){return rHTML(r);}).join(''):'<div class="emp">沒有符合的記錄</div>';
+}
+async function addR(){
+  var name=document.getElementById('fn').value.trim();
+  var type=document.getElementById('ftp').value;
+  var expiry=getExpiry();
+  if(!name||!type||!expiry){alert('請填寫姓名、類型及到期日');return;}
+  var note=document.getElementById('fnt').value.trim();
+  var bank=document.getElementById('fbank').value.trim();
+  var card=document.getElementById('fcard').value.trim();
+  var policy=document.getElementById('fpolicy').value.trim();
+  var extra='';
+  if(bank) extra+='銀行：'+bank;
+  if(card) extra+=(extra?' / ':'')+'末四碼：'+card;
+  if(policy) extra+=(extra?' / ':'')+'保單號碼：'+policy;
+  var fullNote=(extra&&note)?extra+'、'+note:extra||note;
+  var rec={action:'add',name:name,type:type,expiry:expiry,note:fullNote};
+  var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='儲存中...';
+  setSb('sl2','儲存至 Google Sheets...');
+  try{
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
+    recs.unshift({name:name,type:type,expiry:expiry,status:'待處理',note:fullNote});
+    setSb('sok','已儲存');updSt();resetForm();
+  }catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='＋ 新增';
+}
+initDates();loadR();
+</script>
+</body>
+</html>
