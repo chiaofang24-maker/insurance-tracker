@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>巧芳保險工具箱</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
+body{background:#F5FAFA;font-family:var(--h);min-height:100vh;}
+.app{padding:1.5rem 1rem;max-width:640px;margin:0 auto;}
+.hdr{background:var(--tf);border-radius:24px;padding:1.5rem 1.8rem;margin-bottom:1.5rem;text-align:center;}
+.hdr h1{font-size:28px;font-weight:600;color:#fff;font-family:var(--h);margin-bottom:6px;}
+.hdr p{font-size:15px;color:rgba(255,255,255,0.9);font-family:var(--h);}
+.date-bar{background:#fff;border-radius:16px;padding:10px 16px;margin-bottom:1.5rem;border:1.5px solid var(--sage);text-align:center;font-family:var(--h);font-size:15px;color:var(--tfd);}
+.section-title{font-family:var(--h);font-size:16px;font-weight:600;color:var(--tfd);margin-bottom:10px;padding-left:4px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;}
+.tool-card{background:#fff;border-radius:22px;padding:1.2rem;border:1.5px solid var(--sage);cursor:pointer;text-decoration:none;display:block;transition:border-color 0.2s;}
+.tool-card:hover{border-color:var(--tfm);}
+.tool-icon{font-size:32px;margin-bottom:10px;display:block;}
+.tool-name{font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfdp);margin-bottom:6px;}
+.tool-desc{font-family:var(--h);font-size:13px;color:#888;line-height:1.6;}
+.tool-badge{display:inline-block;font-family:var(--h);font-size:11px;padding:2px 8px;border-radius:10px;margin-top:8px;font-weight:600;}
+.badge-green{background:#E6F4EA;color:#2E7D42;border:1px solid #A8D5B2;}
+.badge-blue{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
+.badge-amber{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
+.badge-purple{background:#F0EEFE;color:#4A3AAA;border:1px solid #C5BDEF;}
+.info-card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
+.info-title{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--sage);}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--sage);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-family:var(--h);font-size:14px;color:#888;}
+.info-value{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfdp);}
+.footer{text-align:center;font-family:var(--h);font-size:13px;color:#aaa;margin-top:1rem;padding-bottom:1rem;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <h1>巧芳保險工具箱</h1>
+    <p>所有工作工具，一個地方管理</p>
+  </div>
+
+  <div class="date-bar" id="datebar">載入中...</div>
+
+  <div class="section-title">我的工具</div>
+  <div class="grid">
+    <a class="tool-card" href="https://chiaofang24-maker.github.io/insurance-tracker/service-record.html">
+      <span class="tool-icon">📋</span>
+      <div class="tool-name">保單服務記錄</div>
+      <div class="tool-desc">記錄客戶的保單服務申請，信用卡變更、理賠、加保等</div>
+      <span class="tool-badge badge-blue">壽險・醫療</span>
+    </a>
+    <a class="tool-card" href="https://chiaofang24-maker.github.io/insurance-tracker/insurance-general.html">
+      <span class="tool-icon">🚗</span>
+      <div class="tool-name">產險管理系統</div>
+      <div class="tool-desc">管理車險、火險、責任險，含查詢、到期提醒、續保名單</div>
+      <span class="tool-badge badge-green">產險專用</span>
+    </a>
+    <a class="tool-card" href="https://chiaofang24-maker.github.io/insurance-tracker/expiry-notice.html">
+      <span class="tool-icon">🔔</span>
+      <div class="tool-name">到期通知管理</div>
+      <div class="tool-desc">儲蓄險、生存年金、信用卡效期到期提醒，自動發 Line</div>
+      <span class="tool-badge badge-amber">自動通知</span>
+    </a>
+    <div class="tool-card" style="background:var(--mint);border-style:dashed;cursor:default;">
+      <span class="tool-icon">➕</span>
+      <div class="tool-name" style="color:#aaa;">新增工具</div>
+      <div class="tool-desc" style="color:#bbb;">未來新增的工具會出現在這裡</div>
+    </div>
+  </div>
+
+  <div class="section-title">快速資訊</div>
+  <div class="info-card">
+    <div class="info-title">Google Sheets 資料庫</div>
+    <div class="info-row">
+      <span class="info-label">保單服務記錄</span>
+      <a href="https://docs.google.com/spreadsheets/d/1pHrBd0r524Tq5DMstDKRB97yoB8Q0OzjHTtD4CblY_o" style="font-family:var(--h);font-size:13px;color:var(--tf);">開啟</a>
+    </div>
+    <div class="info-row">
+      <span class="info-label">產險管理系統</span>
+      <a href="https://docs.google.com/spreadsheets/d/1mZQ-SFLfcSAquByeegrlxjYMLLv29gdaOBsWa_4IDfg" style="font-family:var(--h);font-size:13px;color:var(--tf);">開啟</a>
+    </div>
+    <div class="info-row">
+      <span class="info-label">到期通知管理</span>
+      <a href="https://docs.google.com/spreadsheets/d/18R1oW5iGN8meqiJELuqpbazff_q9dKMb0p9CJ4a-C3w" style="font-family:var(--h);font-size:13px;color:var(--tf);">開啟</a>
+    </div>
+  </div>
+
+  <div class="footer">巧芳保險工具箱 · 如需新增或修改工具，請聯絡 Claude</div>
+</div>
+
+<script>
+var now = new Date();
+var days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+var dateStr = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日　'+days[now.getDay()];
+document.getElementById('datebar').textContent = dateStr;
+</script>
+</body>
+</html>
