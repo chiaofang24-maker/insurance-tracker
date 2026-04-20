@@ -136,6 +136,21 @@ body{background:#F5FAFA;font-family:var(--h);}
 <script>
 var API='https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
 var recs=[],curFilter='all';
+function fmtDate(d){
+  if(!d) return '－';
+  try{
+    var s=String(d);
+    if(s.indexOf('GMT')!==-1||s.indexOf('00:00:00')!==-1){
+      var dt=new Date(s);
+      var y=dt.getFullYear();
+      var m=String(dt.getMonth()+1).padStart(2,'0');
+      var day=String(dt.getDate()).padStart(2,'0');
+      return y+'-'+m+'-'+day;
+    }
+    return s.substring(0,10);
+  }catch(e){return String(d).substring(0,10);}
+}
+
 
 var TYPE_MSG={
   '儲蓄險到期':'您好！您的儲蓄險保單即將到期，請問您有收到保險公司的通知了嗎？\n\n到期後您可以選擇：\n1. 領回滿期金\n2. 轉入其他保單\n\n需要提供的文件：\n・身分證正本\n・原保單\n・存摺封面\n\n請問您方便什麼時候來辦理呢？',
@@ -222,7 +237,7 @@ function rHTML(r){
     +(r.status==='已處理'?'<span class="bg bg2">已處理</span>':'<span class="bg bx">待處理</span>')
     +'</div>'
     +'<div class="rd">'
-    +'到期日：'+r.expiry
+    +'到期日：'+fmtDate(r.expiry)
     +(r.note?'　備註：'+r.note:'')
     +'</div>'
     +(r.status!=='已處理'?
