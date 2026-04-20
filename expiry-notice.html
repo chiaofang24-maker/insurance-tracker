@@ -250,12 +250,12 @@ function togMsg(rid,type,name){
 async function markDone(rid,name,expiry){
   setSb('sl2','更新中...');
   try{
-    var url=API+'?action=update_status&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&status=已處理';
-    await fetch(url);
+    var url=API+'?action=update_status&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&status='+encodeURIComponent('已處理');
+    var res=await fetch(url);
     recs.forEach(function(r){if(r.name===name&&r.expiry===expiry)r.status='已處理';});
-    setSb('sok','已標記為已處理');
+    setSb('sok','已標記為已處理，Google Sheets 已同步');
     rendList();updSt();
-  }catch(e){setSb('ser','更新失敗');}
+  }catch(e){setSb('ser','更新失敗，請重試');}
 }
 async function delR(name,expiry){
   if(!confirm('確定刪除？'))return;
