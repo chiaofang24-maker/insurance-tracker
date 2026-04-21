@@ -90,7 +90,10 @@ body{background:#F5FAFA;font-family:var(--h);}
 <div class="ch">客戶基本資料</div>
 <div class="row">
   <div class="f"><label>身份</label><select id="fi" onchange="togId()"><option>個人</option><option>公司</option></select></div>
-  <div class="f"><label>姓名／負責人</label><input id="fn" type="text" placeholder="王小明"></div>
+  <div class="f"><label>姓名／負責人</label>
+    <input id="fn" type="text" placeholder="王小明" oninput="searchClient(this.value)">
+    <div id="client-suggest" style="display:none;background:#fff;border:1.5px solid var(--sage);border-radius:14px;margin-top:4px;overflow:hidden;"></div>
+  </div>
 </div>
 <div id="pf">
   <div class="row">
@@ -279,6 +282,72 @@ function resetDateSelects(){
   ['fb-y','fb-m','fb-d','fex-y','fex-m','fex-d'].forEach(function(id){
     var e=document.getElementById(id);if(e)e.selectedIndex=0;
   });
+}
+
+function searchClient(q){
+  var box=document.getElementById('client-suggest');
+  if(!q||q.length<1){box.style.display='none';return;}
+  var matches=[];
+  var seen={};
+  recs.forEach(function(r){
+    if(r.name&&r.name.toLowerCase().includes(q.toLowerCase())&&!seen[r.name]){
+      seen[r.name]=true;
+      matches.push(r);
+    }
+  });
+  if(!matches.length){box.style.display='none';return;}
+  box.innerHTML=matches.slice(0,5).map(function(r){
+    return '<div style="padding:10px 14px;cursor:pointer;font-family:var(--h);font-size:15px;color:var(--tfdp);border-bottom:1px solid var(--sage);" '
+      +'onclick="fillClient(''+encodeURIComponent(JSON.stringify(r))+'')">'
+      +r.name+(r.phone?' · '+r.phone:'')+(r.plate?' · '+r.plate:'')
+      +'</div>';
+  }).join('');
+  box.style.display='block';
+}
+
+function fillClient(enc){
+  var r=JSON.parse(decodeURIComponent(enc));
+  document.getElementById('fn').value=r.name||'';
+  document.getElementById('fid').value=r.idno||'';
+  document.getElementById('fph').value=r.phone||'';
+  document.getElementById('fad').value=r.address||'';
+  document.getElementById('fi').value=r.identity||'個人';
+  togId();
+  if(r.birthday){
+    var parts=String(r.birthday).substring(0,10).split('-');
+    if(parts.length===3){
+      document.getElementById('fb-y').value=parts[0];
+      document.getElementById('fb-m').value=parts[1];
+      document.getElementById('fb-d').value=parts[2];
+    }
+  }
+  var city='',dist='',addr=r.address||'';
+  Object.keys(CITIES).forEach(function(c){
+    if(addr.startsWith(c)){city=c;addr=addr.substring(c.length);}
+  });
+  if(city){
+    document.getElementById('fct').value=city;
+    updDist();
+    (CITIES[city]||[]).forEach(function(d){
+      if(addr.startsWith(d)){dist=d;addr=addr.substring(d.length);}
+    });
+    if(dist) document.getElementById('fdt').value=dist;
+  }
+  document.getElementById('fad').value=addr;
+  document.getElementById('client-suggest').style.display='none';
+  // 清空保單資料讓重新填寫
+  document.getElementById('fpl').value='';
+  document.getElementById('ftp').value='';
+  document.getElementById('fco').value='';
+  document.getElementById('fex-y').selectedIndex=0;
+  document.getElementById('fex-m').selectedIndex=0;
+  document.getElementById('fex-d').selectedIndex=0;
+  document.getElementById('fnt').value='';
+  document.getElementById('xcar').style.display='none';
+  document.getElementById('xfire').style.display='none';
+  document.getElementById('xoth').style.display='none';
+  document.getElementById('xotn').style.display='none';
+  initCar();
 }
 function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 function sw(t){
