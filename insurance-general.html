@@ -309,7 +309,9 @@ function fillClient(enc){
   var r=JSON.parse(decodeURIComponent(enc));
   document.getElementById('fn').value=r.name||'';
   document.getElementById('fid').value=r.idno||'';
-  document.getElementById('fph').value=r.phone||'';
+  var ph=String(r.phone||'');
+  if(ph&&ph.length===9&&!ph.startsWith('0')) ph='0'+ph;
+  document.getElementById('fph').value=ph;
   document.getElementById('fad').value=r.address||'';
   document.getElementById('fi').value=r.identity||'個人';
   togId();
@@ -317,9 +319,11 @@ function fillClient(enc){
     var bStr=String(r.birthday).trim().substring(0,10);
     var parts=bStr.split('-');
     if(parts.length===3){
-      document.getElementById('fb-y').value=parts[0];
-      document.getElementById('fb-m').value=parts[1].padStart(2,'0');
-      document.getElementById('fb-d').value=parts[2].padStart(2,'0');
+      setTimeout(function(){
+        document.getElementById('fb-y').value=parts[0];
+        document.getElementById('fb-m').value=parts[1].padStart(2,'0');
+        document.getElementById('fb-d').value=parts[2].padStart(2,'0');
+      },100);
     }
   }
   var city='',dist='',addr=r.address||'';
@@ -349,6 +353,21 @@ function fillClient(enc){
   document.getElementById('xoth').style.display='none';
   document.getElementById('xotn').style.display='none';
   initCar();
+}
+function fmtDate(d){
+  if(!d) return '－';
+  try{
+    var s=String(d).trim();
+    if(s.length>=10&&s.substring(4,5)==='-') return s.substring(0,10);
+    var dt=new Date(s);
+    if(!isNaN(dt)){
+      var y=dt.getFullYear();
+      var m=String(dt.getMonth()+1).padStart(2,'0');
+      var day=String(dt.getDate()).padStart(2,'0');
+      return y+'-'+m+'-'+day;
+    }
+    return s.substring(0,10);
+  }catch(e){return String(d).substring(0,10);}
 }
 function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 function sw(t){
@@ -435,7 +454,7 @@ function rHTML(r,cp){
     +'<div class="rd">'
     +(r.plate?'車牌：'+r.plate+'　':'')
     +(r.phone?'電話：'+r.phone+'　':'')
-    +'到期：'+r.expiry
+    +'到期：'+fmtDate(r.expiry)
     +(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
     +(ds?'<br>'+ds:'')
     +(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')
