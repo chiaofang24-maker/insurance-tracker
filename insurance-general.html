@@ -354,6 +354,12 @@ function fillClient(enc){
   document.getElementById('xotn').style.display='none';
   initCar();
 }
+function fmtPhone(p){
+  if(!p) return '';
+  var s=String(p).trim();
+  if(s.length===9&&!s.startsWith('0')) return '0'+s;
+  return s;
+}
 function fmtDate(d){
   if(!d) return '－';
   try{
@@ -453,7 +459,7 @@ function rHTML(r,cp){
     +'</div>'
     +'<div class="rd">'
     +(r.plate?'車牌：'+r.plate+'　':'')
-    +(r.phone?'電話：'+r.phone+'　':'')
+    +(r.phone?'電話：'+fmtPhone(r.phone)+'　':'')
     +'到期：'+fmtDate(r.expiry)
     +(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
     +(ds?'<br>'+ds:'')
