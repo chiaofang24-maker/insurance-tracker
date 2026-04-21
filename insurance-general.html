@@ -298,7 +298,7 @@ function searchClient(q){
   if(!matches.length){box.style.display='none';return;}
   box.innerHTML=matches.slice(0,5).map(function(r){
     return '<div style="padding:10px 14px;cursor:pointer;font-family:var(--h);font-size:15px;color:var(--tfdp);border-bottom:1px solid var(--sage);" '
-      +'onclick="fillClient(''+encodeURIComponent(JSON.stringify(r))+'')">'
+      +'onclick="fillClient(\'' +encodeURIComponent(JSON.stringify(r))+ '\')">'
       +r.name+(r.phone?' · '+r.phone:'')+(r.plate?' · '+r.plate:'')
       +'</div>';
   }).join('');
