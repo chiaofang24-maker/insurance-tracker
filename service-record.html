@@ -423,30 +423,7 @@ function renderRecords(){
       +'</div>'
       +(extraItems?'<div class="record-extra">'+extraItems+'</div>':'')
       +(r.note?'<div class="record-note">'+r.note+'</div>':'')
-      +'<button class="edit-btn" onclick="togEditBox(\''+rid+'\')">編輯</button>'
-      +'<div class="edit-box" id="edit-'+rid+'">'
-      +'<div class="edit-box-t">編輯記錄</div>'
-      +'<div class="f" style="margin-bottom:8px;"><label>保險公司</label>'
-      +'<select id="edit-company-'+rid+'">'
-      +'<option value="">請選擇</option>'
-      +'<option'+(r.company==='南山人壽'?' selected':'')+'>南山人壽</option>'
-      +'<option'+(r.company==='國泰人壽'?' selected':'')+'>國泰人壽</option>'
-      +'<option'+(r.company==='富邦人壽'?' selected':'')+'>富邦人壽</option>'
-      +'<option'+(r.company==='中國人壽'?' selected':'')+'>中國人壽</option>'
-      +'<option'+(r.company==='新光人壽'?' selected':'')+'>新光人壽</option>'
-      +'<option'+(r.company==='台灣人壽'?' selected':'')+'>台灣人壽</option>'
-      +'<option'+(r.company==='遠雄人壽'?' selected':'')+'>遠雄人壽</option>'
-      +'<option'+(r.company==='三商美邦'?' selected':'')+'>三商美邦</option>'
-      +'<option'+(r.company==='全球人壽'?' selected':'')+'>全球人壽</option>'
-      +'<option'+(r.company==='第一金人壽'?' selected':'')+'>第一金人壽</option>'
-      +'<option'+(r.company==='其他'?' selected':'')+'>其他</option>'
-      +'</select></div>'
-      +'<div class="f" style="margin-bottom:8px;"><label>保單號碼</label><input id="edit-policy-'+rid+'" type="text" value="'+(r.policy||'')+'" placeholder="選填"></div>'
-      +'<div class="f" style="margin-bottom:8px;"><label>繳款人</label><input id="edit-payer-'+rid+'" type="text" value="'+(r.payer||'')+'" placeholder="要保人／被保人／其他"></div>'
-      +'<div class="f" style="margin-bottom:12px;"><label>備註</label><textarea id="edit-note-'+rid+'" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
-      +'<button class="save-edit-btn" onclick="saveEdit(\''+rid+'\')">儲存</button>'
-      +'<button class="cancel-edit-btn" onclick="togEditBox(\''+rid+'\')">取消</button>'
-      +'</div>'
+      +'<button class="edit-btn" onclick="openEdit(this,'+JSON.stringify(r)+')" >編輯</button>'
       +'</div>';
   }).join('');
 }
