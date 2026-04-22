@@ -289,22 +289,107 @@ function togEditBox(id){
   box.style.display=box.style.display==='none'?'block':'none';
 }
 
+function openEdit(btn, r){
+  var existing = document.getElementById('global-edit-box');
+  if(existing) existing.remove();
+  var COMPANIES = ['全球人壽','宏泰人壽','凱基人壽','新光人壽','遠雄人壽','台灣人壽','安達人壽','台銀人壽','富邦人壽','第一金人壽','友邦人壽','元大人壽','安聯人壽','保誠人壽','國泰人壽','南山人壽','其他'];
+  var extra = typeof r.extra==='string'?JSON.parse(r.extra||'{}'):(r.extra||{});
+  var extraStr = Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('、');
+  var box = document.createElement('div');
+  box.id = 'global-edit-box';
+  box.className = 'edit-box';
+  box.style.display = 'block';
+  box.style.marginTop = '10px';
+  var coOpts = COMPANIES.map(function(c){return '<option'+(r.company===c?' selected':'')+'>'+c+'</option>';}).join('');
+  box.innerHTML = '<div class="edit-box-t">編輯記錄</div>'
+    +'<div class="f" style="margin-bottom:8px;"><label>服務類型</label>'
+    +'<select id="ge-type" onchange="updateEditExtra()">'
+    +'<option value="">請選擇</option>'
+    +'<option'+(r.type==='信用卡變更'?' selected':'')+'>信用卡變更</option>'
+    +'<option'+(r.type==='保費繳費方式變更'?' selected':'')+'>保費繳費方式變更</option>'
+    +'<option'+(r.type==='理賠申請'?' selected':'')+'>理賠申請</option>'
+    +'<option'+(r.type==='加退保'?' selected':'')+'>加退保</option>'
+    +'<option'+(r.type==='保單復效'?' selected':'')+'>保單復效</option>'
+    +'<option'+(r.type==='受益人變更'?' selected':'')+'>受益人變更</option>'
+    +'<option'+(r.type==='聯絡資料變更'?' selected':'')+'>聯絡資料變更</option>'
+    +'<option'+(r.type==='保單借款'?' selected':'')+'>保單借款</option>'
+    +'<option'+(r.type==='契約轉換'?' selected':'')+'>契約轉換</option>'
+    +'<option'+(r.type==='其他'?' selected':'')+'>其他</option>'
+    +'</select></div>'
+    +'<div class="f" style="margin-bottom:8px;"><label>保險公司</label>'
+    +'<select id="ge-company"><option value="">請選擇</option>'+coOpts+'</select></div>'
+    +'<div class="f" style="margin-bottom:8px;"><label>保單號碼</label>'
+    +'<input id="ge-policy" type="text" value="'+(r.policy||'')+'" placeholder="選填"></div>'
+    +'<div id="ge-extra-wrap"></div>'
+    +'<div class="f" style="margin-bottom:12px;"><label>備註</label>'
+    +'<textarea id="ge-note" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
+    +'<button class="save-edit-btn" onclick="saveEdit(''+r.id+'')">儲存</button>'
+    +'<button class="cancel-edit-btn" onclick="document.getElementById('global-edit-box').remove()">取消</button>';
+  btn.parentNode.insertBefore(box, btn.nextSibling);
+  window._editExtraData = extraStr;
+  updateEditExtra();
+}
+
+function updateEditExtra(){
+  var type = document.getElementById('ge-type').value;
+  var wrap = document.getElementById('ge-extra-wrap');
+  if(!wrap) return;
+  var cfg = EXTRA_FIELDS[type];
+  if(!cfg){wrap.innerHTML='';return;}
+  var html = '<div class="xtra" style="margin-bottom:10px;"><div class="xtra-t">'+cfg.label+'</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+  cfg.fields.forEach(function(f){
+    var span = f.col==='full'?'grid-column:1/-1;':'';
+    html += '<div class="f" style="'+span+'"><label>'+f.label+'</label>';
+    if(f.type==='select'){
+      html += '<select id="ge-ex-'+f.id+'"><option value="">請選擇</option>'+f.options.map(function(o){return'<option>'+o+'</option>';}).join('')+'</select>';
+    }else if(f.type==='payer'){
+      html += '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;">'
+        +'<label class="check-item"><input type="radio" name="ge-payer" value="要保人"> 要保人</label>'
+        +'<label class="check-item"><input type="radio" name="ge-payer" value="被保人"> 被保人</label>'
+        +'<label class="check-item"><input type="radio" name="ge-payer" value="其他"> 其他</label>'
+        +'</div>';
+    }else{
+      html += '<input id="ge-ex-'+f.id+'" type="'+f.type+'" placeholder="'+(f.placeholder||'')+'" '+(f.maxlength?'maxlength="'+f.maxlength+'"':'')+' style="width:100%">';
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
 async function saveEdit(id){
-  var noteEl=document.getElementById('edit-note-'+id);
-  var compEl=document.getElementById('edit-company-'+id);
-  var payerEl=document.getElementById('edit-payer-'+id);
-  var policyEl=document.getElementById('edit-policy-'+id);
-  var newNote=noteEl.value.trim();
-  var newComp=compEl.value;
-  var newPayer=payerEl.value.trim();
-  var newPolicy=policyEl.value.trim();
+  var typeEl=document.getElementById('ge-type');
+  var noteEl=document.getElementById('ge-note');
+  var compEl=document.getElementById('ge-company');
+  var policyEl=document.getElementById('ge-policy');
+  var type=typeEl?typeEl.value:'';
+  var newNote=noteEl?noteEl.value.trim():'';
+  var newComp=compEl?compEl.value:'';
+  var newPolicy=policyEl?policyEl.value.trim():'';
+  var cfg=EXTRA_FIELDS[type];
+  var extraParts=[];
+  if(cfg){
+    cfg.fields.forEach(function(f){
+      if(f.type==='payer'){
+        var v=document.querySelector('input[name="ge-payer"]:checked');
+        if(v) extraParts.push(f.label+'：'+v.value);
+      }else{
+        var el=document.getElementById('ge-ex-'+f.id);
+        if(el&&el.value) extraParts.push(f.label+'：'+el.value);
+      }
+    });
+  }
+  var newExtra=extraParts.join('、');
   setSb('sl2','更新中...');
   try{
-    var url=API+'?action=edit&id='+encodeURIComponent(id)+'&note='+encodeURIComponent(newNote)+'&company='+encodeURIComponent(newComp)+'&payer='+encodeURIComponent(newPayer)+'&policy='+encodeURIComponent(newPolicy);
+    var url=API+'?action=edit&id='+encodeURIComponent(id)+'&note='+encodeURIComponent(newNote)+'&company='+encodeURIComponent(newComp)+'&policy='+encodeURIComponent(newPolicy)+'&type='+encodeURIComponent(type)+'&extra='+encodeURIComponent(newExtra);
     await fetch(url);
     records.forEach(function(r){
-      if(String(r.id)===String(id)){r.note=newNote;r.company=newComp;r.payer=newPayer;r.policy=newPolicy;}
+      if(String(r.id)===String(id)){r.note=newNote;r.company=newComp;r.policy=newPolicy;r.type=type;r.extra=newExtra;}
     });
+    var box=document.getElementById('global-edit-box');
+    if(box) box.remove();
     setSb('sok','已更新');renderRecords();
   }catch(e){setSb('ser','更新失敗');}
 }
