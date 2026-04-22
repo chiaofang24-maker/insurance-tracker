@@ -4,299 +4,369 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>保單服務記錄</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --tf: #0ABAB5;
-  --tf-light: #E0F7F6;
-  --tf-mid: #5DCEC9;
-  --tf-dark: #077B78;
-  --tf-deep: #045A58;
-  --mint: #F0FAFA;
-  --sage: #D4F0EE;
-  --hand: 'Caveat', cursive;
-}
-body { background: #F5FAFA; font-family: var(--hand); }
-.app { padding: 1.2rem 1rem; max-width: 580px; margin: 0 auto; }
-.app-header { background: var(--tf); border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.2rem; }
-.app-title { font-family: var(--hand); font-size: 28px; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
-.app-sub { font-family: var(--hand); font-size: 15px; color: rgba(255,255,255,0.85); margin-top: 2px; }
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1.2rem; }
-.stat-card { background: var(--tf-light); border-radius: 20px; padding: 14px 10px; text-align: center; border: 1.5px solid var(--tf-mid); }
-.stat-num { font-family: var(--hand); font-size: 28px; font-weight: 600; color: var(--tf-dark); }
-.stat-label { font-family: var(--hand); font-size: 14px; color: var(--tf-dark); margin-top: 2px; }
-.card { background: #fff; border-radius: 22px; padding: 1.2rem 1.3rem; margin-bottom: 1.2rem; border: 1.5px solid var(--sage); }
-.card-header { background: var(--mint); border-radius: 16px; padding: 8px 14px; margin-bottom: 14px; border-left: 4px solid var(--tf); }
-.card-title { font-family: var(--hand); font-size: 17px; font-weight: 600; color: var(--tf-dark); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-.form-row.full { grid-template-columns: 1fr; }
-.field label { font-family: var(--hand); font-size: 14px; color: var(--tf-dark); display: block; margin-bottom: 4px; font-weight: 600; }
-.field input, .field select, .field textarea {
-  width: 100%; font-family: var(--hand); font-size: 16px;
-  border: 1.5px solid var(--sage); border-radius: 14px;
-  padding: 9px 13px; background: var(--mint);
-  color: var(--tf-deep); outline: none;
-}
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--tf); background: #fff; }
-.field textarea { height: 70px; resize: none; }
-.extra-box { background: var(--tf-light); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; border: 1.5px dashed var(--tf-mid); }
-.extra-box-title { font-family: var(--hand); font-size: 14px; font-weight: 600; color: var(--tf-dark); margin-bottom: 8px; }
-.add-btn {
-  width: 100%; padding: 12px; font-family: var(--hand); font-size: 18px; font-weight: 600;
-  cursor: pointer; margin-top: 6px; border-radius: 18px;
-  background: var(--tf); color: #fff; border: none; letter-spacing: 0.5px;
-}
-.add-btn:active { opacity: 0.85; }
-.add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.search-input { width: 100%; font-family: var(--hand); font-size: 16px; border: 1.5px solid var(--sage); border-radius: 14px; padding: 9px 13px; background: var(--mint); color: var(--tf-deep); outline: none; }
-.search-input:focus { border-color: var(--tf); background: #fff; }
-.record { padding: 12px 0; border-bottom: 1.5px dashed var(--sage); }
-.record:last-child { border-bottom: none; }
-.record-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.record-name { font-family: var(--hand); font-size: 20px; font-weight: 600; color: var(--tf-deep); }
-.record-date { font-family: var(--hand); font-size: 14px; color: var(--tf-mid); }
-.tag { display: inline-block; font-family: var(--hand); font-size: 13px; padding: 3px 12px; border-radius: 20px; font-weight: 600; margin-top: 5px; }
-.tag-teal { background: var(--tf-light); color: var(--tf-dark); border: 1.5px solid var(--tf-mid); }
-.tag-green { background: #E6F4EA; color: #2E7D42; border: 1.5px solid #A8D5B2; }
-.tag-amber { background: #FFF4E0; color: #8A5C00; border: 1.5px solid #F5CC80; }
-.tag-red { background: #FDECEA; color: #B03030; border: 1.5px solid #F0A8A8; }
-.tag-purple { background: #F0EEFE; color: #4A3AAA; border: 1.5px solid #C5BDEF; }
-.record-extra { font-family: var(--hand); font-size: 14px; color: var(--tf-dark); margin-top: 5px; background: var(--mint); border-radius: 10px; padding: 5px 10px; display: inline-block; }
-.record-note { font-family: var(--hand); font-size: 15px; color: #666; margin-top: 5px; }
-.del-btn { font-family: var(--hand); font-size: 13px; color: #ccc; background: none; border: none; cursor: pointer; padding: 2px 6px; margin-left: 6px; }
-.del-btn:hover { color: #e57373; }
-.empty { font-family: var(--hand); font-size: 17px; color: var(--tf-mid); text-align: center; padding: 2rem 0; }
-.status-bar { font-family: var(--hand); font-size: 14px; padding: 8px 14px; border-radius: 14px; margin-bottom: 12px; text-align: center; }
-.status-loading { background: #FFF4E0; color: #8A5C00; border: 1px solid #F5CC80; }
-.status-ok { background: var(--tf-light); color: var(--tf-dark); border: 1px solid var(--tf-mid); }
-.status-err { background: #FDECEA; color: #B03030; border: 1px solid #F0A8A8; }
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
+body{background:#F5FAFA;font-family:var(--h);}
+.app{padding:1rem;max-width:600px;margin:0 auto;}
+.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
+.hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
+.hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
+.sb{font-family:var(--h);font-size:14px;padding:8px 14px;border-radius:14px;margin-bottom:10px;text-align:center;}
+.sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
+.sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
+.ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
+.st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
+.sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
+.card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
+.ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.row1{display:grid;grid-template-columns:1fr;margin-bottom:10px;}
+.f label{font-family:var(--h);font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
+.f input,.f select,.f textarea{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--tf);background:#fff;}
+.f textarea{height:60px;resize:none;}
+.xtra{background:var(--tfl);border-radius:16px;padding:12px 14px;margin-bottom:10px;border:1.5px dashed var(--tfm);}
+.xtra-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:8px;}
+.abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
+.abtn:disabled{opacity:0.5;cursor:not-allowed;}
+.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:12px;}
+.record{padding:12px 0;border-bottom:1.5px dashed var(--sage);}
+.record:last-child{border-bottom:none;}
+.record-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.record-name{font-family:var(--h);font-size:20px;font-weight:600;color:var(--tfdp);}
+.record-date{font-family:var(--h);font-size:14px;color:var(--tfm);}
+.tag{display:inline-block;font-family:var(--h);font-size:13px;padding:3px 12px;border-radius:20px;font-weight:600;margin-top:5px;}
+.tag-teal{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
+.tag-green{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
+.tag-amber{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.tag-red{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
+.tag-purple{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
+.record-extra{font-family:var(--h);font-size:14px;color:var(--tfd);margin-top:5px;background:var(--mint);border-radius:10px;padding:5px 10px;display:inline-block;}
+.record-note{font-family:var(--h);font-size:15px;color:#666;margin-top:5px;}
+.act-btn{font-family:var(--h);font-size:13px;background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.edit-btn{font-family:var(--h);font-size:13px;background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.del-btn{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
+.empty{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
+.edit-box{background:var(--mint);border:1.5px solid var(--sage);border-radius:16px;padding:12px 14px;margin-top:10px;display:none;}
+.edit-box-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:10px;}
+.save-edit-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:var(--tf);color:#fff;border:none;cursor:pointer;margin-right:8px;}
+.cancel-edit-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;}
+.check-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;}
+.check-item{display:flex;align-items:center;gap:6px;font-family:var(--h);font-size:16px;color:var(--tfdp);}
+.check-item input[type=checkbox],.check-item input[type=radio]{width:17px;height:17px;accent-color:var(--tf);}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="app-header">
-    <div class="app-title">保單服務記錄</div>
-    <div class="app-sub">隨時記錄，隨時查詢</div>
+<div class="hdr"><h1>保單服務記錄</h1><p>隨時記錄，隨時查詢</p></div>
+<div id="sb" class="sb sl2">連線中，載入資料...</div>
+<div class="st">
+  <div class="sc"><div class="sn" id="s-total">—</div><div class="sl">總記錄</div></div>
+  <div class="sc"><div class="sn" id="s-today">—</div><div class="sl">今日</div></div>
+  <div class="sc"><div class="sn" id="s-clients">—</div><div class="sl">客戶數</div></div>
+</div>
+
+<div class="card">
+  <div class="ch">新增保單服務記錄</div>
+  <div class="row">
+    <div class="f"><label>客戶姓名</label><input id="f-name" type="text" placeholder="王小明"></div>
+    <div class="f"><label>日期</label><input id="f-date" type="date"></div>
   </div>
-
-  <div id="status-bar" class="status-bar status-loading">連線中，載入資料...</div>
-
-  <div class="stats">
-    <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-label">總記錄</div></div>
-    <div class="stat-card"><div class="stat-num" id="s-today">—</div><div class="stat-label">今日</div></div>
-    <div class="stat-card"><div class="stat-num" id="s-clients">—</div><div class="stat-label">客戶數</div></div>
-  </div>
-
-  <div class="card">
-    <div class="card-header"><div class="card-title">新增保單服務記錄</div></div>
-    <div class="form-row">
-      <div class="field"><label>客戶姓名</label><input id="f-name" type="text" placeholder="王小明"></div>
-      <div class="field"><label>日期</label><input id="f-date" type="date"></div>
+  <div class="row">
+    <div class="f">
+      <label>服務類型</label>
+      <select id="f-type" onchange="updateExtraFields()">
+        <option value="">請選擇</option>
+        <option>信用卡變更</option>
+        <option>保費繳費方式變更</option>
+        <option>理賠申請</option>
+        <option>加退保</option>
+                <option>保單復效</option>
+        <option>受益人變更</option>
+        <option>聯絡資料變更</option>
+        <option>保單借款</option>
+        <option>契約轉換</option>
+        <option>其他</option>
+      </select>
     </div>
-    <div class="form-row">
-      <div class="field">
-        <label>服務類型</label>
-        <select id="f-type" onchange="updateExtraFields()">
-          <option value="">請選擇</option>
-          <option>信用卡變更</option>
-          <option>保費繳費方式變更</option>
-          <option>理賠申請</option>
-          <option>加保</option>
-          <option>減保</option>
-          <option>保單復效</option>
-          <option>受益人變更</option>
-          <option>地址/聯絡更新</option>
-          <option>保單借款</option>
-          <option>契約轉換</option>
-          <option>其他</option>
-        </select>
-      </div>
-      <div class="field"><label>保險公司</label><input id="f-company" type="text" placeholder="國泰人壽"></div>
+    <div class="f">
+      <label>保險公司</label>
+      <select id="f-company">
+        <option value="">請選擇</option>
+        <option>全球人壽</option><option>宏泰人壽</option><option>凱基人壽</option>
+        <option>新光人壽</option><option>遠雄人壽</option><option>台灣人壽</option>
+        <option>安達人壽</option><option>台銀人壽</option><option>富邦人壽</option>
+        <option>第一金人壽</option><option>友邦人壽</option><option>元大人壽</option>
+        <option>安聯人壽</option><option>保誠人壽</option><option>國泰人壽</option>
+        <option>南山人壽</option><option>其他</option>
+      </select>
     </div>
-
-    <div id="extra-fields" style="display:none;">
-      <div class="extra-box">
-        <div class="extra-box-title" id="extra-label">補充資料</div>
-        <div id="extra-content"></div>
-      </div>
+  </div>
+  <div class="row1">
+    <div class="f">
+      <label>保單號碼</label>
+      <input id="f-policy" type="text" placeholder="選填">
     </div>
-
-    <div class="form-row full">
-      <div class="field"><label>備註說明</label><textarea id="f-note" placeholder="補充細節，例如：已確認收件、待審核..."></textarea></div>
+  </div>
+  <div id="extra-fields" style="display:none;">
+    <div class="xtra">
+      <div class="xtra-t" id="extra-label">補充資料</div>
+      <div id="extra-content"></div>
     </div>
-    <button class="add-btn" id="add-btn" onclick="addRecord()">＋ 新增記錄</button>
   </div>
 
-  <div class="card">
-    <div class="card-header"><div class="card-title">查詢記錄</div></div>
-    <input class="search-input" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
+  <div class="row1">
+    <div class="f"><label>備註說明</label><textarea id="f-note" placeholder="補充細節..."></textarea></div>
   </div>
+  <button class="abtn" id="add-btn" onclick="addRecord()">＋ 新增記錄</button>
+</div>
 
-  <div class="card">
-    <div class="card-header"><div class="card-title">記錄列表</div></div>
-    <div id="list"><div class="empty">載入中...</div></div>
-  </div>
+<div class="card">
+  <div class="ch">查詢記錄</div>
+  <input class="si" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
+</div>
+
+<div class="card">
+  <div class="ch">記錄列表</div>
+  <div id="list"></div>
+</div>
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
-
-const EXTRA_FIELDS = {
-  '信用卡變更': {
-    label: '信用卡資料',
-    fields: [
-      { id: 'bank', label: '銀行名稱', type: 'text', placeholder: '玉山銀行', col: 'half' },
-      { id: 'expiry', label: '有效年月', type: 'month', col: 'half' }
-    ]
-  },
-  '保費繳費方式變更': {
-    label: '繳費資料',
-    fields: [
-      { id: 'pay-type', label: '繳費方式', type: 'select', options: ['年繳','半年繳','季繳','月繳'], col: 'full' },
-      { id: 'pay-bank', label: '銀行名稱', type: 'text', placeholder: '台灣銀行', col: 'half' },
-      { id: 'pay-account', label: '帳號末四碼', type: 'text', placeholder: '####', col: 'half', maxlength: 4 }
-    ]
-  }
+const API='https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
+const EXTRA_FIELDS={
+  '信用卡變更':{label:'信用卡資料',fields:[
+    {id:'bank',label:'銀行名稱',type:'text',placeholder:'玉山銀行',col:'half'},
+    {id:'card4',label:'卡號後四碼',type:'text',placeholder:'1234',col:'half',maxlength:4},
+    {id:'expiry',label:'有效年月',type:'month',col:'half'},
+    {id:'payer',label:'繳款人',type:'payer',col:'full'}
+  ]},
+  '保費繳費方式變更':{label:'繳費資料',fields:[
+    {id:'pay-type',label:'繳費方式',type:'select',options:['年繳','半年繳','季繳','月繳'],col:'full'},
+    {id:'pay-bank',label:'銀行名稱',type:'text',placeholder:'台灣銀行',col:'half'},
+    {id:'pay-account',label:'帳號末四碼',type:'text',placeholder:'####',col:'half',maxlength:4},
+    {id:'payer',label:'繳款人',type:'payer',col:'full'}
+  ]}
 };
-
-const TYPE_TAG = {
+const TYPE_TAG={
   '信用卡變更':'tag-teal','理賠申請':'tag-red','加保':'tag-green','減保':'tag-amber',
   '保費繳費方式變更':'tag-amber','保單復效':'tag-green','受益人變更':'tag-purple',
   '地址/聯絡更新':'tag-teal','保單借款':'tag-amber','契約轉換':'tag-purple','其他':'tag-teal'
 };
+let records=[];
 
-let records = [];
+function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 
-function setStatus(type, msg) {
-  const bar = document.getElementById('status-bar');
-  bar.className = 'status-bar status-' + type;
-  bar.textContent = msg;
+function togExPayer(){
+  var v=document.querySelector('input[name="ex-payer"]:checked');
+  var box=document.getElementById('ex-payer-other');
+  if(box) box.style.display=(v&&v.value==='其他')?'block':'none';
+}
+function togPayer(){
+  var v=document.querySelector('input[name="payer"]:checked');
+  document.getElementById('payer-other').style.display=(v&&v.value==='其他')?'block':'none';
 }
 
-async function loadRecords() {
-  try {
-    const res = await fetch(API);
-    const data = await res.json();
-    records = Array.isArray(data) ? data : [];
-    setStatus('ok', '已連線，資料同步自 Google Sheets');
-    renderRecords();
-  } catch(e) {
-    setStatus('err', '無法連線，請檢查網路或重新整理');
-    document.getElementById('list').innerHTML = '<div class="empty">連線失敗</div>';
-  }
+function getPayer(){
+  return ''; // 繳款人已整合到 extra 欄位
 }
 
-function updateExtraFields() {
-  const type = document.getElementById('f-type').value;
-  const container = document.getElementById('extra-fields');
-  const content = document.getElementById('extra-content');
-  const lbl = document.getElementById('extra-label');
-  const cfg = EXTRA_FIELDS[type];
-  if (!cfg) { container.style.display = 'none'; content.innerHTML = ''; return; }
-  lbl.textContent = cfg.label;
-  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-  cfg.fields.forEach(f => {
-    const span = f.col === 'full' ? 'grid-column:1/-1;' : '';
-    html += '<div class="field" style="' + span + '"><label>' + f.label + '</label>';
-    if (f.type === 'select') {
-      html += '<select id="ex-' + f.id + '"><option value="">請選擇</option>' + f.options.map(o => '<option>' + o + '</option>').join('') + '</select>';
-    } else {
-      html += '<input id="ex-' + f.id + '" type="' + f.type + '" placeholder="' + (f.placeholder||'') + '" ' + (f.maxlength ? 'maxlength="' + f.maxlength + '"' : '') + '>';
+function updateExtraFields(){
+  var type=document.getElementById('f-type').value;
+  var container=document.getElementById('extra-fields');
+  var content=document.getElementById('extra-content');
+  var lbl=document.getElementById('extra-label');
+  var cfg=EXTRA_FIELDS[type];
+  if(!cfg){container.style.display='none';content.innerHTML='';return;}
+  lbl.textContent=cfg.label;
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+  cfg.fields.forEach(function(f){
+    var span=f.col==='full'?'grid-column:1/-1;':'';
+    html+='<div class="f" style="'+span+'"><label>'+f.label+'</label>';
+    if(f.type==='select'){
+      html+='<select id="ex-'+f.id+'"><option value="">請選擇</option>'+f.options.map(function(o){return'<option>'+o+'</option>';}).join('')+'</select>';
+    }else if(f.type==='payer'){
+      html+='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;">'
+        +'<label class="check-item"><input type="radio" name="ex-payer" value="要保人" onchange="togExPayer()"> 要保人</label>'
+        +'<label class="check-item"><input type="radio" name="ex-payer" value="被保人" onchange="togExPayer()"> 被保人</label>'
+        +'<label class="check-item"><input type="radio" name="ex-payer" value="其他" onchange="togExPayer()"> 其他</label>'
+        +'</div>'
+        +'<div id="ex-payer-other" style="display:none;margin-top:8px;">'
+        +'<input id="ex-payer-other-input" type="text" placeholder="請填寫繳款人姓名" style="width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;">'
+        +'</div>';
+    }else{
+      html+='<input id="ex-'+f.id+'" type="'+f.type+'" placeholder="'+(f.placeholder||'')+'" '+(f.maxlength?'maxlength="'+f.maxlength+'"':'')+' style="width:100%">';
     }
-    html += '</div>';
+    html+='</div>';
   });
-  html += '</div>';
-  content.innerHTML = html;
-  container.style.display = 'block';
+  html+='</div>';
+  content.innerHTML=html;
+  container.style.display='block';
 }
 
-function getExtraValues() {
-  const type = document.getElementById('f-type').value;
-  const cfg = EXTRA_FIELDS[type];
-  if (!cfg) return {};
-  const vals = {};
-  cfg.fields.forEach(f => {
-    const el = document.getElementById('ex-' + f.id);
-    if (el) vals[f.label] = el.value;
+function getExtraValues(){
+  var type=document.getElementById('f-type').value;
+  var cfg=EXTRA_FIELDS[type];
+  if(!cfg) return {};
+  var vals={};
+  cfg.fields.forEach(function(f){
+    if(f.type==='payer'){
+      var v=document.querySelector('input[name="ex-payer"]:checked');
+      if(v){
+        if(v.value==='其他'){
+          var oi=document.getElementById('ex-payer-other-input');
+          vals[f.label]=oi?oi.value.trim()||'其他':'其他';
+        }else{
+          vals[f.label]=v.value;
+        }
+      }
+    }else{
+      var el=document.getElementById('ex-'+f.id);
+      if(el) vals[f.label]=el.value;
+    }
   });
   return vals;
 }
 
-async function addRecord() {
-  const name = document.getElementById('f-name').value.trim();
-  const date = document.getElementById('f-date').value;
-  const type = document.getElementById('f-type').value;
-  const company = document.getElementById('f-company').value.trim();
-  const note = document.getElementById('f-note').value.trim();
-  if (!name || !date || !type) { alert('請填寫客戶姓名、日期及服務類型'); return; }
-  const extra = getExtraValues();
-  const record = { action: 'add', id: Date.now(), name, date, type, company, note, extra };
-  const btn = document.getElementById('add-btn');
-  btn.disabled = true; btn.textContent = '儲存中...';
-  setStatus('loading', '儲存至 Google Sheets...');
-  try {
-    await fetch(API, { method: 'POST', body: JSON.stringify(record) });
+async function loadRecords(){
+  try{
+    var res=await fetch(API),d=await res.json();
+    records=Array.isArray(d)?d:[];
+    setSb('sok','已連線，資料同步自 Google Sheets');
+    renderRecords();
+  }catch(e){setSb('ser','無法連線，請檢查網路');}
+}
+
+async function addRecord(){
+  var name=document.getElementById('f-name').value.trim();
+  var date=document.getElementById('f-date').value;
+  var type=document.getElementById('f-type').value;
+  var company=document.getElementById('f-company').value;
+  var policy=document.getElementById('f-policy').value.trim();
+  var payer=getPayer();
+  var note=document.getElementById('f-note').value.trim();
+  if(!name||!date||!type){alert('請填寫客戶姓名、日期及服務類型');return;}
+  var extra=getExtraValues();
+  var record={action:'add',id:Date.now(),name:name,date:date,type:type,company:company,policy:policy,payer:payer,note:note,extra:extra};
+  var btn=document.getElementById('add-btn');
+  btn.disabled=true;btn.textContent='儲存中...';
+  setSb('sl2','儲存至 Google Sheets...');
+  try{
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify(record)});
     records.unshift(record);
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-type').value = '';
-    document.getElementById('f-company').value = '';
-    document.getElementById('f-note').value = '';
-    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('extra-fields').style.display = 'none';
-    document.getElementById('extra-content').innerHTML = '';
-    setStatus('ok', '已儲存並同步至 Google Sheets');
+    document.getElementById('f-name').value='';
+    document.getElementById('f-type').value='';
+    document.getElementById('f-company').value='';
+    document.getElementById('f-policy').value='';
+    document.getElementById('f-note').value='';
+    document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+    document.querySelectorAll('input[name="ex-payer"]').forEach(function(r){r.checked=false;});
+    var exPO=document.getElementById('ex-payer-other');
+    if(exPO) exPO.style.display='none';
+    document.getElementById('extra-fields').style.display='none';
+    document.getElementById('extra-content').innerHTML='';
+    setSb('sok','已儲存並同步至 Google Sheets');
     renderRecords();
-  } catch(e) {
-    setStatus('err', '儲存失敗，請重試');
-  }
-  btn.disabled = false; btn.textContent = '＋ 新增記錄';
+  }catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='＋ 新增記錄';
 }
 
-async function deleteRecord(id) {
-  if (!confirm('確定刪除這筆記錄？')) return;
-  setStatus('loading', '刪除中...');
-  try {
-    await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'delete', id: id }) });
-    records = records.filter(function(r) { return String(r.id) !== String(id); });
-    setStatus('ok', '已刪除並同步至 Google Sheets');
-    renderRecords();
-  } catch(e) {
-    setStatus('err', '刪除失敗，請重試');
-  }
+async function deleteRecord(id){
+  if(!confirm('確定刪除這筆記錄？'))return;
+  setSb('sl2','刪除中...');
+  try{
+    await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',id:id})});
+    records=records.filter(function(r){return String(r.id)!==String(id);});
+    setSb('sok','已刪除');renderRecords();
+  }catch(e){setSb('ser','刪除失敗');}
 }
 
-function renderRecords() {
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  const filtered = q ? records.filter(function(r) { return r.name && r.name.toLowerCase().includes(q); }) : records;
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('s-total').textContent = records.length;
-  document.getElementById('s-today').textContent = records.filter(function(r) { return r.date === today; }).length;
-  document.getElementById('s-clients').textContent = new Set(records.map(function(r) { return r.name; })).size;
-  const list = document.getElementById('list');
-  if (!filtered.length) { list.innerHTML = '<div class="empty">尚無記錄</div>'; return; }
-  list.innerHTML = filtered.map(function(r) {
-    const tagClass = TYPE_TAG[r.type] || 'tag-teal';
-    const extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
-    const extraItems = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('　｜　');
+function togEditBox(id){
+  var box=document.getElementById('edit-'+id);
+  box.style.display=box.style.display==='none'?'block':'none';
+}
+
+async function saveEdit(id){
+  var noteEl=document.getElementById('edit-note-'+id);
+  var compEl=document.getElementById('edit-company-'+id);
+  var payerEl=document.getElementById('edit-payer-'+id);
+  var policyEl=document.getElementById('edit-policy-'+id);
+  var newNote=noteEl.value.trim();
+  var newComp=compEl.value;
+  var newPayer=payerEl.value.trim();
+  var newPolicy=policyEl.value.trim();
+  setSb('sl2','更新中...');
+  try{
+    var url=API+'?action=edit&id='+encodeURIComponent(id)+'&note='+encodeURIComponent(newNote)+'&company='+encodeURIComponent(newComp)+'&payer='+encodeURIComponent(newPayer)+'&policy='+encodeURIComponent(newPolicy);
+    await fetch(url);
+    records.forEach(function(r){
+      if(String(r.id)===String(id)){r.note=newNote;r.company=newComp;r.payer=newPayer;r.policy=newPolicy;}
+    });
+    setSb('sok','已更新');renderRecords();
+  }catch(e){setSb('ser','更新失敗');}
+}
+
+function renderRecords(){
+  var q=document.getElementById('search').value.trim().toLowerCase();
+  var filtered=q?records.filter(function(r){return r.name&&r.name.toLowerCase().includes(q);}):records;
+  var today=new Date().toISOString().split('T')[0];
+  document.getElementById('s-total').textContent=records.length;
+  document.getElementById('s-today').textContent=records.filter(function(r){return r.date===today;}).length;
+  document.getElementById('s-clients').textContent=new Set(records.map(function(r){return r.name;})).size;
+  var list=document.getElementById('list');
+  if(!filtered.length){list.innerHTML='<div class="empty">尚無記錄</div>';return;}
+  list.innerHTML=filtered.map(function(r){
+    var tagClass=TYPE_TAG[r.type]||'tag-teal';
+    var extra=typeof r.extra==='string'?JSON.parse(r.extra||'{}'):(r.extra||{});
+    var extraItems=Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　｜　');
+    var rid='rec-'+String(r.id).replace(/\W/g,'');
     return '<div class="record">'
-      + '<div class="record-top">'
-      + '<span class="record-name">' + (r.name||'') + '</span>'
-      + '<span style="display:flex;align-items:center;gap:4px;">'
-      + '<span class="record-date">' + (r.date||'') + '</span>'
-      + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')">✕</button>'
-      + '</span></div>'
-      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">'
-      + '<span class="tag ' + tagClass + '">' + (r.type||'') + '</span>'
-      + (r.company ? '<span style="font-family:var(--hand);font-size:14px;color:#888;">' + r.company + '</span>' : '')
-      + '</div>'
-      + (extraItems ? '<div class="record-extra">' + extraItems + '</div>' : '')
-      + (r.note ? '<div class="record-note">' + r.note + '</div>' : '')
-      + '</div>';
+      +'<div class="record-top">'
+      +'<span class="record-name">'+r.name+'</span>'
+      +'<span style="display:flex;align-items:center;gap:4px;">'
+      +'<span class="record-date">'+(r.date||'')+'</span>'
+      +'<button class="del-btn" onclick="deleteRecord(\''+r.id+'\')">✕</button>'
+      +'</span></div>'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">'
+      +'<span class="tag '+tagClass+'">'+(r.type||'')+'</span>'
+      +(r.company?'<span style="font-family:var(--h);font-size:14px;color:#888;">'+r.company+'</span>':'')
+      +(r.policy?'<span style="font-family:var(--h);font-size:13px;color:#aaa;">保單：'+r.policy+'</span>':'')
+      +(r.payer?'<span style="font-family:var(--h);font-size:13px;color:var(--tfd);">繳款人：'+r.payer+'</span>':'')
+      +'</div>'
+      +(extraItems?'<div class="record-extra">'+extraItems+'</div>':'')
+      +(r.note?'<div class="record-note">'+r.note+'</div>':'')
+      +'<button class="edit-btn" onclick="togEditBox(\''+rid+'\')">編輯</button>'
+      +'<div class="edit-box" id="edit-'+rid+'">'
+      +'<div class="edit-box-t">編輯記錄</div>'
+      +'<div class="f" style="margin-bottom:8px;"><label>保險公司</label>'
+      +'<select id="edit-company-'+rid+'">'
+      +'<option value="">請選擇</option>'
+      +'<option'+(r.company==='南山人壽'?' selected':'')+'>南山人壽</option>'
+      +'<option'+(r.company==='國泰人壽'?' selected':'')+'>國泰人壽</option>'
+      +'<option'+(r.company==='富邦人壽'?' selected':'')+'>富邦人壽</option>'
+      +'<option'+(r.company==='中國人壽'?' selected':'')+'>中國人壽</option>'
+      +'<option'+(r.company==='新光人壽'?' selected':'')+'>新光人壽</option>'
+      +'<option'+(r.company==='台灣人壽'?' selected':'')+'>台灣人壽</option>'
+      +'<option'+(r.company==='遠雄人壽'?' selected':'')+'>遠雄人壽</option>'
+      +'<option'+(r.company==='三商美邦'?' selected':'')+'>三商美邦</option>'
+      +'<option'+(r.company==='全球人壽'?' selected':'')+'>全球人壽</option>'
+      +'<option'+(r.company==='第一金人壽'?' selected':'')+'>第一金人壽</option>'
+      +'<option'+(r.company==='其他'?' selected':'')+'>其他</option>'
+      +'</select></div>'
+      +'<div class="f" style="margin-bottom:8px;"><label>保單號碼</label><input id="edit-policy-'+rid+'" type="text" value="'+(r.policy||'')+'" placeholder="選填"></div>'
+      +'<div class="f" style="margin-bottom:8px;"><label>繳款人</label><input id="edit-payer-'+rid+'" type="text" value="'+(r.payer||'')+'" placeholder="要保人／被保人／其他"></div>'
+      +'<div class="f" style="margin-bottom:12px;"><label>備註</label><textarea id="edit-note-'+rid+'" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
+      +'<button class="save-edit-btn" onclick="saveEdit(\''+rid+'\')">儲存</button>'
+      +'<button class="cancel-edit-btn" onclick="togEditBox(\''+rid+'\')">取消</button>'
+      +'</div>'
+      +'</div>';
   }).join('');
 }
 
-document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 loadRecords();
 </script>
 </body>
