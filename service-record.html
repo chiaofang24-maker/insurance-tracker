@@ -323,8 +323,8 @@ function openEdit(btn, r){
     +'<div id="ge-extra-wrap"></div>'
     +'<div class="f" style="margin-bottom:12px;"><label>備註</label>'
     +'<textarea id="ge-note" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
-    +'<button class="save-edit-btn" onclick="saveEdit(''+r.id+'')">儲存</button>'
-    +'<button class="cancel-edit-btn" onclick="document.getElementById('global-edit-box').remove()">取消</button>';
+    +'<button class="save-edit-btn" onclick="saveEdit(\'' +r.id+ '\')">儲存</button>'
+    +'<button class="cancel-edit-btn" onclick="document.getElementById(\'global-edit-box\').remove()">取消</button>';
   btn.parentNode.insertBefore(box, btn.nextSibling);
   window._editExtraData = extraStr;
   updateEditExtra();
