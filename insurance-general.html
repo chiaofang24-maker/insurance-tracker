@@ -68,6 +68,11 @@ body{background:#F5FAFA;font-family:var(--h);}
 .gb{font-family:var(--h);font-size:15px;font-weight:600;padding:8px 18px;border-radius:14px;background:var(--tf);color:#fff;border:none;cursor:pointer;margin-top:10px;}
 .msg{background:var(--mint);border:1.5px solid var(--sage);border-radius:14px;padding:12px;margin-top:8px;font-family:var(--h);font-size:14px;color:var(--tfdp);white-space:pre-wrap;line-height:1.7;}
 .co-label{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:6px;}
+.edit-btn{font-family:var(--h);font-size:13px;background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.rec-edit-box{background:var(--mint);border:1.5px solid var(--sage);border-radius:16px;padding:12px 14px;margin-top:10px;}
+.rec-edit-t{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:12px;}
+.save-edit-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:var(--tf);color:#fff;border:none;cursor:pointer;margin-right:8px;}
+.cancel-edit-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;}
 .renew-edit{background:var(--mint);border-radius:14px;padding:10px 12px;margin-top:8px;border:1.5px solid var(--sage);}
 .renew-edit-t{font-family:var(--h);font-size:13px;font-weight:600;color:var(--tfd);margin-bottom:8px;}
 .renew-edit select{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
@@ -419,6 +424,68 @@ function calcT(){
   DET.forEach(function(d){var c=document.getElementById('c'+d);if(c&&c.checked){var p=document.getElementById('p'+d);if(p)t+=parseInt(p.value)||0;}});
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
+
+function openRecEdit(btn, enc){
+  var existing = document.getElementById('rec-edit-global');
+  if(existing) existing.remove();
+  var r = JSON.parse(decodeURIComponent(enc));
+  var COMPANIES = ['全球人壽','宏泰人壽','凱基人壽','新光人壽','遠雄人壽','台灣人壽','安達人壽','台銀人壽','富邦人壽','第一金人壽','友邦人壽','元大人壽','安聯人壽','保誠人壽','國泰人壽','南山人壽','其他'];
+  var coOpts = COMPANIES.map(function(c){ return '<option'+(r.company===c?' selected':'')+'>'+c+'</option>'; }).join('');
+  var box = document.createElement('div');
+  box.id = 'rec-edit-global';
+  box.className = 'rec-edit-box';
+  var curExpiry = r.expiry ? String(r.expiry).substring(0,10) : '';
+  var ep = curExpiry.split('-');
+  var ey = ep[0]||'', em = ep[1]||'', ed = ep[2]||'';
+  var yOpts = '', mOpts = '', dOpts = '';
+  var cy = new Date().getFullYear();
+  for(var y=cy-2;y<=cy+10;y++) yOpts += '<option'+(ey==y?' selected':'')+'>'+y+'</option>';
+  for(var m=1;m<=12;m++) mOpts += '<option value="'+String(m).padStart(2,'0')+'"'+(em==String(m).padStart(2,'0')?' selected':'')+'>'+m+'月</option>';
+  for(var d=1;d<=31;d++) dOpts += '<option value="'+String(d).padStart(2,'0')+'"'+(ed==String(d).padStart(2,'0')?' selected':'')+'>'+d+'日</option>';
+  box.innerHTML = '<div class="rec-edit-t">編輯保單</div>'
+    + '<div class="f" style="margin-bottom:10px;"><label>保險公司</label>'
+    + '<select id="re-company"><option value="">請選擇</option>'+coOpts+'</select></div>'
+    + '<div class="f" style="margin-bottom:10px;"><label>到期日</label>'
+    + '<div style="display:flex;gap:5px;">'
+    + '<select id="re-ey" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">年</option>'+yOpts+'</select>'
+    + '<select id="re-em" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">月</option>'+mOpts+'</select>'
+    + '<select id="re-ed" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">日</option>'+dOpts+'</select>'
+    + '</div></div>'
+    + '<div class="f" style="margin-bottom:10px;"><label>續保狀態</label>'
+    + '<select id="re-renew">'
+    + '<option'+(r.renew==='待確認'?' selected':'')+'>待確認</option>'
+    + '<option'+(r.renew==='已續保'?' selected':'')+'>已續保</option>'
+    + '<option'+(r.renew==='不續保'?' selected':'')+'>不續保</option>'
+    + '</select></div>'
+    + '<div class="f" style="margin-bottom:14px;"><label>備註</label>'
+    + '<input id="re-note" type="text" value="'+(r.note||'')+'" placeholder="補充說明..." style="width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;color:var(--tfdp);outline:none;"></div>'
+    + '<button class="save-edit-btn" onclick="saveRecEdit(\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
+    + '<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
+  btn.parentNode.insertBefore(box, btn.nextSibling);
+}
+
+async function saveRecEdit(name, oldExpiry){
+  var company = document.getElementById('re-company').value;
+  var ey = document.getElementById('re-ey').value;
+  var em = document.getElementById('re-em').value;
+  var ed = document.getElementById('re-ed').value;
+  var newExpiry = (ey&&em&&ed) ? ey+'-'+em+'-'+ed : oldExpiry;
+  var renew = document.getElementById('re-renew').value;
+  var note = document.getElementById('re-note').value.trim();
+  setSb('sl2','更新中...');
+  try{
+    var url=API+'?action=update_record&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)+'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)+'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note);
+    await fetch(url);
+    recs.forEach(function(r){
+      if(r.name===name&&r.expiry===oldExpiry){
+        r.company=company; r.expiry=newExpiry; r.renew=renew; r.note=note;
+      }
+    });
+    var box=document.getElementById('rec-edit-global');
+    if(box) box.remove();
+    setSb('sok','已更新');rendS();rendE();updSt();
+  }catch(e){setSb('ser','更新失敗');}
+}
 async function loadR(){
   try{
     var res=await fetch(API),d=await res.json();
@@ -468,6 +535,7 @@ function rHTML(r,cp){
     +(r.note?'<br>備註：'+r.note:'')
     +'</div>'
     +(cp?'<button class="cb" onclick="cpR(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">複製資料</button>':'')
+    +'<button class="edit-btn" onclick="openRecEdit(this,\''+encodeURIComponent(JSON.stringify(r))+'\')" >編輯</button>'
     +'<button class="cb" onclick="togRenewEdit(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\',\''+r.renew+'\')">更新續保狀態</button>'
     +'<div class="renew-edit" id="re-'+rid+'" style="display:none;">'
     +'<div class="renew-edit-t">更新續保狀態</div>'
