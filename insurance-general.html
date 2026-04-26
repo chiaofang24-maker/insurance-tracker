@@ -36,6 +36,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 .di.show{display:flex;}
 .di span{font-family:var(--h);font-size:13px;color:var(--tfd);}
 .di input{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:90px;outline:none;background:var(--mint);}
+.di input.wide{width:140px;}
 .tot{background:var(--tfl);border-radius:14px;padding:8px 14px;margin-top:8px;font-family:var(--h);font-size:16px;font-weight:600;color:var(--tfd);}
 .abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
 .abtn:disabled{opacity:0.5;cursor:not-allowed;}
@@ -78,6 +79,8 @@ body{background:#F5FAFA;font-family:var(--h);}
 .renew-edit select{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
 .renew-edit input{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
 .save-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:7px 16px;border-radius:12px;background:var(--tf);color:#fff;border:none;cursor:pointer;}
+.car-other-box{background:#fff;border-radius:12px;padding:10px 12px;margin-top:8px;border:1.5px solid var(--sage);}
+.car-other-name{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:100%;outline:none;background:var(--mint);margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -153,6 +156,17 @@ body{background:#F5FAFA;font-family:var(--h);}
 <div id="xcar" style="display:none" class="xtra">
   <div class="xtra-t">車險細項（可複選，分別填保費保額）</div>
   <div class="cg" id="cg"></div>
+  <div id="car-other-area" style="display:none;" class="car-other-box">
+    <div style="font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:8px;">其他險種名稱</div>
+    <input type="text" id="car-other-name" class="car-other-name" placeholder="請填寫險種名稱">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-family:var(--h);font-size:13px;color:var(--tfd);">保費</span>
+      <input type="number" id="car-other-p" style="font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:90px;outline:none;background:var(--mint);" placeholder="0" oninput="calcT()">
+      <span style="font-family:var(--h);font-size:13px;color:var(--tfd);">元　保額</span>
+      <input type="number" id="car-other-a" style="font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:90px;outline:none;background:var(--mint);" placeholder="0">
+      <span style="font-family:var(--h);font-size:13px;color:var(--tfd);">萬</span>
+    </div>
+  </div>
   <div class="tot">總保費：<span id="ctot">0</span> 元</div>
 </div>
 
@@ -253,13 +267,12 @@ const CITIES={
 };
 let recs=[],selM=new Date().getMonth()+1;
 
-
 function initDateSelects(){
-  var now = new Date();
-  var curY = now.getFullYear();
-  var ysel = document.getElementById('fb-y');
+  var now=new Date();
+  var curY=now.getFullYear();
+  var ysel=document.getElementById('fb-y');
   for(var y=curY;y>=1940;y--){var o=document.createElement('option');o.value=y;o.textContent=y+'年';ysel.appendChild(o);}
-  var eysel = document.getElementById('fex-y');
+  var eysel=document.getElementById('fex-y');
   for(var y=curY;y<=curY+10;y++){var o=document.createElement('option');o.value=y;o.textContent=y+'年';eysel.appendChild(o);}
   eysel.value=curY;
   ['fb-m','fex-m'].forEach(function(id){
@@ -288,20 +301,15 @@ function resetDateSelects(){
 function searchClient(q){
   var box=document.getElementById('client-suggest');
   if(!q||q.length<1){box.style.display='none';return;}
-  var matches=[];
-  var seen={};
+  var matches=[],seen={};
   recs.forEach(function(r){
-    if(r.name&&r.name.toLowerCase().includes(q.toLowerCase())&&!seen[r.name]){
-      seen[r.name]=true;
-      matches.push(r);
-    }
+    if(r.name&&r.name.toLowerCase().includes(q.toLowerCase())&&!seen[r.name]){seen[r.name]=true;matches.push(r);}
   });
   if(!matches.length){box.style.display='none';return;}
   box.innerHTML=matches.slice(0,5).map(function(r){
     return '<div style="padding:10px 14px;cursor:pointer;font-family:var(--h);font-size:15px;color:var(--tfdp);border-bottom:1px solid var(--sage);" '
-      +'onclick="fillClient(\'' +encodeURIComponent(JSON.stringify(r))+ '\')">'
-      +r.name+(r.phone?' · '+r.phone:'')+(r.plate?' · '+r.plate:'')
-      +'</div>';
+      +'onclick="fillClient(\''+encodeURIComponent(JSON.stringify(r))+'\')">'
+      +r.name+(r.phone?' · '+r.phone:'')+(r.plate?' · '+r.plate:'')+'</div>';
   }).join('');
   box.style.display='block';
 }
@@ -328,15 +336,11 @@ function fillClient(enc){
     }
   }
   var city='',dist='',addr=r.address||'';
-  Object.keys(CITIES).forEach(function(c){
-    if(addr.startsWith(c)){city=c;addr=addr.substring(c.length);}
-  });
+  Object.keys(CITIES).forEach(function(c){if(addr.startsWith(c)){city=c;addr=addr.substring(c.length);}});
   if(city){
     document.getElementById('fct').value=city;
     updDist();
-    (CITIES[city]||[]).forEach(function(d){
-      if(addr.startsWith(d)){dist=d;addr=addr.substring(d.length);}
-    });
+    (CITIES[city]||[]).forEach(function(d){if(addr.startsWith(d)){dist=d;addr=addr.substring(d.length);}});
     if(dist) document.getElementById('fdt').value=dist;
   }
   document.getElementById('fad').value=addr;
@@ -411,75 +415,87 @@ function initCar(){
     return '<div><div class="ci"><input type="checkbox" id="c'+d+'" onchange="togD(\''+d+'\')"><label for="c'+d+'">'+d+'</label></div>'
       +'<div class="di" id="d'+d+'"><span>保費</span><input type="number" id="p'+d+'" placeholder="0" oninput="calcT()">元<span>保額</span><input type="number" id="a'+d+'" placeholder="0">萬</div></div>';
   }).join('');
+  // 加入「其他」勾選項目
+  g.innerHTML += '<div><div class="ci"><input type="checkbox" id="c其他車險" onchange="togCarOther()"><label for="c其他車險">其他</label></div></div>';
+  document.getElementById('car-other-area').style.display='none';
+  document.getElementById('car-other-name').value='';
+  var cop=document.getElementById('car-other-p');if(cop)cop.value='';
+  var coa=document.getElementById('car-other-a');if(coa)coa.value='';
+}
+function togCarOther(){
+  var c=document.getElementById('c其他車險');
+  document.getElementById('car-other-area').style.display=c.checked?'block':'none';
+  calcT();
 }
 function togD(d){var c=document.getElementById('c'+d),di=document.getElementById('d'+d);di.className='di'+(c.checked?' show':'');calcT();}
 function calcT(){
   var t=0;
   var mp=document.getElementById('fmp');if(mp&&mp.value)t+=parseInt(mp.value)||0;
   DET.forEach(function(d){var c=document.getElementById('c'+d);if(c&&c.checked){var p=document.getElementById('p'+d);if(p)t+=parseInt(p.value)||0;}});
+  var co=document.getElementById('c其他車險');
+  if(co&&co.checked){var cop=document.getElementById('car-other-p');if(cop)t+=parseInt(cop.value)||0;}
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
 
 function openRecEdit(btn, enc){
-  var existing = document.getElementById('rec-edit-global');
+  var existing=document.getElementById('rec-edit-global');
   if(existing) existing.remove();
-  var r = JSON.parse(decodeURIComponent(enc));
-  var coOpts = COMPANIES.map(function(c){ return '<option'+(r.company===c?' selected':'')+'>'+c+'</option>'; }).join('');
-  var box = document.createElement('div');
-  box.id = 'rec-edit-global';
-  box.className = 'rec-edit-box';
-  var curExpiry = r.expiry ? String(r.expiry).substring(0,10) : '';
-  var ep = curExpiry.split('-');
-  var ey = ep[0]||'', em = ep[1]||'', ed = ep[2]||'';
-  var yOpts = '', mOpts = '', dOpts = '';
-  var cy = new Date().getFullYear();
-  for(var y=cy-2;y<=cy+10;y++) yOpts += '<option'+(ey==y?' selected':'')+'>'+y+'</option>';
-  for(var m=1;m<=12;m++) mOpts += '<option value="'+String(m).padStart(2,'0')+'"'+(em==String(m).padStart(2,'0')?' selected':'')+'>'+m+'月</option>';
-  for(var d=1;d<=31;d++) dOpts += '<option value="'+String(d).padStart(2,'0')+'"'+(ed==String(d).padStart(2,'0')?' selected':'')+'>'+d+'日</option>';
-  box.innerHTML = '<div class="rec-edit-t">編輯保單</div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>保險公司</label>'
-    + '<select id="re-company"><option value="">請選擇</option>'+coOpts+'</select></div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>到期日</label>'
-    + '<div style="display:flex;gap:5px;">'
-    + '<select id="re-ey" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">年</option>'+yOpts+'</select>'
-    + '<select id="re-em" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">月</option>'+mOpts+'</select>'
-    + '<select id="re-ed" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">日</option>'+dOpts+'</select>'
-    + '</div></div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>續保狀態</label>'
-    + '<select id="re-renew">'
-    + '<option'+(r.renew==='待確認'?' selected':'')+'>待確認</option>'
-    + '<option'+(r.renew==='已續保'?' selected':'')+'>已續保</option>'
-    + '<option'+(r.renew==='不續保'?' selected':'')+'>不續保</option>'
-    + '</select></div>'
-    + '<div class="f" style="margin-bottom:14px;"><label>備註</label>'
-    + '<input id="re-note" type="text" value="'+(r.note||'')+'" placeholder="補充說明..." style="width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;color:var(--tfdp);outline:none;"></div>'
-    + '<button class="save-edit-btn" onclick="saveRecEdit(\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
-    + '<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
-  btn.parentNode.insertBefore(box, btn.nextSibling);
+  var r=JSON.parse(decodeURIComponent(enc));
+  var coOpts=COMPANIES.map(function(c){return '<option'+(r.company===c?' selected':'')+'>'+c+'</option>';}).join('');
+  var box=document.createElement('div');
+  box.id='rec-edit-global';
+  box.className='rec-edit-box';
+  var curExpiry=r.expiry?String(r.expiry).substring(0,10):'';
+  var ep=curExpiry.split('-');
+  var ey=ep[0]||'',em=ep[1]||'',ed=ep[2]||'';
+  var yOpts='',mOpts='',dOpts='';
+  var cy=new Date().getFullYear();
+  for(var y=cy-2;y<=cy+10;y++) yOpts+='<option'+(ey==y?' selected':'')+'>'+y+'</option>';
+  for(var m=1;m<=12;m++) mOpts+='<option value="'+String(m).padStart(2,'0')+'"'+(em==String(m).padStart(2,'0')?' selected':'')+'>'+m+'月</option>';
+  for(var d=1;d<=31;d++) dOpts+='<option value="'+String(d).padStart(2,'0')+'"'+(ed==String(d).padStart(2,'0')?' selected':'')+'>'+d+'日</option>';
+  box.innerHTML='<div class="rec-edit-t">編輯保單</div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>保險公司</label>'
+    +'<select id="re-company"><option value="">請選擇</option>'+coOpts+'</select></div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>到期日</label>'
+    +'<div style="display:flex;gap:5px;">'
+    +'<select id="re-ey" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">年</option>'+yOpts+'</select>'
+    +'<select id="re-em" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">月</option>'+mOpts+'</select>'
+    +'<select id="re-ed" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;"><option value="">日</option>'+dOpts+'</select>'
+    +'</div></div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>續保狀態</label>'
+    +'<select id="re-renew">'
+    +'<option'+(r.renew==='待確認'?' selected':'')+'>待確認</option>'
+    +'<option'+(r.renew==='已續保'?' selected':'')+'>已續保</option>'
+    +'<option'+(r.renew==='不續保'?' selected':'')+'>不續保</option>'
+    +'</select></div>'
+    +'<div class="f" style="margin-bottom:14px;"><label>備註</label>'
+    +'<input id="re-note" type="text" value="'+(r.note||'')+'" placeholder="補充說明..." style="width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;color:var(--tfdp);outline:none;"></div>'
+    +'<button class="save-edit-btn" onclick="saveRecEdit(\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
+    +'<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
+  btn.parentNode.insertBefore(box,btn.nextSibling);
 }
 
-async function saveRecEdit(name, oldExpiry){
-  var company = document.getElementById('re-company').value;
-  var ey = document.getElementById('re-ey').value;
-  var em = document.getElementById('re-em').value;
-  var ed = document.getElementById('re-ed').value;
-  var newExpiry = (ey&&em&&ed) ? ey+'-'+em+'-'+ed : oldExpiry;
-  var renew = document.getElementById('re-renew').value;
-  var note = document.getElementById('re-note').value.trim();
+async function saveRecEdit(name,oldExpiry){
+  var company=document.getElementById('re-company').value;
+  var ey=document.getElementById('re-ey').value;
+  var em=document.getElementById('re-em').value;
+  var ed=document.getElementById('re-ed').value;
+  var newExpiry=(ey&&em&&ed)?ey+'-'+em+'-'+ed:oldExpiry;
+  var renew=document.getElementById('re-renew').value;
+  var note=document.getElementById('re-note').value.trim();
   setSb('sl2','更新中...');
   try{
     var url=API+'?action=update_record&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)+'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)+'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note);
     await fetch(url);
     recs.forEach(function(r){
-      if(r.name===name&&r.expiry===oldExpiry){
-        r.company=company; r.expiry=newExpiry; r.renew=renew; r.note=note;
-      }
+      if(r.name===name&&r.expiry===oldExpiry){r.company=company;r.expiry=newExpiry;r.renew=renew;r.note=note;}
     });
     var box=document.getElementById('rec-edit-global');
     if(box) box.remove();
     setSb('sok','已更新');rendS();rendE();updSt();
   }catch(e){setSb('ser','更新失敗');}
 }
+
 async function loadR(){
   try{
     var res=await fetch(API),d=await res.json();
@@ -595,7 +611,9 @@ function selMonth(m){
   rendE();
 }
 function rendE(){
+  // 篩選該月份，並依剩餘天數由少至多排序
   var mr=recs.filter(function(r){return r.expiry&&new Date(r.expiry).getMonth()+1===selM;});
+  mr.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
   document.getElementById('elist').innerHTML=mr.length?mr.map(function(r){return rHTML(r,false);}).join(''):'<div class="emp">'+selM+'月沒有到期保單</div>';
 }
 function genMsg(){
@@ -632,6 +650,15 @@ async function addR(){
       var c=document.getElementById('c'+d);
       if(c&&c.checked){var p=parseInt(document.getElementById('p'+d).value)||0,a=document.getElementById('a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
     });
+    // 車險其他項目
+    var co=document.getElementById('c其他車險');
+    if(co&&co.checked){
+      var coName=document.getElementById('car-other-name').value.trim()||'其他';
+      var coP=parseInt(document.getElementById('car-other-p').value)||0;
+      var coA=document.getElementById('car-other-a').value||'';
+      dets.push({name:coName,premium:coP,amount:coA});
+      tot+=coP;
+    }
   }else if(type==='住宅火險'){
     tot=parseInt(document.getElementById('ffire-pr').value)||0;
     loanbank=document.getElementById('ffire-bank').value.trim();
