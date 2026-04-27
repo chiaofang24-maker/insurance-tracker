@@ -135,20 +135,20 @@ body{background:#F5FAFA;font-family:var(--h);}
 <div class="card">
 <div class="ch">保單資料</div>
 <div class="row">
-  <div class="f"><label>險種</label>
-    <select id="ftp" onchange="updType()">
-      <option value="">請選擇</option>
-      <option>車險</option><option>住宅火險</option>
-      <option>商業火險</option><option>公共意外責任險</option><option>產品責任險</option>
-      <option>家庭責任險</option><option>雇主僱補險</option><option>團險</option><option>其他</option>
-    </select>
-  </div>
   <div class="f"><label>保險公司</label>
     <select id="fco">
       <option value="">請選擇</option>
       <option>華南</option><option>國泰</option><option>新光</option><option>富邦</option>
       <option>明台</option><option>台產</option><option>和泰</option><option>第一</option>
       <option>旺旺</option><option>泰安</option><option>中信產</option><option>新安東京</option>
+    </select>
+  </div>
+  <div class="f"><label>險種</label>
+    <select id="ftp" onchange="updType()">
+      <option value="">請選擇</option>
+      <option>車險</option><option>住宅火險</option>
+      <option>商業火險</option><option>公共意外責任險</option><option>產品責任險</option>
+      <option>家庭責任險</option><option>雇主僱補險</option><option>團險</option><option>其他</option>
     </select>
   </div>
 </div>
@@ -415,8 +415,7 @@ function initCar(){
     return '<div><div class="ci"><input type="checkbox" id="c'+d+'" onchange="togD(\''+d+'\')"><label for="c'+d+'">'+d+'</label></div>'
       +'<div class="di" id="d'+d+'"><span>保費</span><input type="number" id="p'+d+'" placeholder="0" oninput="calcT()">元<span>保額</span><input type="number" id="a'+d+'" placeholder="0">萬</div></div>';
   }).join('');
-  // 加入「其他」勾選項目
-  g.innerHTML += '<div><div class="ci"><input type="checkbox" id="c其他車險" onchange="togCarOther()"><label for="c其他車險">其他</label></div></div>';
+  g.innerHTML+='<div><div class="ci"><input type="checkbox" id="c其他車險" onchange="togCarOther()"><label for="c其他車險">其他</label></div></div>';
   document.getElementById('car-other-area').style.display='none';
   document.getElementById('car-other-name').value='';
   var cop=document.getElementById('car-other-p');if(cop)cop.value='';
@@ -437,7 +436,7 @@ function calcT(){
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
 
-function openRecEdit(btn, enc){
+function openRecEdit(btn,enc){
   var existing=document.getElementById('rec-edit-global');
   if(existing) existing.remove();
   var r=JSON.parse(decodeURIComponent(enc));
@@ -611,7 +610,6 @@ function selMonth(m){
   rendE();
 }
 function rendE(){
-  // 篩選該月份，並依剩餘天數由少至多排序
   var mr=recs.filter(function(r){return r.expiry&&new Date(r.expiry).getMonth()+1===selM;});
   mr.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
   document.getElementById('elist').innerHTML=mr.length?mr.map(function(r){return rHTML(r,false);}).join(''):'<div class="emp">'+selM+'月沒有到期保單</div>';
@@ -650,7 +648,6 @@ async function addR(){
       var c=document.getElementById('c'+d);
       if(c&&c.checked){var p=parseInt(document.getElementById('p'+d).value)||0,a=document.getElementById('a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
     });
-    // 車險其他項目
     var co=document.getElementById('c其他車險');
     if(co&&co.checked){
       var coName=document.getElementById('car-other-name').value.trim()||'其他';
