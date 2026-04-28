@@ -3,179 +3,343 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF 工具</title>
+<title>來亞保險私塾 | PDF 工具箱</title>
+<script src="https://unpkg.com/@cantoo/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
-body{background:#F5FAFA;font-family:var(--h);}
-.app{padding:1rem 1rem;max-width:640px;margin:0 auto;}
-.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
-.hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
-.hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
-.tab{font-family:var(--h);font-size:16px;font-weight:600;padding:10px;border-radius:16px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;}
-.tab.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+:root{
+  --tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;
+  --mint:#F0FAFA;--sage:#D4F0EE;
+  --font:'標楷體','DFKai-SB','BiauKai','Comic Sans MS','Chalkboard SE',cursive;
+}
+body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-height:100vh;font-family:var(--font);}
+
+/* ── 主體 ── */
+.page-body{display:flex;justify-content:center;padding:28px 16px;min-height:100vh;}
+.app{width:100%;max-width:680px;}
+
+/* ── 標題卡 ── */
+.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;box-shadow:0 6px 20px rgba(10,186,181,0.3);}
+.hdr h1{font-size:24px;font-weight:700;color:#fff;}
+.hdr p{font-size:13px;color:rgba(255,255,255,0.85);margin-top:3px;}
+
+/* ── 分頁 ── */
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem;}
+.tab{
+  font-family:var(--font);font-size:14px;font-weight:600;padding:10px 6px;
+  border-radius:16px;border:2px solid var(--sage);background:#fff;
+  color:var(--tfd);cursor:pointer;text-align:center;transition:all 0.2s;
+}
+.tab.on{background:var(--tf);color:#fff;border-color:var(--tf);box-shadow:0 4px 12px rgba(10,186,181,0.25);}
+.tab:hover:not(.on){background:var(--tfl);}
 .pnl{display:none;}.pnl.on{display:block;}
-.card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
-.ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
-.drop-zone{border:2px dashed var(--tfm);border-radius:18px;padding:2rem;text-align:center;background:var(--mint);cursor:pointer;margin-bottom:12px;}
-.drop-zone:hover{background:var(--tfl);}
-.drop-zone p{font-family:var(--h);font-size:16px;color:var(--tfd);margin-top:8px;}
-.drop-zone span{font-size:36px;}
+
+/* ── 卡片 ── */
+.card{background:#fff;border-radius:22px;padding:1.3rem 1.4rem;margin-bottom:1rem;border:2px solid var(--sage);}
+.ch{background:var(--mint);border-radius:14px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-size:16px;font-weight:700;color:var(--tfd);}
+
+/* ── 拖曳區 ── */
+.drop-zone{border:3px dashed var(--tfm);border-radius:18px;padding:1.8rem 1rem;text-align:center;background:var(--mint);cursor:pointer;margin-bottom:12px;transition:all 0.2s;}
+.drop-zone:hover{background:var(--tfl);border-color:var(--tf);}
+.drop-zone.dragover{background:#c5f0f0;border-color:var(--tf);transform:scale(1.01);}
+.drop-zone span{font-size:34px;display:block;margin-bottom:8px;}
+.drop-zone p{font-size:15px;color:var(--tfd);}
+.drop-zone small{font-size:12px;color:#aaa;}
+
+/* ── 檔案清單 ── */
 .file-list{margin-bottom:12px;}
 .file-item{display:flex;align-items:center;justify-content:space-between;background:var(--mint);border-radius:14px;padding:10px 14px;margin-bottom:8px;border:1.5px solid var(--sage);}
-.file-name{font-family:var(--h);font-size:15px;color:var(--tfdp);flex:1;}
-.file-pages{font-family:var(--h);font-size:13px;color:#888;margin:0 10px;}
-.file-btns{display:flex;gap:6px;}
-.up-btn,.dn-btn{font-family:var(--h);font-size:13px;background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);border-radius:8px;padding:3px 8px;cursor:pointer;}
-.rm-btn{font-family:var(--h);font-size:13px;background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;border-radius:8px;padding:3px 8px;cursor:pointer;}
-.abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;border-radius:18px;background:var(--tf);color:#fff;border:none;margin-top:6px;}
-.abtn:disabled{opacity:0.5;cursor:not-allowed;}
-.f label{font-family:var(--h);font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
-.f input{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;}
-.f input:focus{border-color:var(--tf);background:#fff;}
-.hint{font-family:var(--h);font-size:13px;color:#888;margin-top:4px;}
-.sb{font-family:var(--h);font-size:14px;padding:8px 14px;border-radius:14px;margin-bottom:10px;text-align:center;}
-.sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
-.sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
-.ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
+.file-name{font-size:14px;color:var(--tfdp);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-btns{display:flex;gap:6px;flex-shrink:0;margin-left:8px;}
+.up-btn,.dn-btn{font-family:var(--font);font-size:13px;background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);border-radius:8px;padding:3px 8px;cursor:pointer;}
+.rm-btn{font-family:var(--font);font-size:13px;background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;border-radius:8px;padding:3px 8px;cursor:pointer;}
+
+/* ── 表單 ── */
+.f{margin-bottom:12px;}
+.f label{font-size:14px;color:var(--tfd);display:block;margin-bottom:5px;font-weight:600;}
+.f input{width:100%;font-family:var(--font);font-size:15px;border:2px solid var(--sage);border-radius:14px;padding:10px 14px;background:var(--mint);color:var(--tfdp);outline:none;}
+.f input:focus{border-color:var(--tf);background:#fff;box-shadow:0 0 0 3px rgba(10,186,181,0.12);}
+.hint{font-size:12px;color:#999;margin-top:4px;}
+
+/* ── 按鈕 ── */
+.abtn{
+  width:100%;padding:13px;font-family:var(--font);font-size:17px;font-weight:700;
+  cursor:pointer;border-radius:18px;
+  background:linear-gradient(135deg,var(--tf) 0%,var(--tfd) 100%);
+  color:#fff;border:none;margin-top:6px;
+  box-shadow:0 5px 15px rgba(10,186,181,0.3);transition:all 0.2s;
+}
+.abtn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(10,186,181,0.4);}
+.abtn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* ── 進度 ── */
 .prog{background:var(--tfl);border-radius:14px;padding:10px 14px;margin-top:10px;display:none;}
 .prog-bar-wrap{background:#fff;border-radius:10px;height:10px;margin-top:8px;overflow:hidden;}
 .prog-bar{background:var(--tf);height:10px;border-radius:10px;transition:width 0.3s;}
-.prog-text{font-family:var(--h);font-size:14px;color:var(--tfd);}
+.prog-text{font-size:14px;color:var(--tfd);}
+
+/* ── 狀態列 ── */
+.sb{font-size:13px;padding:8px 14px;border-radius:14px;margin-bottom:10px;text-align:center;}
+.sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
+.sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
+.ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
+
+/* ── 結果 ── */
 .result-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-.dl-btn{font-family:var(--h);font-size:15px;font-weight:600;padding:10px 18px;border-radius:14px;background:var(--tf);color:#fff;border:none;cursor:pointer;text-decoration:none;display:inline-block;}
-.page-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
-.page-item{background:var(--mint);border:2px solid var(--sage);border-radius:12px;padding:8px;text-align:center;cursor:pointer;font-family:var(--h);font-size:14px;color:var(--tfd);}
-.page-item.sel{background:var(--tfl);border-color:var(--tf);color:var(--tfdp);font-weight:600;}
-.split-mode-btns{display:flex;gap:8px;margin-bottom:12px;}
-.mode-btn{font-family:var(--h);font-size:14px;padding:8px 16px;border-radius:12px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;}
+.dl-btn{font-family:var(--font);font-size:15px;font-weight:600;padding:10px 18px;border-radius:14px;background:var(--tf);color:#fff;border:none;cursor:pointer;text-decoration:none;display:inline-block;}
+
+/* ── 解密清單 ── */
+.decrypt-list{flex-grow:1;overflow-y:auto;max-height:340px;border:2px solid var(--sage);border-radius:14px;background:#fff;padding:10px;}
+.d-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px dashed var(--sage);font-size:13px;}
+.d-item:last-child{border-bottom:none;}
+.d-name{color:var(--tfdp);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%;}
+.d-status{font-weight:bold;font-size:12px;padding:4px 10px;border-radius:20px;}
+.status-waiting{color:var(--tfm);background:var(--tfl);}
+.status-processing{color:var(--tfd);background:var(--sage);animation:pulse 1.5s infinite;}
+.status-success{color:#16a34a;background:#dcfce7;}
+.status-error{color:#dc2626;background:#fee2e2;}
+@keyframes pulse{0%{opacity:0.6}50%{opacity:1}100%{opacity:0.6}}
+#decryptStatus{margin-top:12px;font-size:14px;text-align:center;font-weight:bold;color:var(--tf);}
+
+/* ── 分割 ── */
+.split-mode-btns{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.mode-btn{font-family:var(--font);font-size:13px;padding:7px 14px;border-radius:12px;border:2px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;transition:all 0.2s;}
 .mode-btn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.page-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;}
+.page-item{background:var(--mint);border:2px solid var(--sage);border-radius:12px;padding:8px;text-align:center;cursor:pointer;font-size:13px;color:var(--tfd);}
+.page-item.sel{background:var(--tfl);border-color:var(--tf);font-weight:700;}
+
+@media(max-width:480px){
+  .tabs{grid-template-columns:1fr 1fr 1fr;}
+  .tab{font-size:12px;padding:9px 4px;}
+  .navbar{padding:0 12px;}
+}
 </style>
 </head>
 <body>
+
+<div class="page-body">
 <div class="app">
-<div class="hdr"><h1>PDF 工具</h1><p>合併・分割，完全在本機處理</p></div>
-<div id="sb" class="sb sl2" style="display:none;"></div>
-<div class="tabs">
-  <div class="tab on" onclick="sw('merge')">合併 PDF</div>
-  <div class="tab" onclick="sw('split')">分割 PDF</div>
-</div>
 
-<div id="pnl-merge" class="pnl on">
-  <div class="card">
-    <div class="ch">合併多個 PDF</div>
-    <div class="drop-zone" onclick="document.getElementById('merge-input').click()" id="merge-drop">
-      <span>📄</span>
-      <p>點此選擇 PDF 檔案</p>
-      <p style="font-size:13px;color:#aaa;margin-top:4px;">可一次選多個，或多次新增</p>
-    </div>
-    <input type="file" id="merge-input" accept=".pdf" multiple style="display:none" onchange="addMergeFiles(this)">
-    <div class="file-list" id="merge-list"></div>
-    <div class="f" style="margin-bottom:10px;">
-      <label>輸出檔名</label>
-      <input id="merge-name" type="text" placeholder="merged" value="merged">
-    </div>
-    <button class="abtn" id="merge-btn" onclick="mergePDFs()">合併 PDF</button>
-    <div class="prog" id="merge-prog">
-      <div class="prog-text" id="merge-prog-text">處理中...</div>
-      <div class="prog-bar-wrap"><div class="prog-bar" id="merge-prog-bar" style="width:0%"></div></div>
-    </div>
-    <div id="merge-result"></div>
+  <div class="hdr">
+    <h1>🛠️ PDF 工具箱</h1>
+    <p>解密 ✨ 合併 ✨ 分割 ── 完全在本機處理，檔案不上傳</p>
   </div>
-</div>
 
-<div id="pnl-split" class="pnl">
-  <div class="card">
-    <div class="ch">分割 PDF</div>
-    <div class="drop-zone" onclick="document.getElementById('split-input').click()">
-      <span>✂️</span>
-      <p>點此選擇要分割的 PDF</p>
+  <div id="sb" class="sb sl2" style="display:none;"></div>
+
+  <div class="tabs">
+    <div class="tab on" onclick="sw('decrypt')">🔓 解密</div>
+    <div class="tab" onclick="sw('merge')">📄 合併</div>
+    <div class="tab" onclick="sw('split')">✂️ 分割</div>
+  </div>
+
+  <!-- ══════════ 解密 ══════════ -->
+  <div id="pnl-decrypt" class="pnl on">
+    <div class="card">
+      <div class="ch">🔐 批量移除 PDF 密碼</div>
+      <div class="drop-zone" id="decryptDrop" onclick="document.getElementById('decryptFiles').click()">
+        <span>📥</span>
+        <p>點此或拖曳 PDF 至此</p>
+        <small>支援一次選取多個檔案</small>
+        <input type="file" id="decryptFiles" accept="application/pdf" multiple style="display:none;">
+      </div>
+      <div class="f">
+        <label>PDF 共同密碼</label>
+        <input type="password" id="pdfPassword" placeholder="輸入解密密碼">
+      </div>
+      <button class="abtn" id="decryptBtn" onclick="startDecrypt()">🚀 開始解密並下載</button>
+      <div id="decryptStatus"></div>
     </div>
-    <input type="file" id="split-input" accept=".pdf" style="display:none" onchange="loadSplitFile(this)">
-    <div id="split-info" style="display:none;">
-      <div style="font-family:var(--h);font-size:15px;color:var(--tfd);margin-bottom:10px;" id="split-filename"></div>
-      <div class="split-mode-btns">
-        <button class="mode-btn on" onclick="setSplitMode('each',this)">每頁單獨分割</button>
-        <button class="mode-btn" onclick="setSplitMode('range',this)">自訂頁碼範圍</button>
-        <button class="mode-btn" onclick="setSplitMode('select',this)">勾選特定頁面</button>
+    <div class="card" id="decryptListCard" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-weight:700;color:var(--tfd);">📄 任務清單</span>
+        <span id="decryptCount" style="font-size:12px;color:var(--tfm);"></span>
       </div>
-      <div id="split-each">
-        <p style="font-family:var(--h);font-size:14px;color:#888;">將每一頁分割成獨立的 PDF 檔案</p>
+      <div class="decrypt-list" id="decryptList"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 合併 ══════════ -->
+  <div id="pnl-merge" class="pnl">
+    <div class="card">
+      <div class="ch">📄 合併多個 PDF</div>
+      <div class="drop-zone" id="mergeDrop" onclick="document.getElementById('mergeInput').click()">
+        <span>📄</span>
+        <p>點此選擇 PDF 檔案</p>
+        <small>可一次選多個，或多次新增</small>
       </div>
-      <div id="split-range" style="display:none;">
-        <div class="f" style="margin-bottom:8px;">
-          <label>頁碼範圍（例如：1-3, 5, 7-9）</label>
-          <input id="range-input" type="text" placeholder="1-3, 5, 7-9">
-          <div class="hint">用逗號分隔多個範圍，每個範圍會輸出一個 PDF</div>
+      <input type="file" id="mergeInput" accept=".pdf" multiple style="display:none" onchange="addMergeFiles(this)">
+      <div class="file-list" id="mergeList"></div>
+      <div class="f">
+        <label>輸出檔名</label>
+        <input id="mergeName" type="text" placeholder="merged" value="merged">
+      </div>
+      <button class="abtn" id="mergeBtn" onclick="mergePDFs()">合併 PDF</button>
+      <div class="prog" id="mergeProg">
+        <div class="prog-text" id="mergeProgText">處理中...</div>
+        <div class="prog-bar-wrap"><div class="prog-bar" id="mergeProgBar" style="width:0%"></div></div>
+      </div>
+      <div id="mergeResult"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 分割 ══════════ -->
+  <div id="pnl-split" class="pnl">
+    <div class="card">
+      <div class="ch">✂️ 分割 PDF</div>
+      <div class="drop-zone" onclick="document.getElementById('splitInput').click()">
+        <span>✂️</span>
+        <p>點此選擇要分割的 PDF</p>
+      </div>
+      <input type="file" id="splitInput" accept=".pdf" style="display:none" onchange="loadSplitFile(this)">
+      <div id="splitInfo" style="display:none;">
+        <div style="font-size:14px;color:var(--tfd);margin-bottom:12px;background:var(--mint);border-radius:10px;padding:8px 12px;" id="splitFilename"></div>
+        <div class="split-mode-btns">
+          <button class="mode-btn on" onclick="setSplitMode('each',this)">每頁獨立</button>
+          <button class="mode-btn" onclick="setSplitMode('range',this)">自訂範圍</button>
+          <button class="mode-btn" onclick="setSplitMode('select',this)">勾選頁面</button>
         </div>
+        <div id="split-each"><p style="font-size:13px;color:#888;">將每一頁分割成獨立 PDF 檔案</p></div>
+        <div id="split-range" style="display:none;">
+          <div class="f">
+            <label>頁碼範圍（例如：1-3, 5, 7-9）</label>
+            <input id="rangeInput" type="text" placeholder="1-3, 5, 7-9">
+            <div class="hint">用逗號分隔，每段範圍輸出一個 PDF</div>
+          </div>
+        </div>
+        <div id="split-select" style="display:none;">
+          <p style="font-size:13px;color:var(--tfd);margin-bottom:8px;">點選要擷取的頁面（可多選）</p>
+          <div class="page-grid" id="pageGrid"></div>
+        </div>
+        <div class="f" style="margin-top:14px;">
+          <label>輸出檔名前綴</label>
+          <input id="splitName" type="text" placeholder="split" value="split">
+        </div>
+        <button class="abtn" id="splitBtn" onclick="splitPDF()">分割 PDF</button>
+        <div class="prog" id="splitProg">
+          <div class="prog-text" id="splitProgText">處理中...</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="splitProgBar" style="width:0%"></div></div>
+        </div>
+        <div id="splitResult"></div>
       </div>
-      <div id="split-select" style="display:none;">
-        <p style="font-family:var(--h);font-size:14px;color:var(--tfd);margin-bottom:8px;">點選要擷取的頁面（可多選）</p>
-        <div class="page-grid" id="page-grid"></div>
-      </div>
-      <div class="f" style="margin-top:12px;margin-bottom:10px;">
-        <label>輸出檔名前綴</label>
-        <input id="split-name" type="text" placeholder="split" value="split">
-      </div>
-      <button class="abtn" id="split-btn" onclick="splitPDF()">分割 PDF</button>
-      <div class="prog" id="split-prog">
-        <div class="prog-text" id="split-prog-text">處理中...</div>
-        <div class="prog-bar-wrap"><div class="prog-bar" id="split-prog-bar" style="width:0%"></div></div>
-      </div>
-      <div id="split-result"></div>
     </div>
   </div>
+
 </div>
 </div>
 
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
-var mergeFiles=[];
-var splitPdfBytes=null;
-var splitPageCount=0;
-var splitMode='each';
-var selectedPages=[];
-
+/* ── 分頁切換 ── */
 function sw(t){
-  document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['merge','split'][i]===t);});
+  var tabs=['decrypt','merge','split'];
+  document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',tabs[i]===t);});
   document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
   document.getElementById('pnl-'+t).classList.add('on');
 }
+function setSb(t,m){var b=document.getElementById('sb');b.style.display='block';b.className='sb '+t;b.textContent=m;}
 
-function setSb(t,m){
-  var b=document.getElementById('sb');
-  b.style.display='block';
-  b.className='sb '+t;
-  b.textContent=m;
+/* ════════════════════ 解密 ════════════════════ */
+var decryptFiles=[];
+var decryptDrop=document.getElementById('decryptDrop');
+var decryptFileInput=document.getElementById('decryptFiles');
+
+decryptFileInput.addEventListener('change',function(e){handleDecryptFiles(e.target.files);});
+['dragover','dragleave','drop'].forEach(function(evt){
+  decryptDrop.addEventListener(evt,function(e){
+    e.preventDefault();
+    if(evt==='dragover') decryptDrop.classList.add('dragover');
+    if(evt==='dragleave'||evt==='drop') decryptDrop.classList.remove('dragover');
+    if(evt==='drop'&&e.dataTransfer.files.length>0) handleDecryptFiles(e.dataTransfer.files);
+  });
+});
+
+function handleDecryptFiles(files){
+  decryptFiles=Array.from(files).filter(function(f){return f.name.toLowerCase().endsWith('.pdf');});
+  if(!decryptFiles.length) return;
+  var card=document.getElementById('decryptListCard');
+  var list=document.getElementById('decryptList');
+  var count=document.getElementById('decryptCount');
+  card.style.display='block';
+  count.textContent=decryptFiles.length+' 個檔案';
+  list.innerHTML='';
+  decryptFiles.forEach(function(f,i){
+    var el=document.createElement('div');
+    el.className='d-item';
+    el.innerHTML='<span class="d-name" title="'+f.name+'">'+f.name+'</span>'
+      +'<span class="d-status status-waiting" id="dst-'+i+'">等待中...</span>';
+    list.appendChild(el);
+  });
 }
 
-function setSplitMode(m,btn){
-  splitMode=m;
-  document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
-  document.getElementById('split-each').style.display=m==='each'?'block':'none';
-  document.getElementById('split-range').style.display=m==='range'?'block':'none';
-  document.getElementById('split-select').style.display=m==='select'?'block':'none';
+async function startDecrypt(){
+  var pw=document.getElementById('pdfPassword').value;
+  var status=document.getElementById('decryptStatus');
+  var btn=document.getElementById('decryptBtn');
+  if(!decryptFiles.length){alert('請先選取 PDF 檔案！');return;}
+  if(!pw){alert('請輸入密碼！');return;}
+  btn.disabled=true;
+  status.textContent='⚙️ 系統運算中，請勿關閉視窗...';
+  var ok=0;
+  var PDFLib2=window.PDFLib||window.pdfLib;
+  for(var i=0;i<decryptFiles.length;i++){
+    var badge=document.getElementById('dst-'+i);
+    badge.className='d-status status-processing';badge.textContent='⚙️ 處理中';
+    try{
+      var buf=await decryptFiles[i].arrayBuffer();
+      var doc=await PDFLib2.PDFDocument.load(buf,{password:pw,ignoreEncryption:false});
+      var bytes=await doc.save();
+      var blob=new Blob([bytes],{type:'application/pdf'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=decryptFiles[i].name.replace(/\.[pP][dD][fF]$/,'_已解密.pdf');
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      badge.className='d-status status-success';badge.textContent='✅ 成功';ok++;
+    }catch(e){
+      badge.className='d-status status-error';badge.textContent='❌ 失敗';
+    }
+    await new Promise(function(r){setTimeout(r,300);});
+  }
+  status.textContent='🎉 完成！成功解密 '+ok+' 份。';
+  status.style.color='#0abab5';
+  btn.disabled=false;btn.textContent='🔄 重新執行';
 }
+
+/* ════════════════════ 合併 ════════════════════ */
+var mergeFiles=[];
+var mergeDrop=document.getElementById('mergeDrop');
+
+['dragover','dragleave','drop'].forEach(function(evt){
+  mergeDrop.addEventListener(evt,function(e){
+    e.preventDefault();
+    if(evt==='dragover') mergeDrop.classList.add('dragover');
+    if(evt==='dragleave'||evt==='drop') mergeDrop.classList.remove('dragover');
+    if(evt==='drop'){
+      var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type==='application/pdf';});
+      files.forEach(function(f){
+        var r=new FileReader();
+        r.onload=function(ev){mergeFiles.push({name:f.name,bytes:ev.target.result});rendMergeList();};
+        r.readAsArrayBuffer(f);
+      });
+    }
+  });
+});
 
 function addMergeFiles(input){
-  var files=Array.from(input.files);
-  files.forEach(function(f){
+  Array.from(input.files).forEach(function(f){
     if(f.type==='application/pdf'){
-      var reader=new FileReader();
-      reader.onload=function(e){
-        mergeFiles.push({name:f.name,bytes:e.target.result});
-        rendMergeList();
-      };
-      reader.readAsArrayBuffer(f);
+      var r=new FileReader();
+      r.onload=function(e){mergeFiles.push({name:f.name,bytes:e.target.result});rendMergeList();};
+      r.readAsArrayBuffer(f);
     }
   });
   input.value='';
 }
 
 function rendMergeList(){
-  var list=document.getElementById('merge-list');
+  var list=document.getElementById('mergeList');
   if(!mergeFiles.length){list.innerHTML='';return;}
   list.innerHTML=mergeFiles.map(function(f,i){
     return '<div class="file-item">'
@@ -187,66 +351,69 @@ function rendMergeList(){
       +'</div></div>';
   }).join('');
 }
-
-function moveFile(i,dir){
-  var j=i+dir;
-  if(j<0||j>=mergeFiles.length) return;
-  var tmp=mergeFiles[i];mergeFiles[i]=mergeFiles[j];mergeFiles[j]=tmp;
-  rendMergeList();
-}
+function moveFile(i,dir){var j=i+dir;if(j<0||j>=mergeFiles.length)return;var t=mergeFiles[i];mergeFiles[i]=mergeFiles[j];mergeFiles[j]=t;rendMergeList();}
 function removeFile(i){mergeFiles.splice(i,1);rendMergeList();}
 
 async function mergePDFs(){
   if(mergeFiles.length<2){alert('請至少選擇兩個 PDF 檔案');return;}
-  var btn=document.getElementById('merge-btn');
+  var btn=document.getElementById('mergeBtn');
   btn.disabled=true;btn.textContent='處理中...';
-  var prog=document.getElementById('merge-prog');
-  var progBar=document.getElementById('merge-prog-bar');
-  var progText=document.getElementById('merge-prog-text');
+  var prog=document.getElementById('mergeProg');
+  var bar=document.getElementById('mergeProgBar');
+  var txt=document.getElementById('mergeProgText');
   prog.style.display='block';
   try{
     var merged=await PDFLib.PDFDocument.create();
     for(var i=0;i<mergeFiles.length;i++){
-      progText.textContent='處理第 '+(i+1)+' / '+mergeFiles.length+' 個檔案...';
-      progBar.style.width=Math.round((i/mergeFiles.length)*100)+'%';
+      txt.textContent='處理第 '+(i+1)+' / '+mergeFiles.length+' 個...';
+      bar.style.width=Math.round((i/mergeFiles.length)*100)+'%';
       var pdf=await PDFLib.PDFDocument.load(mergeFiles[i].bytes);
       var pages=await merged.copyPages(pdf,pdf.getPageIndices());
       pages.forEach(function(p){merged.addPage(p);});
     }
-    progText.textContent='產生輸出檔案...';
-    progBar.style.width='100%';
+    bar.style.width='100%';txt.textContent='產生輸出檔案...';
     var bytes=await merged.save();
     var blob=new Blob([bytes],{type:'application/pdf'});
     var url=URL.createObjectURL(blob);
-    var name=(document.getElementById('merge-name').value||'merged')+'.pdf';
-    document.getElementById('merge-result').innerHTML=
-      '<div class="result-btns"><a class="dl-btn" href="'+url+'" download="'+name+'">下載合併後的 PDF</a></div>'
-      +'<p style="font-family:var(--h);font-size:13px;color:#888;margin-top:8px;">共合併 '+mergeFiles.length+' 個檔案，總頁數：'+merged.getPageCount()+' 頁</p>';
-    setSb('sok','合併完成！共 '+merged.getPageCount()+' 頁');
+    var name=(document.getElementById('mergeName').value||'merged')+'.pdf';
+    document.getElementById('mergeResult').innerHTML=
+      '<div class="result-btns"><a class="dl-btn" href="'+url+'" download="'+name+'">⬇️ 下載合併後的 PDF</a></div>'
+      +'<p style="font-size:13px;color:#888;margin-top:8px;">共合併 '+mergeFiles.length+' 個，總頁數：'+merged.getPageCount()+' 頁</p>';
+    setSb('sok','✅ 合併完成！共 '+merged.getPageCount()+' 頁');
   }catch(e){setSb('ser','合併失敗：'+e.message);}
   btn.disabled=false;btn.textContent='合併 PDF';
   prog.style.display='none';
 }
 
+/* ════════════════════ 分割 ════════════════════ */
+var splitPdfBytes=null,splitPageCount=0,splitMode='each',selectedPages=[];
+
+function setSplitMode(m,btn){
+  splitMode=m;
+  document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('split-each').style.display=m==='each'?'block':'none';
+  document.getElementById('split-range').style.display=m==='range'?'block':'none';
+  document.getElementById('split-select').style.display=m==='select'?'block':'none';
+}
+
 function loadSplitFile(input){
-  var f=input.files[0];
-  if(!f) return;
-  var reader=new FileReader();
-  reader.onload=async function(e){
+  var f=input.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=async function(e){
     splitPdfBytes=e.target.result;
     var pdf=await PDFLib.PDFDocument.load(splitPdfBytes);
     splitPageCount=pdf.getPageCount();
-    document.getElementById('split-filename').textContent='檔案：'+f.name+'（共 '+splitPageCount+' 頁）';
-    document.getElementById('split-info').style.display='block';
-    var grid=document.getElementById('page-grid');
+    document.getElementById('splitFilename').textContent='📄 '+f.name+'（共 '+splitPageCount+' 頁）';
+    document.getElementById('splitInfo').style.display='block';
+    var grid=document.getElementById('pageGrid');
     grid.innerHTML=Array.from({length:splitPageCount},function(_,i){
       return '<div class="page-item" id="pg-'+(i+1)+'" onclick="togPage('+(i+1)+')">第 '+(i+1)+' 頁</div>';
     }).join('');
     selectedPages=[];
-    document.getElementById('split-result').innerHTML='';
+    document.getElementById('splitResult').innerHTML='';
   };
-  reader.readAsArrayBuffer(f);
-  input.value='';
+  r.readAsArrayBuffer(f);input.value='';
 }
 
 function togPage(n){
@@ -260,97 +427,64 @@ function parseRanges(str,max){
   var ranges=[];
   str.split(',').forEach(function(part){
     part=part.trim();
-    if(part.indexOf('-')!==-1){
-      var ab=part.split('-');
-      var a=parseInt(ab[0]),b=parseInt(ab[1]);
-      if(!isNaN(a)&&!isNaN(b)&&a>=1&&b<=max&&a<=b) ranges.push({from:a,to:b});
-    }else{
-      var n=parseInt(part);
-      if(!isNaN(n)&&n>=1&&n<=max) ranges.push({from:n,to:n});
-    }
+    if(part.indexOf('-')!==-1){var ab=part.split('-');var a=parseInt(ab[0]),b=parseInt(ab[1]);if(!isNaN(a)&&!isNaN(b)&&a>=1&&b<=max&&a<=b)ranges.push({from:a,to:b});}
+    else{var n=parseInt(part);if(!isNaN(n)&&n>=1&&n<=max)ranges.push({from:n,to:n});}
   });
   return ranges;
 }
 
 async function splitPDF(){
   if(!splitPdfBytes){alert('請先選擇 PDF 檔案');return;}
-  var btn=document.getElementById('split-btn');
+  var btn=document.getElementById('splitBtn');
   btn.disabled=true;btn.textContent='處理中...';
-  var prog=document.getElementById('split-prog');
-  var progBar=document.getElementById('split-prog-bar');
-  var progText=document.getElementById('split-prog-text');
+  var prog=document.getElementById('splitProg');
+  var bar=document.getElementById('splitProgBar');
+  var txt=document.getElementById('splitProgText');
   prog.style.display='block';
-  var prefix=document.getElementById('split-name').value||'split';
+  var prefix=document.getElementById('splitName').value||'split';
   var results=[];
   try{
-    var srcPdf=await PDFLib.PDFDocument.load(splitPdfBytes);
+    var src=await PDFLib.PDFDocument.load(splitPdfBytes);
     if(splitMode==='each'){
       for(var i=0;i<splitPageCount;i++){
-        progText.textContent='處理第 '+(i+1)+' 頁...';
-        progBar.style.width=Math.round(((i+1)/splitPageCount)*100)+'%';
-        var newPdf=await PDFLib.PDFDocument.create();
-        var pages=await newPdf.copyPages(srcPdf,[i]);
-        newPdf.addPage(pages[0]);
-        var bytes=await newPdf.save();
+        txt.textContent='處理第 '+(i+1)+' 頁...';
+        bar.style.width=Math.round(((i+1)/splitPageCount)*100)+'%';
+        var np=await PDFLib.PDFDocument.create();
+        var pp=await np.copyPages(src,[i]);np.addPage(pp[0]);
+        var bytes=await np.save();
         var blob=new Blob([bytes],{type:'application/pdf'});
-        var url=URL.createObjectURL(blob);
-        results.push({url:url,name:prefix+'_第'+(i+1)+'頁.pdf'});
+        results.push({url:URL.createObjectURL(blob),name:prefix+'_第'+(i+1)+'頁.pdf'});
       }
     }else if(splitMode==='range'){
-      var rangeStr=document.getElementById('range-input').value;
-      var ranges=parseRanges(rangeStr,splitPageCount);
-      if(!ranges.length){alert('請輸入有效的頁碼範圍');btn.disabled=false;btn.textContent='分割 PDF';prog.style.display='none';return;}
+      var ranges=parseRanges(document.getElementById('rangeInput').value,splitPageCount);
+      if(!ranges.length){alert('請輸入有效範圍');btn.disabled=false;btn.textContent='分割 PDF';prog.style.display='none';return;}
       for(var r=0;r<ranges.length;r++){
-        var rng=ranges[r];
-        progText.textContent='處理範圍 '+rng.from+'-'+rng.to+'...';
-        progBar.style.width=Math.round(((r+1)/ranges.length)*100)+'%';
-        var newPdf=await PDFLib.PDFDocument.create();
+        var rng=ranges[r];txt.textContent='處理範圍 '+rng.from+'-'+rng.to+'...';
+        bar.style.width=Math.round(((r+1)/ranges.length)*100)+'%';
+        var np=await PDFLib.PDFDocument.create();
         var idxs=[];for(var p=rng.from-1;p<rng.to;p++)idxs.push(p);
-        var pages=await newPdf.copyPages(srcPdf,idxs);
-        pages.forEach(function(pg){newPdf.addPage(pg);});
-        var bytes=await newPdf.save();
-        var blob=new Blob([bytes],{type:'application/pdf'});
-        var url=URL.createObjectURL(blob);
-        results.push({url:url,name:prefix+'_P'+rng.from+'-'+rng.to+'.pdf'});
+        var pp=await np.copyPages(src,idxs);pp.forEach(function(pg){np.addPage(pg);});
+        var bytes=await np.save();
+        results.push({url:URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),name:prefix+'_P'+rng.from+'-'+rng.to+'.pdf'});
       }
     }else if(splitMode==='select'){
       if(!selectedPages.length){alert('請勾選至少一頁');btn.disabled=false;btn.textContent='分割 PDF';prog.style.display='none';return;}
       var sorted=selectedPages.slice().sort(function(a,b){return a-b;});
-      progText.textContent='處理選取的頁面...';progBar.style.width='50%';
-      var newPdf=await PDFLib.PDFDocument.create();
-      var idxs=sorted.map(function(n){return n-1;});
-      var pages=await newPdf.copyPages(srcPdf,idxs);
-      pages.forEach(function(pg){newPdf.addPage(pg);});
-      var bytes=await newPdf.save();
-      var blob=new Blob([bytes],{type:'application/pdf'});
-      var url=URL.createObjectURL(blob);
-      progBar.style.width='100%';
-      results.push({url:url,name:prefix+'_selected.pdf'});
+      txt.textContent='處理選取頁面...';bar.style.width='50%';
+      var np=await PDFLib.PDFDocument.create();
+      var pp=await np.copyPages(src,sorted.map(function(n){return n-1;}));
+      pp.forEach(function(pg){np.addPage(pg);});
+      var bytes=await np.save();bar.style.width='100%';
+      results.push({url:URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),name:prefix+'_selected.pdf'});
     }
     var html='<div class="result-btns">';
-    results.forEach(function(r){
-      html+='<a class="dl-btn" href="'+r.url+'" download="'+r.name+'">下載 '+r.name+'</a>';
-    });
-    html+='</div><p style="font-family:var(--h);font-size:13px;color:#888;margin-top:8px;">共產生 '+results.length+' 個 PDF 檔案</p>';
-    document.getElementById('split-result').innerHTML=html;
-    setSb('sok','分割完成！共產生 '+results.length+' 個檔案');
+    results.forEach(function(r){html+='<a class="dl-btn" href="'+r.url+'" download="'+r.name+'">⬇️ '+r.name+'</a>';});
+    html+='</div><p style="font-size:13px;color:#888;margin-top:8px;">共產生 '+results.length+' 個 PDF 檔案</p>';
+    document.getElementById('splitResult').innerHTML=html;
+    setSb('sok','✅ 分割完成！共 '+results.length+' 個檔案');
   }catch(e){setSb('ser','分割失敗：'+e.message);}
-  btn.disabled=false;btn.textContent='分割 PDF';
-  prog.style.display='none';
+  btn.disabled=false;btn.textContent='分割 PDF';prog.style.display='none';
 }
-
-var dropZone=document.getElementById('merge-drop');
-dropZone.addEventListener('dragover',function(e){e.preventDefault();dropZone.style.background='#B5F0ED';});
-dropZone.addEventListener('dragleave',function(){dropZone.style.background='';});
-dropZone.addEventListener('drop',function(e){
-  e.preventDefault();dropZone.style.background='';
-  var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type==='application/pdf';});
-  files.forEach(function(f){
-    var reader=new FileReader();
-    reader.onload=function(ev){mergeFiles.push({name:f.name,bytes:ev.target.result});rendMergeList();};
-    reader.readAsArrayBuffer(f);
-  });
-});
 </script>
 </body>
 </html>
