@@ -36,7 +36,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 .di.show{display:flex;}
 .di span{font-family:var(--h);font-size:13px;color:var(--tfd);}
 .di input{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:90px;outline:none;background:var(--mint);}
-.di input.wide{width:140px;}
 .tot{background:var(--tfl);border-radius:14px;padding:8px 14px;margin-top:8px;font-family:var(--h);font-size:16px;font-weight:600;color:var(--tfd);}
 .abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
 .abtn:disabled{opacity:0.5;cursor:not-allowed;}
@@ -125,11 +124,7 @@ body{background:#F5FAFA;font-family:var(--h);}
   <div class="f"><label>聯絡電話</label><input id="fph" type="tel" placeholder="0912345678" maxlength="10" oninput="vPh()"><div class="em" id="eph"></div></div>
   <div class="f"><label>車牌號碼</label><input id="fpl" type="text" placeholder="ABC-1234"></div>
 </div>
-<div class="row">
-  <div class="f"><label>縣市</label><select id="fct" onchange="updDist()"><option value="">請選擇</option></select></div>
-  <div class="f"><label>行政區</label><select id="fdt"><option value="">請先選縣市</option></select></div>
-</div>
-<div class="row1"><div class="f"><label>詳細地址</label><input id="fad" type="text" placeholder="路/街 巷 弄 號"></div></div>
+<div class="row1"><div class="f"><label>地址</label><input id="fad" type="text" placeholder="例：台南市善化區中山路1號"></div></div>
 </div>
 
 <div class="card">
@@ -241,30 +236,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eWq4LQvMNPQGuX7L14_0zp1Sx6fB9W9CD1QaD1XCGA/exec';
 const DET=['強制險','體傷','財損','超額','拖吊','駕傷','全險'];
 const COMPANIES=['華南','國泰','新光','富邦','明台','台產','和泰','第一','旺旺','泰安','中信產','新安東京'];
-const CITIES={
-  '台北市':['中正區','大同區','中山區','松山區','大安區','萬華區','信義區','士林區','北投區','內湖區','南港區','文山區'],
-  '新北市':['板橋區','新莊區','中和區','永和區','土城區','樹林區','三重區','蘆洲區','汐止區','新店區','淡水區','三峽區'],
-  '桃園市':['桃園區','中壢區','平鎮區','八德區','楊梅區','蘆竹區','大溪區','龜山區','龍潭區'],
-  '台中市':['中區','東區','南區','西區','北區','西屯區','南屯區','北屯區','豐原區','大里區','太平區'],
-  '台南市':['中西區','東區','南區','北區','安平區','安南區','永康區','歸仁區','新化區','左鎮區'],
-  '高雄市':['楠梓區','左營區','鼓山區','三民區','鹽埕區','前金區','苓雅區','前鎮區','旗津區','小港區','鳳山區','林園區'],
-  '基隆市':['仁愛區','信義區','中正區','中山區','安樂區','暖暖區','七堵區'],
-  '新竹市':['東區','北區','香山區'],
-  '嘉義市':['東區','西區'],
-  '新竹縣':['竹北市','竹東鎮','新埔鎮','關西鎮','湖口鄉','新豐鄉'],
-  '苗栗縣':['苗栗市','頭份市','竹南鎮','後龍鎮','通霄鎮','苑裡鎮'],
-  '彰化縣':['彰化市','員林市','和美鎮','鹿港鎮','溪湖鎮','二林鎮'],
-  '南投縣':['南投市','埔里鎮','草屯鎮','竹山鎮','集集鎮','名間鄉'],
-  '雲林縣':['斗六市','斗南鎮','虎尾鎮','西螺鎮','土庫鎮','北港鎮'],
-  '嘉義縣':['太保市','朴子市','布袋鎮','大林鎮','民雄鄉','溪口鄉'],
-  '屏東縣':['屏東市','潮州鎮','東港鎮','恆春鎮','萬丹鄉','長治鄉'],
-  '宜蘭縣':['宜蘭市','羅東鎮','蘇澳鎮','頭城鎮','礁溪鄉','壯圍鄉'],
-  '花蓮縣':['花蓮市','鳳林鎮','玉里鎮','新城鄉','吉安鄉','壽豐鄉'],
-  '台東縣':['台東市','成功鎮','關山鎮','卑南鄉','鹿野鄉','池上鄉'],
-  '澎湖縣':['馬公市','湖西鄉','白沙鄉','西嶼鄉','望安鄉','七美鄉'],
-  '金門縣':['金城鎮','金湖鎮','金沙鎮','金寧鄉','烈嶼鄉'],
-  '連江縣':['南竿鄉','北竿鄉','莒光鄉','東引鄉']
-};
 let recs=[],selM=new Date().getMonth()+1;
 
 function initDateSelects(){
@@ -297,7 +268,6 @@ function resetDateSelects(){
     var e=document.getElementById(id);if(e)e.selectedIndex=0;
   });
 }
-
 function searchClient(q){
   var box=document.getElementById('client-suggest');
   if(!q||q.length<1){box.style.display='none';return;}
@@ -313,7 +283,6 @@ function searchClient(q){
   }).join('');
   box.style.display='block';
 }
-
 function fillClient(enc){
   var r=JSON.parse(decodeURIComponent(enc));
   document.getElementById('fn').value=r.name||'';
@@ -335,15 +304,6 @@ function fillClient(enc){
       },100);
     }
   }
-  var city='',dist='',addr=r.address||'';
-  Object.keys(CITIES).forEach(function(c){if(addr.startsWith(c)){city=c;addr=addr.substring(c.length);}});
-  if(city){
-    document.getElementById('fct').value=city;
-    updDist();
-    (CITIES[city]||[]).forEach(function(d){if(addr.startsWith(d)){dist=d;addr=addr.substring(d.length);}});
-    if(dist) document.getElementById('fdt').value=dist;
-  }
-  document.getElementById('fad').value=addr;
   document.getElementById('client-suggest').style.display='none';
   document.getElementById('fpl').value='';
   document.getElementById('ftp').value='';
@@ -389,15 +349,6 @@ function sw(t){
 }
 function togId(){var v=document.getElementById('fi').value;document.getElementById('pf').style.display=v==='個人'?'block':'none';document.getElementById('cf').style.display=v==='公司'?'block':'none';}
 function togRn(){document.getElementById('frnr').style.display=document.getElementById('frn').value==='不續保'?'block':'none';}
-function updDist(){
-  var c=document.getElementById('fct').value,s=document.getElementById('fdt');
-  s.innerHTML='<option value="">請選擇</option>';
-  (CITIES[c]||[]).forEach(function(d){var o=document.createElement('option');o.value=d;o.textContent=d;s.appendChild(o);});
-}
-function initCities(){
-  var s=document.getElementById('fct');
-  Object.keys(CITIES).forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;s.appendChild(o);});
-}
 function vId(){var v=document.getElementById('fid').value,ok=/^[A-Za-z][0-9]{9}$/.test(v);document.getElementById('fid').className=v.length===10&&!ok?'err':'';document.getElementById('eid').textContent=v.length===10&&!ok?'格式錯誤：1英文+9數字':'';}
 function vPh(){var v=document.getElementById('fph').value,ok=/^[0-9]{10}$/.test(v);document.getElementById('fph').className=v.length===10&&!ok?'err':'';document.getElementById('eph').textContent=v.length===10&&!ok?'應為10位數字':'';}
 function vTx(){var v=document.getElementById('ftx').value,ok=/^[0-9]{8}$/.test(v);document.getElementById('ftx').className=v.length===8&&!ok?'err':'';document.getElementById('etx').textContent=v.length===8&&!ok?'應為8位數字':'';}
@@ -435,7 +386,6 @@ function calcT(){
   if(co&&co.checked){var cop=document.getElementById('car-other-p');if(cop)t+=parseInt(cop.value)||0;}
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
-
 function openRecEdit(btn,enc){
   var existing=document.getElementById('rec-edit-global');
   if(existing) existing.remove();
@@ -473,7 +423,6 @@ function openRecEdit(btn,enc){
     +'<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
   btn.parentNode.insertBefore(box,btn.nextSibling);
 }
-
 async function saveRecEdit(name,oldExpiry){
   var company=document.getElementById('re-company').value;
   var ey=document.getElementById('re-ey').value;
@@ -494,7 +443,6 @@ async function saveRecEdit(name,oldExpiry){
     setSb('sok','已更新');rendS();rendE();updSt();
   }catch(e){setSb('ser','更新失敗');}
 }
-
 async function loadR(){
   try{
     var res=await fetch(API),d=await res.json();
@@ -516,7 +464,6 @@ function updSt(){
 }
 function dl(ex){var t=new Date();t.setHours(0,0,0,0);var d=new Date(ex);d.setHours(0,0,0,0);return Math.round((d-t)/864e5);}
 function ebg(ex){var d=dl(ex);if(d<0)return '<span class="bg br">已到期</span>';if(d<=45)return '<span class="bg ba">剩'+d+'天</span>';return '<span class="bg bg2">剩'+d+'天</span>';}
-
 function rHTML(r,cp){
   var d=dl(r.expiry),cls=d<0?'exd':d<=45?'exp':'';
   var dets=[];try{dets=JSON.parse(r.cardetails||'[]');}catch(e){}
@@ -554,14 +501,12 @@ function rHTML(r,cp){
     +'</div>'
     +'</div>';
 }
-
 function togRenewEdit(rid,name,expiry,curRenew){
   var box=document.getElementById('re-'+rid);
   var show=box.style.display==='none';
   box.style.display=show?'block':'none';
   if(show){var sel=document.getElementById('rs-'+rid);if(sel)sel.value=curRenew||'待確認';}
 }
-
 async function saveRenew(rid,name,expiry){
   var sel=document.getElementById('rs-'+rid);
   var rrInput=document.getElementById('rr-'+rid);
@@ -576,7 +521,6 @@ async function saveRenew(rid,name,expiry){
     rendS();rendE();
   }catch(e){setSb('ser','更新失敗，請重試');}
 }
-
 function cpR(btn,enc){
   var r=JSON.parse(decodeURIComponent(enc));
   var dets=[];try{dets=JSON.parse(r.cardetails||'[]');}catch(e){}
@@ -584,7 +528,6 @@ function cpR(btn,enc){
   var t='【客戶資料】\n姓名：'+r.name+'\n車牌：'+(r.plate||'－')+'\n電話：'+(r.phone||'－')+'\n身分證：'+(r.idno||'－')+'\n\n【保單資料】\n險種：'+r.type+(r.othertype?' ('+r.othertype+')':'')+'\n保險公司：'+r.company+'\n到期日：'+r.expiry+'\n總保費：'+(r.totalpremium?Number(r.totalpremium).toLocaleString()+'元':'－')+(ds?'\n'+ds:'')+(r.loanbank?'\n貸款銀行：'+r.loanbank:'')+(r.note?'\n備註：'+r.note:'');
   navigator.clipboard.writeText(t).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製資料';},2000);});
 }
-
 function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
   if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';return;}
@@ -599,7 +542,6 @@ function rendS(){
   }
   document.getElementById('slist').innerHTML=f.map(function(r){return rHTML(r,true);}).join('');
 }
-
 function initM(){
   var d=document.getElementById('mbs');
   d.innerHTML=Array.from({length:12},function(_,i){var m=i+1;return '<button class="mb'+(m===selM?' on':'')+'" onclick="selMonth('+m+')">'+m+'月</button>';}).join('');
@@ -635,7 +577,6 @@ function genMsg(){
 function cpMsg(btn,enc){
   navigator.clipboard.writeText(decodeURIComponent(enc)).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製此訊息';},2000);});
 }
-
 async function addR(){
   var name=document.getElementById('fn').value.trim(),type=document.getElementById('ftp').value,expiry=getExpiry();
   if(!name||!type||!expiry){alert('請填寫姓名、險種及到期日');return;}
@@ -662,11 +603,11 @@ async function addR(){
   }else{
     tot=parseInt(document.getElementById('fpr').value)||0;
   }
-  var city=document.getElementById('fct').value,dist=document.getElementById('fdt').value,addr=document.getElementById('fad').value.trim();
+  var addr=document.getElementById('fad').value.trim();
   var rec={
     action:'add',name:name,idno:idno,
     birthday:getBirthday(),
-    phone:phone,address:city+dist+addr,
+    phone:phone,address:addr,
     plate:document.getElementById('fpl').value.trim(),
     identity:document.getElementById('fi').value,
     type:type,detail:dets.map(function(x){return x.name;}).join('、'),
@@ -687,7 +628,7 @@ async function addR(){
     await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
     recs.unshift(rec);setSb('sok','已儲存並同步至 Google Sheets');updSt();
     ['fn','fid','fph','fpl','fad','fnt','fotn','frnrv','fcn','ftx','ffire-pr','ffire-am','ffire-bank'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
-    ['ftp','fco','fct','fdt'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+    ['ftp','fco'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     resetDateSelects();
     document.getElementById('frn').value='待確認';
     ['xcar','xfire','xoth','xotn','frnr'].forEach(function(id){document.getElementById(id).style.display='none';});
@@ -695,7 +636,6 @@ async function addR(){
   }catch(e){setSb('ser','儲存失敗，請重試');}
   btn.disabled=false;btn.textContent='＋ 新增保單';
 }
-
 async function delR(name,expiry){
   if(!confirm('確定刪除 '+name+' 的這筆保單？'))return;
   setSb('sl2','刪除中...');
@@ -705,8 +645,7 @@ async function delR(name,expiry){
     setSb('sok','已刪除');rendS();rendE();updSt();
   }catch(e){setSb('ser','刪除失敗，請重試');}
 }
-
-initCities();initCar();initM();initDateSelects();loadR();
+initCar();initM();initDateSelects();loadR();
 </script>
 </div>
 </body>
