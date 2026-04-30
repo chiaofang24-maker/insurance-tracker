@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>理賠文件助手</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+    background: #e8f8f5;
+    color: #1a6b5a;
+    min-height: 100vh;
+  }
+
+  /* 頂部標題 */
+  .hero {
+    background: #2ab4a0;
+    border-radius: 20px;
+    margin: 16px 16px 0;
+    padding: 28px 32px;
+    color: white;
+  }
+  .hero h1 { font-size: 26px; font-weight: bold; margin-bottom: 6px; }
+  .hero p { font-size: 14px; opacity: 0.88; }
+
+  /* 分頁 */
+  .tabs {
+    display: flex;
+    gap: 10px;
+    padding: 16px 16px 0;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 9px 20px;
+    border-radius: 50px;
+    border: 2px solid #2ab4a0;
+    background: transparent;
+    color: #2ab4a0;
+    cursor: pointer;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: #2ab4a0;
+    color: white;
+  }
+
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; }
+
+  /* 卡片 */
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1.5px solid #b2e8e0;
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1a6b5a;
+    margin-bottom: 16px;
+    padding-left: 10px;
+    border-left: 4px solid #2ab4a0;
+  }
+
+  label {
+    font-size: 13px;
+    color: #2a8a78;
+    display: block;
+    margin-bottom: 5px;
+    margin-top: 13px;
+    font-weight: bold;
+  }
+  label:first-child { margin-top: 0; }
+
+  input[type=text], select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid #b2e8e0;
+    background: #f0faf8;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 14px;
+    color: #1a6b5a;
+    outline: none;
+  }
+  input[type=text]:focus, select:focus {
+    border-color: #2ab4a0;
+    background: white;
+  }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: 50px;
+    border: 2px solid #b2e8e0;
+    background: transparent;
+    color: #2ab4a0;
+    cursor: pointer;
+    font-family: 'Comic Sans MS', cursive;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .btn-primary {
+    background: #2ab4a0;
+    color: white;
+    border-color: #2ab4a0;
+  }
+  .btn-danger {
+    color: #c0392b;
+    border-color: #f5b7b1;
+  }
+  .btn-danger:hover { background: #fdf2f1; }
+
+  .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* 搜尋 */
+  .search-wrap { position: relative; }
+  .dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: white; border: 1.5px solid #b2e8e0;
+    border-radius: 12px; z-index: 20;
+    max-height: 200px; overflow-y: auto; margin-top: 4px;
+    box-shadow: 0 4px 16px rgba(42,180,160,0.10);
+  }
+  .dropdown-item {
+    padding: 10px 14px; font-size: 14px; cursor: pointer;
+    color: #1a6b5a; border-bottom: 1px solid #e8f8f5;
+  }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: #e8f8f5; }
+
+  .selected-client {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: #e8f8f5;
+    border-radius: 10px; margin-top: 6px; font-size: 14px;
+    border: 1.5px solid #b2e8e0;
+  }
+  .selected-client span { flex: 1; font-weight: bold; color: #1a6b5a; }
+  .clear-btn {
+    font-size: 12px; color: #2ab4a0; cursor: pointer;
+    border: none; background: none; font-family: 'Comic Sans MS', cursive;
+  }
+
+  /* 條件群組 */
+  .group-label {
+    font-size: 12px; color: #2ab4a0; margin: 10px 0 5px;
+    font-weight: bold; letter-spacing: 0.04em;
+  }
+  .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .checkbox-group label {
+    display: flex; align-items: center; gap: 5px;
+    margin: 0; font-size: 13px; color: #1a6b5a;
+    cursor: pointer; font-weight: normal;
+    background: #f0faf8; padding: 5px 12px;
+    border-radius: 50px; border: 1.5px solid #b2e8e0;
+  }
+  .checkbox-group label:has(input:checked) {
+    background: #2ab4a0; color: white; border-color: #2ab4a0;
+  }
+  .checkbox-group input[type=checkbox] { width: auto; accent-color: #2ab4a0; }
+
+  /* 結果 */
+  .result-box {
+    background: #f0faf8; border-radius: 14px;
+    padding: 18px 20px; margin-top: 14px;
+    font-size: 14px; line-height: 2;
+    color: #1a6b5a; white-space: pre-wrap;
+    border: 1.5px solid #b2e8e0;
+  }
+  .success-msg { color: #2ab4a0; font-size: 13px; margin-top: 8px; display: none; }
+
+  /* 標籤 */
+  .tag {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 50px; font-size: 11px;
+    background: #e8f8f5; color: #2ab4a0;
+    margin: 2px; border: 1px solid #b2e8e0;
+  }
+  .badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 50px; font-size: 11px; font-weight: bold; margin: 2px;
+  }
+  .badge-blue { background: #d6eaf8; color: #1a5276; }
+  .badge-teal { background: #d1f2eb; color: #0e6655; }
+  .badge-amber { background: #fef9e7; color: #7d6608; border: 1px solid #f9e79f; }
+  .badge-green { background: #eafaf1; color: #1e8449; }
+
+  /* 表格 */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; padding: 9px 10px;
+    border-bottom: 2px solid #b2e8e0;
+    color: #2ab4a0; font-weight: bold;
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid #e8f8f5; color: #1a6b5a; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f0faf8; }
+
+  .empty { color: #7fb8b0; font-size: 13px; text-align: center; padding: 2rem 0; }
+
+  /* 客戶保單列表 */
+  .client-policy-item {
+    display: flex; align-items: flex-start;
+    justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid #e8f8f5;
+    font-size: 13px; gap: 8px;
+  }
+  .client-policy-item:last-child { border-bottom: none; }
+  .policy-info .name { color: #1a6b5a; margin-bottom: 3px; font-weight: bold; }
+  .policy-info .docs { color: #2ab4a0; font-size: 12px; }
+
+  /* 文件群組 */
+  .doc-group { margin-top: 10px; border: 1.5px solid #b2e8e0; border-radius: 12px; overflow: hidden; }
+  .doc-group-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; background: #f0faf8; cursor: pointer;
+    font-size: 13px; font-weight: bold; color: #1a6b5a;
+  }
+  .doc-group-header:hover { background: #e0f5f0; }
+  .arrow { font-size: 11px; color: #2ab4a0; }
+  .doc-group-body { padding: 10px 14px 12px; }
+
+  @media (max-width: 600px) {
+    .row { grid-template-columns: 1fr; }
+    .hero { padding: 20px; }
+    .hero h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🏥 理賠文件助手</h1>
+  <p>快速產生理賠文件清單，一鍵複製給客戶</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('query')">📋 理賠查詢</button>
+  <button class="tab" onclick="switchTab('clients')">👤 客戶管理</button>
+  <button class="tab" onclick="switchTab('products')">🗂️ 商品資料庫</button>
+</div>
+
+<!-- 理賠查詢 -->
+<div class="section active" id="tab-query">
+  <div class="card">
+    <p class="card-title">理賠文件查詢</p>
+    <label>搜尋客戶</label>
+    <div class="search-wrap">
+      <input type="text" id="q-search" placeholder="輸入姓名關鍵字，例：小明" oninput="searchClients()" autocomplete="off">
+      <div class="dropdown" id="q-dropdown" style="display:none;"></div>
+    </div>
+    <div id="q-selected" style="display:none;">
+      <div class="selected-client">
+        <span id="q-selected-name"></span>
+        <button class="clear-btn" onclick="clearClient()">✕ 重新搜尋</button>
+      </div>
+    </div>
+
+    <div id="q-conditions" style="display:none;">
+      <label style="margin-top:16px;">此次狀況（可複選）</label>
+      <div class="group-label">住院 / 急診</div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" value="疾病住院" onchange="generateResult()"> 疾病住院</label>
+        <label><input type="checkbox" value="意外住院" onchange="generateResult()"> 意外住院</label>
+        <label><input type="checkbox" value="急診" onchange="generateResult()"> 急診</label>
+      </div>
+      <div class="group-label">手術</div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" value="手術" onchange="generateResult()"> 手術</label>
+        <label><input type="checkbox" value="門診手術" onchange="generateResult()"> 門診手術</label>
+      </div>
+      <div style="margin-top:10px;" id="q-policy-tags"></div>
+    </div>
+  </div>
+
+  <div id="result-area" style="display:none;">
+    <div class="card">
+      <p class="card-title">產生訊息</p>
+      <div class="result-box" id="result-text"></div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="copyResult()">📋 複製訊息</button>
+      </div>
+      <p class="success-msg" id="copy-msg">✅ 已複製到剪貼板！</p>
+    </div>
+  </div>
+</div>
+
+<!-- 客戶管理 -->
+<div class="section" id="tab-clients">
+  <div class="card">
+    <p class="card-title">新增客戶</p>
+    <label>客戶姓名</label>
+    <input type="text" id="new-client-name" placeholder="例：王小明">
+    <div class="actions">
+      <button class="btn btn-primary" onclick="addClient()">新增客戶</button>
+    </div>
+  </div>
+
+  <div class="card" id="client-detail" style="display:none;">
+    <p class="card-title">管理保單 — <span id="editing-client-name"></span></p>
+    <div class="row">
+      <div>
+        <label>保險公司</label>
+        <select id="add-company" onchange="filterProductsByCompany()">
+          <option value="">選擇公司</option>
+        </select>
+      </div>
+      <div>
+        <label>商品名稱</label>
+        <select id="add-product">
+          <option value="">先選公司</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="addPolicyToClient()">加入保單</button>
+    </div>
+    <div style="margin-top:1rem;" id="client-policies-list"></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">客戶列表</p>
+    <div id="clients-table"><p class="empty">尚無客戶資料</p></div>
+  </div>
+</div>
+
+<!-- 商品資料庫 -->
+<div class="section" id="tab-products">
+  <div class="card">
+    <p class="card-title">新增商品</p>
+    <div class="row">
+      <div>
+        <label>保險公司</label>
+        <input type="text" id="prod-company" placeholder="例：國泰人壽">
+      </div>
+      <div>
+        <label>商品名稱</label>
+        <input type="text" id="prod-name" placeholder="例：住院醫療終身險">
+      </div>
+    </div>
+    <label>需備文件（可複選）</label>
+
+    <!-- 群組一：基本文件 -->
+    <div class="doc-group">
+      <div class="doc-group-header" onclick="toggleGroup('grp-basic')">
+        <span>📄 基本文件</span><span class="arrow" id="arrow-grp-basic">▼</span>
+      </div>
+      <div class="doc-group-body" id="grp-basic">
+        <div class="checkbox-group" style="margin-top:8px;">
+          <label><input type="checkbox" value="診斷證明書正本"> 診斷證明書正本</label>
+          <label><input type="checkbox" value="收據正本"> 收據正本</label>
+          <label><input type="checkbox" value="收據副本"> 收據副本</label>
+          <label><input type="checkbox" value="收據明細"> 收據明細</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 群組二：住院／手術相關 -->
+    <div class="doc-group">
+      <div class="doc-group-header" onclick="toggleGroup('grp-hosp')">
+        <span>🏥 住院／手術相關</span><span class="arrow" id="arrow-grp-hosp">▶</span>
+      </div>
+      <div class="doc-group-body" id="grp-hosp" style="display:none;">
+        <div class="checkbox-group" style="margin-top:8px;">
+          <label><input type="checkbox" value="住院／手術前七天門診收據正本"> 前七天門診收據正本</label>
+          <label><input type="checkbox" value="住院／手術前七天門診收據副本"> 前七天門診收據副本</label>
+          <label><input type="checkbox" value="出院／手術後七天內門診收據正本"> 後七天內門診收據正本</label>
+          <label><input type="checkbox" value="出院／手術後七天內門診收據副本"> 後七天內門診收據副本</label>
+          <label><input type="checkbox" value="出院／手術後十四天內門診收據正本"> 後十四天內門診收據正本</label>
+          <label><input type="checkbox" value="出院／手術後十四天內門診收據副本"> 後十四天內門診收據副本</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 群組三：急診相關 -->
+    <div class="doc-group">
+      <div class="doc-group-header" onclick="toggleGroup('grp-emergency')">
+        <span>🚑 急診相關</span><span class="arrow" id="arrow-grp-emergency">▶</span>
+      </div>
+      <div class="doc-group-body" id="grp-emergency" style="display:none;">
+        <div class="checkbox-group" style="margin-top:8px;">
+          <label><input type="checkbox" value="急診診斷證明書"> 急診診斷證明書</label>
+          <label><input type="checkbox" value="急診收據正本"> 急診收據正本</label>
+          <label><input type="checkbox" value="急診收據副本"> 急診收據副本</label>
+        </div>
+      </div>
+    </div>
+    <label>適用條件（可複選）</label>
+    <div class="group-label">住院 / 急診</div>
+    <div class="checkbox-group" id="prod-cond-1">
+      <label><input type="checkbox" value="疾病住院"> 疾病住院</label>
+      <label><input type="checkbox" value="意外住院"> 意外住院</label>
+      <label><input type="checkbox" value="急診"> 急診</label>
+    </div>
+    <div class="group-label">手術</div>
+    <div class="checkbox-group" id="prod-cond-2">
+      <label><input type="checkbox" value="手術"> 手術</label>
+      <label><input type="checkbox" value="門診手術"> 門診手術</label>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="addProduct()">新增商品</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">商品列表</p>
+    <div class="table-wrap" id="products-table"><p class="empty">尚無商品資料</p></div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbw8uiQ0lJrwD44KwTngSgtLxsdNyq_Yr5jOzv_-qY0qEKMUmSE9vzHRl_huENysX-lm0g/exec';
+
+let db = { products: [], clients: [], editingClientId: null };
+let selectedClientId = null;
+
+// 同步狀態
+let isSyncing = false;
+
+function showSyncStatus(msg, color) {
+  let el = document.getElementById('sync-status');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sync-status';
+    el.style.cssText = 'position:fixed;top:16px;right:16px;padding:8px 16px;border-radius:50px;font-size:13px;font-family:Comic Sans MS,cursive;font-weight:bold;z-index:999;transition:opacity 0.5s;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = color === 'green' ? '#2ab4a0' : color === 'red' ? '#e74c3c' : '#f0faf8';
+  el.style.color = color === 'green' || color === 'red' ? 'white' : '#1a6b5a';
+  el.style.border = '1.5px solid ' + (color === 'green' ? '#2ab4a0' : color === 'red' ? '#e74c3c' : '#b2e8e0');
+  el.style.opacity = '1';
+  if (color === 'green') setTimeout(() => { el.style.opacity = '0'; }, 2000);
+}
+
+async function loadDB() {
+  showSyncStatus('⏳ 載入資料中...', 'info');
+  try {
+    const [products, clients] = await Promise.all([
+      fetch(API_URL + '?action=getProducts').then(r => r.json()),
+      fetch(API_URL + '?action=getClients').then(r => r.json())
+    ]);
+    db.products = products;
+    db.clients = clients;
+    showSyncStatus('✅ 資料載入完成', 'green');
+  } catch(e) {
+    showSyncStatus('❌ 載入失敗，請重新整理', 'red');
+  }
+}
+
+async function saveDB() {
+  if (isSyncing) return;
+  isSyncing = true;
+  showSyncStatus('⏳ 儲存中...', 'info');
+  try {
+    await Promise.all([
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveProducts', products: db.products }) }),
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveClients', clients: db.clients }) })
+    ]);
+    showSyncStatus('✅ 已儲存', 'green');
+  } catch(e) {
+    showSyncStatus('❌ 儲存失敗', 'red');
+  }
+  isSyncing = false;
+}
+
+const docBadgeMap = {
+  '診斷證明書正本': 'badge-blue',
+  '收據正本': 'badge-amber',
+  '收據副本': 'badge-green',
+  '收據明細': 'badge-teal',
+  '住院／手術前七天門診收據正本': 'badge-amber',
+  '住院／手術前七天門診收據副本': 'badge-green',
+  '出院／手術後七天內門診收據正本': 'badge-amber',
+  '出院／手術後七天內門診收據副本': 'badge-green',
+  '出院／手術後十四天內門診收據正本': 'badge-amber',
+  '出院／手術後十四天內門診收據副本': 'badge-green',
+  '急診診斷證明書': 'badge-blue',
+  '急診收據正本': 'badge-amber',
+  '急診收據副本': 'badge-green'
+};
+
+function loadDB() {
+  const saved = localStorage.getItem('insurance_claim_db');
+  if (saved) db = JSON.parse(saved);
+  else seedDemo();
+}
+
+function saveDB() {
+  localStorage.setItem('insurance_claim_db', JSON.stringify(db));
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['query','clients','products'][i] === tab));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'clients') { refreshClientsTable(); refreshClientCompanies(); }
+  if (tab === 'products') refreshProductsTable();
+}
+
+function searchClients() {
+  const q = document.getElementById('q-search').value.trim();
+  const dropdown = document.getElementById('q-dropdown');
+  if (!q) { dropdown.style.display = 'none'; return; }
+  const matches = db.clients.filter(c => c.name.includes(q));
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div class="dropdown-item" style="color:#7fb8b0;">查無符合客戶</div>';
+    dropdown.style.display = 'block'; return;
+  }
+  dropdown.innerHTML = matches.map(c => `<div class="dropdown-item" onclick="selectClient(${c.id})">${c.name}</div>`).join('');
+  dropdown.style.display = 'block';
+}
+
+function selectClient(id) {
+  selectedClientId = id;
+  const client = db.clients.find(c => c.id === id);
+  document.getElementById('q-search').style.display = 'none';
+  document.getElementById('q-dropdown').style.display = 'none';
+  document.getElementById('q-selected-name').textContent = client.name;
+  document.getElementById('q-selected').style.display = 'block';
+  document.getElementById('q-conditions').style.display = 'block';
+  document.querySelectorAll('#tab-query input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.getElementById('result-area').style.display = 'none';
+  const tags = document.getElementById('q-policy-tags');
+  tags.innerHTML = '<div style="margin-top:6px;">' + client.policies.map(pid => {
+    const p = db.products.find(x => x.id === pid);
+    return p ? `<span class="tag">${p.company} ${p.name}</span>` : '';
+  }).join('') + '</div>';
+}
+
+function clearClient() {
+  selectedClientId = null;
+  document.getElementById('q-search').style.display = 'block';
+  document.getElementById('q-search').value = '';
+  document.getElementById('q-selected').style.display = 'none';
+  document.getElementById('q-conditions').style.display = 'none';
+  document.getElementById('result-area').style.display = 'none';
+}
+
+function generateResult() {
+  const client = db.clients.find(c => c.id === selectedClientId);
+  if (!client) return;
+  const conditions = Array.from(document.querySelectorAll('#tab-query input[type=checkbox]:checked')).map(cb => cb.value);
+  if (conditions.length === 0) { document.getElementById('result-area').style.display = 'none'; return; }
+
+  const docCount = {};
+  const involvedCompanies = new Set();
+
+  client.policies.forEach(pid => {
+    const p = db.products.find(x => x.id === pid);
+    if (!p) return;
+    if (conditions.some(c => p.conditions.includes(c))) {
+      involvedCompanies.add(p.company);
+      p.docs.forEach(doc => {
+        docCount[doc] = (docCount[doc] || 0) + 1;
+      });
+    }
+  });
+
+  const condText = conditions.join('、');
+
+  if (Object.keys(docCount).length === 0) {
+    document.getElementById('result-text').textContent =
+      `${client.name} 您好，\n\n依據您目前的投保內容，此次（${condText}）暫無符合理賠申請條件的保單。\n\n若有任何疑問，歡迎隨時與我聯繫，我會為您詳細說明。`;
+  } else {
+    const companyCount = involvedCompanies.size;
+    const docLines = Object.entries(docCount).map(([doc, count]) => `　・${doc}　${count} 份`).join('\n');
+    const companyNames = Array.from(involvedCompanies).join('、');
+
+    document.getElementById('result-text').textContent =
+      `${client.name} 您好，\n\n請放心，我會協助您辦理此次的理賠申請。\n\n依據您的投保內容，此次（${condText}）需備妥以下文件：\n\n${docLines}\n　・理賠申請書　${companyCount} 份（${companyNames}，各一份）\n\n＊ 理賠申請書需要您的親筆簽名，我會安排時間前往收取，或另行傳送電子檔案給您填寫。\n\n文件備齊後，請交給我或以郵寄方式寄送，我會為您安排後續申請作業。\n\n若有任何疑問，歡迎隨時與我聯繫。`;
+  }
+  document.getElementById('result-area').style.display = 'block';
+}
+
+function copyResult() {
+  const text = document.getElementById('result-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById('copy-msg');
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2500);
+  });
+}
+
+function toggleGroup(id) {
+  const body = document.getElementById(id);
+  const arrow = document.getElementById('arrow-' + id);
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  arrow.textContent = isHidden ? '▼' : '▶';
+}
+
+function addProduct() {
+  const company = document.getElementById('prod-company').value.trim();
+  const name = document.getElementById('prod-name').value.trim();
+  const docs = Array.from(document.querySelectorAll('.doc-group-body input[type=checkbox]:checked')).map(cb => cb.value);
+  const conditions = Array.from(document.querySelectorAll('#prod-cond-1 input:checked, #prod-cond-2 input:checked')).map(cb => cb.value);
+  if (!company || !name) { alert('請填寫保險公司與商品名稱'); return; }
+  if (docs.length === 0) { alert('請至少選擇一項需備文件'); return; }
+  if (conditions.length === 0) { alert('請至少選擇一項適用條件'); return; }
+  db.products.push({ id: Date.now(), company, name, docs, conditions });
+  saveDB();
+  document.getElementById('prod-company').value = '';
+  document.getElementById('prod-name').value = '';
+  document.querySelectorAll('.doc-group-body input, #prod-cond-1 input, #prod-cond-2 input').forEach(cb => cb.checked = false);
+  refreshProductsTable();
+}
+
+function deleteProduct(id) {
+  if (!confirm('確定刪除此商品？')) return;
+  db.products = db.products.filter(p => p.id !== id);
+  db.clients.forEach(c => c.policies = c.policies.filter(pid => pid !== id));
+  saveDB();
+  refreshProductsTable();
+}
+
+function refreshProductsTable() {
+  const wrap = document.getElementById('products-table');
+  if (db.products.length === 0) { wrap.innerHTML = '<p class="empty">尚無商品資料</p>'; return; }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>公司</th><th>商品</th><th>需備文件</th><th>適用條件</th><th></th></tr></thead>
+    <tbody>${db.products.map(p => `<tr>
+      <td>${p.company}</td>
+      <td>${p.name}</td>
+      <td>${p.docs.map(d=>`<span class="badge ${docBadgeMap[d]||'badge-blue'}">${d}</span>`).join('')}</td>
+      <td>${p.conditions.map(c=>`<span class="tag">${c}</span>`).join('')}</td>
+      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" onclick="deleteProduct(${p.id})">刪除</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function addClient() {
+  const name = document.getElementById('new-client-name').value.trim();
+  if (!name) { alert('請輸入客戶姓名'); return; }
+  if (db.clients.find(c => c.name === name)) { alert('此客戶已存在'); return; }
+  db.clients.push({ id: Date.now(), name, policies: [] });
+  saveDB();
+  document.getElementById('new-client-name').value = '';
+  refreshClientsTable();
+}
+
+function editClient(id) {
+  db.editingClientId = id;
+  const client = db.clients.find(c => c.id === id);
+  document.getElementById('editing-client-name').textContent = client.name;
+  document.getElementById('client-detail').style.display = 'block';
+  document.getElementById('client-detail').scrollIntoView({ behavior: 'smooth' });
+  refreshClientPoliciesList();
+  refreshClientCompanies();
+}
+
+function refreshClientCompanies() {
+  const companies = [...new Set(db.products.map(p => p.company))];
+  const sel = document.getElementById('add-company');
+  sel.innerHTML = '<option value="">選擇公司</option>' + companies.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('add-product').innerHTML = '<option value="">先選公司</option>';
+}
+
+function filterProductsByCompany() {
+  const company = document.getElementById('add-company').value;
+  const client = db.clients.find(c => c.id === db.editingClientId);
+  const existing = client ? client.policies : [];
+  const prods = db.products.filter(p => p.company === company && !existing.includes(p.id));
+  document.getElementById('add-product').innerHTML = '<option value="">選擇商品</option>' + prods.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+function addPolicyToClient() {
+  const pid = parseInt(document.getElementById('add-product').value);
+  if (!pid) { alert('請選擇商品'); return; }
+  const client = db.clients.find(c => c.id === db.editingClientId);
+  if (!client.policies.includes(pid)) { client.policies.push(pid); saveDB(); }
+  filterProductsByCompany();
+  refreshClientPoliciesList();
+}
+
+function removePolicyFromClient(pid) {
+  const client = db.clients.find(c => c.id === db.editingClientId);
+  client.policies = client.policies.filter(p => p !== pid);
+  saveDB();
+  filterProductsByCompany();
+  refreshClientPoliciesList();
+}
+
+function refreshClientPoliciesList() {
+  const client = db.clients.find(c => c.id === db.editingClientId);
+  const wrap = document.getElementById('client-policies-list');
+  if (!client || client.policies.length === 0) { wrap.innerHTML = '<p class="empty" style="padding:1rem 0">尚無保單</p>'; return; }
+  wrap.innerHTML = client.policies.map(pid => {
+    const p = db.products.find(x => x.id === pid);
+    if (!p) return '';
+    return `<div class="client-policy-item">
+      <div class="policy-info">
+        <div class="name">${p.company} — ${p.name}</div>
+        <div class="docs">${p.docs.join('、')}</div>
+      </div>
+      <button class="btn btn-danger" style="padding:4px 10px;font-size:12px;flex-shrink:0;" onclick="removePolicyFromClient(${pid})">移除</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteClient(id) {
+  if (!confirm('確定刪除此客戶？')) return;
+  db.clients = db.clients.filter(c => c.id !== id);
+  if (db.editingClientId === id) {
+    db.editingClientId = null;
+    document.getElementById('client-detail').style.display = 'none';
+  }
+  saveDB();
+  refreshClientsTable();
+}
+
+function refreshClientsTable() {
+  const wrap = document.getElementById('clients-table');
+  if (db.clients.length === 0) { wrap.innerHTML = '<p class="empty">尚無客戶資料</p>'; return; }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>姓名</th><th>保單數</th><th></th></tr></thead>
+    <tbody>${db.clients.map(c=>`<tr>
+      <td>${c.name}</td>
+      <td>${c.policies.length} 張</td>
+      <td style="display:flex;gap:8px;">
+        <button class="btn" style="padding:5px 12px;font-size:12px;" onclick="editClient(${c.id})">管理保單</button>
+        <button class="btn btn-danger" style="padding:5px 12px;font-size:12px;" onclick="deleteClient(${c.id})">刪除</button>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+loadDB().then(() => {
+  refreshClientsTable();
+  refreshProductsTable();
+});
+</script>
+</body>
+</html>
