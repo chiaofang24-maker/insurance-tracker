@@ -735,10 +735,11 @@ function refreshClientsTable() {
   </table>`;
 }
 
-loadDB().then(() => {
+(async () => {
+  await loadDB();
   refreshClientsTable();
   refreshProductsTable();
-});
+})();
 </script>
 </body>
 </html>
