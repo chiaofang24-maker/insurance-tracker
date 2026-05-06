@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PDF 工具箱</title>
-<script src="https://unpkg.com/@cantoo/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -282,14 +282,35 @@ async function startDecrypt(){
   btn.disabled=true;
   status.textContent='⚙️ 系統運算中，請勿關閉視窗...';
   var ok=0;
-  var PDFLib2=window.PDFLib||window.pdfLib;
+  // 設定 pdf.js worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
   for(var i=0;i<decryptFiles.length;i++){
     var badge=document.getElementById('dst-'+i);
     badge.className='d-status status-processing';badge.textContent='⚙️ 處理中';
     try{
       var buf=await decryptFiles[i].arrayBuffer();
-      var doc=await PDFLib2.PDFDocument.load(buf,{password:pw,ignoreEncryption:false});
-      var bytes=await doc.save();
+      // 用 pdf.js 開啟加密 PDF（相容性最佳）
+      var loadingTask=pdfjsLib.getDocument({data:new Uint8Array(buf),password:pw});
+      var pdfDoc=await loadingTask.promise;
+      var pageCount=pdfDoc.numPages;
+      // 用 pdf-lib 建立新文件
+      var newDoc=await PDFLib.PDFDocument.create();
+      // 逐頁用 canvas 轉成圖片再嵌入（確保解密成功）
+      for(var p=1;p<=pageCount;p++){
+        badge.textContent='⚙️ 第'+p+'/'+pageCount+'頁';
+        var page=await pdfDoc.getPage(p);
+        var viewport=page.getViewport({scale:2.0});
+        var canvas=document.createElement('canvas');
+        canvas.width=viewport.width;canvas.height=viewport.height;
+        var ctx=canvas.getContext('2d');
+        await page.render({canvasContext:ctx,viewport:viewport}).promise;
+        var imgData=canvas.toDataURL('image/jpeg',0.95);
+        var imgBytes=await fetch(imgData).then(function(r){return r.arrayBuffer();});
+        var img=await newDoc.embedJpg(imgBytes);
+        var newPage=newDoc.addPage([viewport.width/2,viewport.height/2]);
+        newPage.drawImage(img,{x:0,y:0,width:viewport.width/2,height:viewport.height/2});
+      }
+      var bytes=await newDoc.save();
       var blob=new Blob([bytes],{type:'application/pdf'});
       var a=document.createElement('a');
       a.href=URL.createObjectURL(blob);
@@ -298,7 +319,8 @@ async function startDecrypt(){
       URL.revokeObjectURL(a.href);
       badge.className='d-status status-success';badge.textContent='✅ 成功';ok++;
     }catch(e){
-      badge.className='d-status status-error';badge.textContent='❌ 失敗';
+      console.error(e);
+      badge.className='d-status status-error';badge.textContent='❌ 失敗：'+(e.message||'密碼錯誤');
     }
     await new Promise(function(r){setTimeout(r,300);});
   }
