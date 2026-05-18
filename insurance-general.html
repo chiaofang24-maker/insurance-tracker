@@ -40,7 +40,13 @@ body{background:#F5FAFA;font-family:var(--h);}
 .abtn:disabled{opacity:0.5;cursor:not-allowed;}
 .si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:12px;}
 .st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
-.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);cursor:pointer;transition:all 0.15s;}
+.sc:hover{background:var(--sage);}
+.sc.active{background:var(--tf);border-color:var(--tfd);}
+.sc.active .sn,.sc.active .sl{color:#fff;}
+.sc-exp{background:#FFFBF0;border-color:#F5CC80;}
+.sc-exp:hover{background:#FFF4E0;}
+.sc-exp.active{background:#F5CC80;border-color:#E0A800;}
 .sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
 .sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
 .rc{background:#fff;border-radius:18px;padding:1rem 1.2rem;margin-bottom:10px;border:1.5px solid var(--sage);}
@@ -92,6 +98,8 @@ body{background:#F5FAFA;font-family:var(--h);}
 .re-di span{font-family:var(--h);font-size:12px;color:var(--tfd);}
 .re-di input{font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:8px;padding:5px 7px;width:80px;outline:none;background:var(--mint);}
 .re-tot{background:#fff;border-radius:10px;padding:6px 12px;margin-top:6px;font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);}
+.exp-banner{background:#FFF4E0;border:1.5px solid #F5CC80;border-radius:14px;padding:10px 14px;margin-bottom:12px;font-family:var(--h);font-size:14px;color:#8A5C00;display:flex;align-items:center;justify-content:space-between;}
+.exp-banner-close{background:none;border:none;font-size:16px;color:#8A5C00;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -159,7 +167,6 @@ body{background:#F5FAFA;font-family:var(--h);}
     </select>
   </div>
 </div>
-
 <div id="xcar" style="display:none" class="xtra">
   <div class="xtra-t">車險細項（可複選，分別填保費保額）</div>
   <div class="cg" id="cg"></div>
@@ -176,23 +183,18 @@ body{background:#F5FAFA;font-family:var(--h);}
   </div>
   <div class="tot">總保費：<span id="ctot">0</span> 元</div>
 </div>
-
 <div id="xmand" style="display:none" class="xtra">
   <div class="xtra-t">強制險保費</div>
   <div class="f" style="max-width:200px;"><label>保費（元）</label><input id="fmp" type="number" placeholder="0" oninput="calcT()"></div>
 </div>
-
 <div id="xfire" style="display:none" class="xtra">
   <div class="xtra-t">住宅火險資料</div>
   <div class="row">
     <div class="f"><label>保費（元）</label><input id="ffire-pr" type="number" placeholder="0"></div>
     <div class="f"><label>保額（萬）</label><input id="ffire-am" type="number" placeholder="0"></div>
   </div>
-  <div class="row1">
-    <div class="f"><label>貸款銀行</label><input id="ffire-bank" type="text" placeholder="例：台灣銀行"></div>
-  </div>
+  <div class="row1"><div class="f"><label>貸款銀行</label><input id="ffire-bank" type="text" placeholder="例：台灣銀行"></div></div>
 </div>
-
 <div id="xoth" style="display:none">
   <div class="row3">
     <div class="f"><label>保費（元）</label><input id="fpr" type="number" placeholder="0"></div>
@@ -200,11 +202,9 @@ body{background:#F5FAFA;font-family:var(--h);}
     <div></div>
   </div>
 </div>
-
 <div id="xotn" style="display:none" class="row1">
   <div class="f"><label>其他險種說明</label><input id="fotn" type="text" placeholder="請填寫險種名稱"></div>
 </div>
-
 <div class="row">
   <div class="f"><label>到期日</label>
     <div style="display:flex;gap:5px;">
@@ -226,9 +226,13 @@ body{background:#F5FAFA;font-family:var(--h);}
 
 <div id="pnl-search" class="pnl">
 <div class="st">
-  <div class="sc"><div class="sn" id="stot">—</div><div class="sl">總保單數</div></div>
-  <div class="sc"><div class="sn" id="sexp">—</div><div class="sl">即將到期</div></div>
-  <div class="sc"><div class="sn" id="scli">—</div><div class="sl">客戶數</div></div>
+  <div class="sc" id="sc-tot" onclick="filterSt('all')"><div class="sn" id="stot">—</div><div class="sl">總保單數</div></div>
+  <div class="sc sc-exp" id="sc-exp" onclick="filterSt('exp')"><div class="sn" id="sexp">—</div><div class="sl">即將到期</div></div>
+  <div class="sc" id="sc-cli" onclick="filterSt('cli')"><div class="sn" id="scli">—</div><div class="sl">客戶數</div></div>
+</div>
+<div id="exp-banner" style="display:none;" class="exp-banner">
+  <span>⚠️ 顯示 45 天內即將到期保單</span>
+  <button class="exp-banner-close" onclick="clearFilter()">✕ 清除篩選</button>
 </div>
 <input class="si" id="sq" type="text" placeholder="輸入客戶姓名或車牌搜尋..." oninput="rendS()">
 <div id="slist"><div class="emp">輸入姓名開始搜尋</div></div>
@@ -248,7 +252,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eWq4LQvMNPQGuX7L14_0zp1Sx6fB9W9CD1QaD1XCGA/exec';
 const DET=['強制險','體傷','財損','超額','拖吊','駕傷','全險'];
 const COMPANIES=['華南','國泰','新光','富邦','明台','台產','和泰','第一','旺旺','泰安','中信產','新安東京'];
-let recs=[],selM=new Date().getMonth()+1;
+let recs=[],selM=new Date().getMonth()+1,curFilter='none';
 
 function initDateSelects(){
   var now=new Date(),curY=now.getFullYear();
@@ -340,9 +344,7 @@ function fmtDate(d){
     var s=String(d).trim();
     if(s.length>=10&&s.substring(4,5)==='-') return s.substring(0,10);
     var dt=new Date(s);
-    if(!isNaN(dt)){
-      return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-    }
+    if(!isNaN(dt)) return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
     return s.substring(0,10);
   }catch(e){return String(d).substring(0,10);}
 }
@@ -351,7 +353,7 @@ function sw(t){
   document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','search','expiry'][i]===t);});
   document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
   document.getElementById('pnl-'+t).classList.add('on');
-  if(t==='search') rendS();
+  if(t==='search'){curFilter='none';rendS();}
   if(t==='expiry'){initM();rendE();}
 }
 function togId(){var v=document.getElementById('fi').value;document.getElementById('pf').style.display=v==='個人'?'block':'none';document.getElementById('cf').style.display=v==='公司'?'block':'none';}
@@ -393,20 +395,39 @@ function calcT(){
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
 
-// ===== 擴充編輯功能 =====
+// 統計方塊篩選
+function filterSt(type){
+  sw('search');
+  curFilter=type;
+  document.getElementById('sq').value='';
+  document.getElementById('sc-tot').classList.remove('active');
+  document.getElementById('sc-exp').classList.remove('active');
+  document.getElementById('sc-cli').classList.remove('active');
+  document.getElementById('exp-banner').style.display='none';
+  if(type==='exp'){
+    document.getElementById('sc-exp').classList.add('active');
+    document.getElementById('exp-banner').style.display='flex';
+  }else if(type==='all'){
+    document.getElementById('sc-tot').classList.add('active');
+  }
+  rendS();
+}
+function clearFilter(){
+  curFilter='none';
+  document.getElementById('sc-tot').classList.remove('active');
+  document.getElementById('sc-exp').classList.remove('active');
+  document.getElementById('exp-banner').style.display='none';
+  document.getElementById('sq').value='';
+  document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';
+}
+
 function openRecEdit(btn,enc){
   var existing=document.getElementById('rec-edit-global');
   if(existing) existing.remove();
   var r=JSON.parse(decodeURIComponent(enc));
-
-  // 解析既有車險細項
   var existDets=[];
   try{existDets=JSON.parse(r.cardetails||'[]');}catch(e){}
-
-  // 建立保險公司選項
   var coOpts=COMPANIES.map(function(c){return '<option'+(r.company===c?' selected':'')+'>'+c+'</option>';}).join('');
-
-  // 建立到期日選項
   var curExpiry=r.expiry?String(r.expiry).substring(0,10):'';
   var ep=curExpiry.split('-');
   var ey=ep[0]||'',em=ep[1]||'',ed=ep[2]||'';
@@ -415,12 +436,9 @@ function openRecEdit(btn,enc){
   for(var y=cy-2;y<=cy+10;y++) yOpts+='<option'+(ey==y?' selected':'')+'>'+y+'</option>';
   for(var m=1;m<=12;m++) mOpts+='<option value="'+String(m).padStart(2,'0')+'"'+(em==String(m).padStart(2,'0')?' selected':'')+'>'+m+'月</option>';
   for(var d=1;d<=31;d++) dOpts+='<option value="'+String(d).padStart(2,'0')+'"'+(ed==String(d).padStart(2,'0')?' selected':'')+'>'+d+'日</option>';
-
   var box=document.createElement('div');
   box.id='rec-edit-global';
   box.className='rec-edit-box';
-
-  // 車險細項HTML
   var carHTML='';
   if(r.type==='車險'){
     var detMap={};
@@ -438,7 +456,6 @@ function openRecEdit(btn,enc){
         +'<span>保額</span><input type="number" id="re-a'+d+'" value="'+av+'" placeholder="0">萬'
         +'</div></div>';
     }).join('');
-    // 其他車險
     var otherDet=existDets.find(function(x){return DET.indexOf(x.name)===-1;});
     var otherChecked=otherDet?'checked':'';
     var otherName=otherDet?otherDet.name:'';
@@ -446,8 +463,7 @@ function openRecEdit(btn,enc){
     var otherA=otherDet?otherDet.amount:'';
     var otherShow=otherDet?'block':'none';
     cgHTML+='<div><div class="re-ci"><input type="checkbox" id="re-c其他" '+otherChecked+' onchange="reTogOther()"><label for="re-c其他">其他</label></div></div>';
-    carHTML='<div class="re-xtra">'
-      +'<div class="re-xtra-t">車險細項</div>'
+    carHTML='<div class="re-xtra"><div class="re-xtra-t">車險細項</div>'
       +'<div class="re-cg" id="re-cg">'+cgHTML+'</div>'
       +'<div id="re-other-area" style="display:'+otherShow+';background:#fff;border-radius:10px;padding:8px;margin-top:6px;border:1.5px solid var(--sage);">'
       +'<div style="font-family:var(--h);font-size:13px;font-weight:600;color:var(--tfd);margin-bottom:6px;">其他險種名稱</div>'
@@ -459,37 +475,28 @@ function openRecEdit(btn,enc){
       +'<input type="number" id="re-other-a" value="'+otherA+'" placeholder="0" style="font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:8px;padding:5px 7px;width:80px;outline:none;background:var(--mint);">'
       +'<span style="font-family:var(--h);font-size:12px;color:var(--tfd);">萬</span>'
       +'</div></div>'
-      +'<div class="re-tot">總保費：<span id="re-ctot">0</span> 元</div>'
-      +'</div>';
+      +'<div class="re-tot">總保費：<span id="re-ctot">0</span> 元</div></div>';
   }
-
-  // 住宅火險HTML
   var fireHTML='';
   if(r.type==='住宅火險'){
-    fireHTML='<div class="re-xtra">'
-      +'<div class="re-xtra-t">住宅火險資料</div>'
+    fireHTML='<div class="re-xtra"><div class="re-xtra-t">住宅火險資料</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">'
       +'<div class="re-f"><label>保費（元）</label><input type="number" id="re-fire-pr" value="'+(r.premium||'')+'" placeholder="0"></div>'
       +'<div class="re-f"><label>保額（萬）</label><input type="number" id="re-fire-am" value="'+(r.amount||'')+'" placeholder="0"></div>'
       +'</div>'
-      +'<div class="re-f"><label>貸款銀行</label><input type="text" id="re-fire-bank" value="'+(r.loanbank||'')+'" placeholder="例：台灣銀行"></div>'
-      +'</div>';
+      +'<div class="re-f"><label>貸款銀行</label><input type="text" id="re-fire-bank" value="'+(r.loanbank||'')+'" placeholder="例：台灣銀行"></div></div>';
   }
-
-  // 其他險種HTML
   var othHTML='';
   if(r.type&&r.type!=='車險'&&r.type!=='住宅火險'){
-    othHTML='<div class="re-xtra">'
-      +'<div class="re-xtra-t">保費保額</div>'
+    othHTML='<div class="re-xtra"><div class="re-xtra-t">保費保額</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
       +'<div class="re-f"><label>保費（元）</label><input type="number" id="re-oth-pr" value="'+(r.premium||'')+'" placeholder="0"></div>'
       +'<div class="re-f"><label>保額（萬）</label><input type="number" id="re-oth-am" value="'+(r.amount||'')+'" placeholder="0"></div>'
       +'</div></div>';
   }
-
   box.innerHTML='<div class="rec-edit-t">編輯保單 ── '+r.name+'　'+r.type+'</div>'
     +'<div class="re-f"><label>保險公司</label><select id="re-company"><option value="">請選擇</option>'+coOpts+'</select></div>'
-    + carHTML + fireHTML + othHTML
+    +carHTML+fireHTML+othHTML
     +'<div class="re-f"><label>到期日</label>'
     +'<div style="display:flex;gap:5px;">'
     +'<select id="re-ey" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 6px;background:#fff;color:var(--tfdp);outline:none;"><option value="">年</option>'+yOpts+'</select>'
@@ -504,13 +511,9 @@ function openRecEdit(btn,enc){
     +'<div class="re-f"><label>備註</label><input id="re-note" type="text" value="'+(r.note||'')+'" placeholder="補充說明..."></div>'
     +'<button class="save-edit-btn" onclick="saveRecEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">儲存</button>'
     +'<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
-
   btn.parentNode.insertBefore(box,btn.nextSibling);
-
-  // 初始化車險總保費顯示
   if(r.type==='車險') reCalcT();
 }
-
 function reTogD(d){
   var c=document.getElementById('re-c'+d),di=document.getElementById('re-d'+d);
   di.className='re-di'+(c.checked?' show':'');
@@ -523,43 +526,29 @@ function reTogOther(){
 }
 function reCalcT(){
   var t=0;
-  DET.forEach(function(d){
-    var c=document.getElementById('re-c'+d);
-    if(c&&c.checked){var p=document.getElementById('re-p'+d);if(p)t+=parseInt(p.value)||0;}
-  });
+  DET.forEach(function(d){var c=document.getElementById('re-c'+d);if(c&&c.checked){var p=document.getElementById('re-p'+d);if(p)t+=parseInt(p.value)||0;}});
   var co=document.getElementById('re-c其他');
   if(co&&co.checked){var cop=document.getElementById('re-other-p');if(cop)t+=parseInt(cop.value)||0;}
   var el=document.getElementById('re-ctot');if(el)el.textContent=t.toLocaleString();
 }
-
 async function saveRecEdit(name,oldExpiry,type){
   var company=document.getElementById('re-company').value;
-  var ey=document.getElementById('re-ey').value;
-  var em=document.getElementById('re-em').value;
-  var ed=document.getElementById('re-ed').value;
+  var ey=document.getElementById('re-ey').value,em=document.getElementById('re-em').value,ed=document.getElementById('re-ed').value;
   var newExpiry=(ey&&em&&ed)?ey+'-'+em+'-'+ed:oldExpiry;
   var renew=document.getElementById('re-renew').value;
   var note=document.getElementById('re-note').value.trim();
-
   var dets=[],tot=0,premium=0,amount='',loanbank='';
-
   if(type==='車險'){
     DET.forEach(function(d){
       var c=document.getElementById('re-c'+d);
-      if(c&&c.checked){
-        var p=parseInt(document.getElementById('re-p'+d).value)||0;
-        var a=document.getElementById('re-a'+d).value||'';
-        dets.push({name:d,premium:p,amount:a});
-        tot+=p;
-      }
+      if(c&&c.checked){var p=parseInt(document.getElementById('re-p'+d).value)||0,a=document.getElementById('re-a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
     });
     var co=document.getElementById('re-c其他');
     if(co&&co.checked){
       var coName=document.getElementById('re-other-name').value.trim()||'其他';
       var coP=parseInt(document.getElementById('re-other-p').value)||0;
       var coA=document.getElementById('re-other-a').value||'';
-      dets.push({name:coName,premium:coP,amount:coA});
-      tot+=coP;
+      dets.push({name:coName,premium:coP,amount:coA});tot+=coP;
     }
     premium=tot;
   }else if(type==='住宅火險'){
@@ -572,20 +561,14 @@ async function saveRecEdit(name,oldExpiry,type){
     amount=document.getElementById('re-oth-am').value||'';
     tot=premium;
   }
-
   setSb('sl2','更新中...');
   try{
     var url=API+'?action=update_record'
-      +'&name='+encodeURIComponent(name)
-      +'&oldExpiry='+encodeURIComponent(oldExpiry)
-      +'&company='+encodeURIComponent(company)
-      +'&expiry='+encodeURIComponent(newExpiry)
-      +'&renew='+encodeURIComponent(renew)
-      +'&note='+encodeURIComponent(note)
-      +'&premium='+encodeURIComponent(premium)
-      +'&amount='+encodeURIComponent(amount)
-      +'&totalpremium='+encodeURIComponent(tot)
-      +'&cardetails='+encodeURIComponent(JSON.stringify(dets))
+      +'&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)
+      +'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)
+      +'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note)
+      +'&premium='+encodeURIComponent(premium)+'&amount='+encodeURIComponent(amount)
+      +'&totalpremium='+encodeURIComponent(tot)+'&cardetails='+encodeURIComponent(JSON.stringify(dets))
       +'&loanbank='+encodeURIComponent(loanbank);
     await fetch(url);
     recs.forEach(function(r){
@@ -600,7 +583,6 @@ async function saveRecEdit(name,oldExpiry,type){
     setSb('sok','已更新');rendS();rendE();updSt();
   }catch(e){setSb('ser','更新失敗');}
 }
-
 async function loadR(){
   try{
     var res=await fetch(API),d=await res.json();
@@ -622,7 +604,6 @@ function updSt(){
 }
 function dl(ex){var t=new Date();t.setHours(0,0,0,0);var d=new Date(ex);d.setHours(0,0,0,0);return Math.round((d-t)/864e5);}
 function ebg(ex){var d=dl(ex);if(d<0)return '<span class="bg br">已到期</span>';if(d<=45)return '<span class="bg ba">剩'+d+'天</span>';return '<span class="bg bg2">剩'+d+'天</span>';}
-
 function rHTML(r,cp){
   var d=dl(r.expiry),cls=d<0?'exd':d<=45?'exp':'';
   var dets=[];try{dets=JSON.parse(r.cardetails||'[]');}catch(e){}
@@ -657,8 +638,7 @@ function rHTML(r,cp){
     +'<select id="rs-'+rid+'"><option>待確認</option><option>已續保</option><option>不續保</option></select>'
     +'<input type="text" id="rr-'+rid+'" placeholder="不續保原因（選填）">'
     +'<button class="save-btn" onclick="saveRenew(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
-    +'</div>'
-    +'</div>';
+    +'</div></div>';
 }
 function togRenewEdit(rid,name,expiry,curRenew){
   var box=document.getElementById('re-'+rid);
@@ -667,8 +647,7 @@ function togRenewEdit(rid,name,expiry,curRenew){
   if(show){var sel=document.getElementById('rs-'+rid);if(sel)sel.value=curRenew||'待確認';}
 }
 async function saveRenew(rid,name,expiry){
-  var sel=document.getElementById('rs-'+rid);
-  var rrInput=document.getElementById('rr-'+rid);
+  var sel=document.getElementById('rs-'+rid),rrInput=document.getElementById('rr-'+rid);
   var renew=sel.value,renewreason=rrInput.value||'';
   setSb('sl2','更新中...');
   try{
@@ -689,8 +668,20 @@ function cpR(btn,enc){
 }
 function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
+  var td=new Date(),d45=new Date();d45.setDate(d45.getDate()+45);
+  var f;
+  if(curFilter==='exp'){
+    f=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45;});
+    f.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
+    document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">目前沒有即將到期的保單</div>';
+    return;
+  }
+  if(curFilter==='all'&&!q){
+    document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';
+    return;
+  }
   if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入姓名開始搜尋</div>';return;}
-  var f=recs.filter(function(r){
+  f=recs.filter(function(r){
     return String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q);
   });
   if(!f.length){document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';return;}
@@ -756,19 +747,15 @@ async function addR(){
   var addr=document.getElementById('fad').value.trim();
   var rec={
     action:'add',name:name,idno:idno,birthday:getBirthday(),phone:phone,address:addr,
-    plate:document.getElementById('fpl').value.trim(),
-    identity:document.getElementById('fi').value,
+    plate:document.getElementById('fpl').value.trim(),identity:document.getElementById('fi').value,
     type:type,detail:dets.map(function(x){return x.name;}).join('、'),
-    company:document.getElementById('fco').value,
-    premium:tot,
+    company:document.getElementById('fco').value,premium:tot,
     amount:type==='住宅火險'?document.getElementById('ffire-am').value:(document.getElementById('fam')?document.getElementById('fam').value:''),
     expiry:expiry,renew:document.getElementById('frn').value,
     renewreason:document.getElementById('frnrv').value||'',
-    owner:document.getElementById('fow').value,
-    note:document.getElementById('fnt').value.trim(),
+    owner:document.getElementById('fow').value,note:document.getElementById('fnt').value.trim(),
     totalpremium:tot,cardetails:JSON.stringify(dets),
-    othertype:type==='其他'?document.getElementById('fotn').value:'',
-    loanbank:loanbank
+    othertype:type==='其他'?document.getElementById('fotn').value:'',loanbank:loanbank
   };
   var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='儲存中...';
   setSb('sl2','儲存至 Google Sheets...');
