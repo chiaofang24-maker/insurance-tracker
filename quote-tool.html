@@ -1,1 +1,187 @@
 
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>報價資料工具</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
+body{background:#F5FAFA;font-family:var(--h);}
+.app{padding:1rem;max-width:600px;margin:0 auto;}
+.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
+.hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
+.hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
+.card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
+.ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
+.f label{font-family:var(--h);font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
+.f input,.f select{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:12px;}
+.f input:focus,.f select:focus{border-color:var(--tf);background:#fff;}
+.mode-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.mode-btn{font-family:var(--h);font-size:15px;font-weight:600;padding:10px;border-radius:14px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;}
+.mode-btn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
+.type-btn{font-family:var(--h);font-size:15px;font-weight:600;padding:12px;border-radius:16px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;}
+.type-btn:hover{background:var(--tfl);}
+.type-btn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.f select{margin-bottom:0;}
+.output-box{width:100%;min-height:280px;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:16px;padding:14px;background:var(--mint);color:var(--tfdp);outline:none;line-height:1.8;resize:vertical;margin-top:12px;}
+.output-box:focus{border-color:var(--tf);background:#fff;}
+.copy-btn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:10px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
+.copy-btn:active{opacity:0.85;}
+.copy-btn.copied{background:#2E7D42;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <h1>報價資料工具</h1>
+    <p>一鍵產出 Line 報價訊息</p>
+  </div>
+
+  <div class="card">
+    <div class="ch">客戶姓名</div>
+    <div class="f">
+      <input id="clientName" type="text" placeholder="輸入客戶姓名（例如：王先生）">
+    </div>
+
+    <div class="ch">訊息風格</div>
+    <div class="mode-row">
+      <div class="mode-btn on" onclick="setMode('formal',this)">一般</div>
+      <div class="mode-btn" onclick="setMode('friendly',this)">親切</div>
+      <div class="mode-btn" onclick="setMode('sales',this)">引導</div>
+    </div>
+
+    <div class="ch">險種選擇</div>
+    <div class="type-grid">
+      <div class="type-btn" onclick="setType('car',this)">🚗 車險</div>
+      <div class="type-btn" onclick="setType('travel',this)">✈️ 旅平險</div>
+      <div class="type-btn" onclick="setType('group',this)">👥 團險</div>
+      <div class="type-btn" onclick="setType('home',this)">🏠 住火險</div>
+    </div>
+    <div class="f">
+      <select onchange="setTypeFromSelect(this.value)">
+        <option value="">其他險種</option>
+        <option value="businessFire">商火險</option>
+        <option value="publicStore">公共意外（商店）</option>
+        <option value="publicEvent">公共意外（活動）</option>
+        <option value="product">產品責任險</option>
+        <option value="construction">工程責任險</option>
+        <option value="labor">僱補險</option>
+      </select>
+    </div>
+
+    <textarea class="output-box" id="output" placeholder="請先選擇險種..."></textarea>
+    <button class="copy-btn" id="copy-btn" onclick="copyText()">複製 Line 訊息</button>
+  </div>
+</div>
+
+<script>
+var currentMode = 'formal';
+var currentType = '';
+
+function setMode(mode, btn) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('on'); });
+  btn.classList.add('on');
+  if (currentType) generateOutput(currentType);
+}
+
+function setType(type, btn) {
+  currentType = type;
+  document.querySelectorAll('.type-btn').forEach(function(b) { b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  generateOutput(type);
+}
+
+function setTypeFromSelect(type) {
+  if (!type) return;
+  currentType = type;
+  document.querySelectorAll('.type-btn').forEach(function(b) { b.classList.remove('on'); });
+  generateOutput(type);
+}
+
+function getName() {
+  var name = document.getElementById('clientName').value.trim();
+  return name ? name + ' 您好：' : '您好：';
+}
+
+function getTemplate(title, content) {
+  var intro = '', outro = '';
+  if (currentMode === 'formal') {
+    intro = '以下為「' + title + '」報價所需資料：';
+    outro = '資料填寫完成後請直接回傳，將為您進行報價規劃。';
+  } else if (currentMode === 'friendly') {
+    intro = '這邊幫您整理需要填寫的資料：';
+    outro = '填好傳給我就可以囉 👍';
+  } else if (currentMode === 'sales') {
+    intro = '為了幫您做最精準的報價，請協助填寫以下資料：';
+    outro = '收到後我會立即幫您試算最佳方案。';
+  }
+  return getName() + '\n\n' + intro + '\n\n' + content + '\n\n' + outro;
+}
+
+function generateOutput(type) {
+  var title = '', content = '';
+  switch (type) {
+    case 'car':
+      title = '車險';
+      content = '姓名：\n出生日期：\n身分證字號：\n聯絡地址：\n聯絡電話：\n車牌號碼：';
+      break;
+    case 'home':
+      title = '住火險';
+      content = '屋主姓名：\n出生日期：\n身分證字號：\n住宅謄本／前一年保單：';
+      break;
+    case 'businessFire':
+      title = '商火險';
+      content = '公司全名：\n統一編號：\n負責人姓名：\n建築結構：\n營業性質：\n投保地址：';
+      break;
+    case 'publicStore':
+      title = '公共意外責任險（商店）';
+      content = '公司全名：\n統一編號：\n負責人姓名：\n投保地址：\n使用坪數：\n使用性質：';
+      break;
+    case 'publicEvent':
+      title = '公共意外責任險（活動）';
+      content = '承辦單位：\n活動地點：\n參與人數：\n活動性質：';
+      break;
+    case 'product':
+      title = '產品責任險';
+      content = '公司全名：\n統一編號：\n負責人姓名：\n銷售商品：\n年度銷售額：\n是否有外銷：';
+      break;
+    case 'construction':
+      title = '工程責任險';
+      content = '公司全名：\n統一編號：\n負責人姓名：\n工程合約：';
+      break;
+    case 'group':
+      title = '團體保險';
+      content = '公司全名：\n統一編號：\n負責人姓名：\n員工基本資料：\n員工職務內容：\n投保保額：\n※至少5人，負責人不得投保';
+      break;
+    case 'labor':
+      title = '僱主補償責任險';
+      content = '公司全名：\n統一編號：\n負責人姓名：\n員工基本資料：\n員工職務內容：\n投保保額：';
+      break;
+    case 'travel':
+      title = '旅遊平安險';
+      content = '【要保人】\n姓名：\n出生日期：\n身分證字號：\n電話：\n電子信箱：\n\n【被保人】\n姓名：\n出生日期：\n身分證字號：\n\n【受益人】\n姓名：\n出生日期：\n身分證字號：\n※ 若無指定則為法定繼承人\n\n【旅遊資訊】\n出發（飛機起飛）：\n回程（飛機落地）：\n地點：\n投保金額：\n\n【繳費資訊】\n信用卡銀行：\n卡號：\n有效期限：\n\n※ 如需英文投保證明：護照英文姓名、護照號碼';
+      break;
+  }
+  document.getElementById('output').value = getTemplate(title, content);
+}
+
+function copyText() {
+  var text = document.getElementById('output').value;
+  if (!text || text.trim() === '') { alert('請先選擇險種'); return; }
+  var btn = document.getElementById('copy-btn');
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = '已複製！';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = '複製 Line 訊息';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
