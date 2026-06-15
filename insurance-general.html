@@ -109,6 +109,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 .modal-info-row{font-family:var(--h);font-size:14px;color:var(--tfdp);line-height:2;}
 .modal-info-label{color:var(--tfd);font-weight:600;margin-right:6px;}
 .modal-section-t{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:8px;border-left:4px solid var(--tf);padding-left:8px;}
+.premium-compare{background:#FFF4E0;border-radius:10px;padding:6px 12px;margin-top:6px;font-family:var(--h);font-size:13px;color:#8A5C00;border:1px solid #F5CC80;}
 </style>
 </head>
 <body>
@@ -415,17 +416,13 @@ function calcT(){
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
 
-// ===== 客戶資料 Modal =====
 function showClientModal(name){
   var clientRecs=recs.filter(function(r){return r.name===name;});
   if(!clientRecs.length)return;
-
-  // 從所有同名保單中，取各欄位有值的那一筆來組合基本資料
   function getBest(field){
     var found=clientRecs.find(function(r){return r[field]&&String(r[field]).trim()!=='';});
     return found?found[field]:'';
   }
-
   var identity=getBest('identity')||'個人';
   var isCompany=identity==='公司';
   var infoHTML='<div class="modal-info">';
@@ -448,6 +445,20 @@ function showClientModal(name){
     var dets=[];try{dets=JSON.parse(pr.cardetails||'[]');}catch(e){}
     var ds=dets.map(function(x){return x.name+'：'+Number(x.premium).toLocaleString()+'元'+(x.amount?' / '+x.amount+'萬':'');}).join('、');
     var d=dl(pr.expiry),cls=d<0?'exd':d<=45?'exp':'';
+
+    // 前年度保費對比
+    var premCompare='';
+    if(pr.lastpremium&&String(pr.lastpremium).trim()!==''&&pr.totalpremium&&String(pr.totalpremium).trim()!==''){
+      var last=Number(pr.lastpremium),cur=Number(pr.totalpremium);
+      var diff=cur-last;
+      var arrow=diff>0?'▲':'▼';
+      var diffColor=diff>0?'color:#B03030':'color:#2E7D42';
+      premCompare='<div class="premium-compare">'
+        +'去年保費：'+last.toLocaleString()+'元　→　今年保費：'+cur.toLocaleString()+'元　'
+        +'<span style="'+diffColor+';font-weight:600;">'+arrow+Math.abs(diff).toLocaleString()+'元</span>'
+        +'</div>';
+    }
+
     polHTML+='<div class="rc '+cls+'" style="margin-bottom:8px;">'
       +'<div class="rrow">'
       +'<span class="bg bt">'+(pr.type||'')+'</span>'
@@ -461,7 +472,9 @@ function showClientModal(name){
       +(ds?'<br>'+ds:'')
       +(pr.loanbank?'<br>貸款銀行：'+pr.loanbank:'')
       +(pr.note?'<br>備註：'+pr.note:'')
-      +'</div></div>';
+      +'</div>'
+      +premCompare
+      +'</div>';
   });
 
   var title=isCompany?(getBest('companyname')||name):name;
@@ -654,6 +667,7 @@ async function saveRecEdit(name,oldExpiry,type){
     await fetch(url);
     recs.forEach(function(r){
       if(r.name===name&&r.expiry===oldExpiry){
+        r.lastpremium=r.totalpremium;
         r.company=company;r.expiry=newExpiry;r.renew=renew;r.note=note;
         r.premium=premium;r.amount=amount;r.totalpremium=tot;
         r.cardetails=JSON.stringify(dets);r.loanbank=loanbank;
@@ -670,7 +684,7 @@ async function loadR(){
     if(Array.isArray(d)){
       recs=d.map(function(r){
         if(typeof r==='object'&&!Array.isArray(r))return r;
-        return {name:r[0],idno:r[1],birthday:r[2],phone:r[3],address:r[4],plate:r[5],identity:r[6],type:r[7],detail:r[8],company:r[9],premium:r[10],amount:r[11],expiry:r[12],renew:r[13],renewreason:r[14],owner:r[15],note:r[16],totalpremium:r[17],cardetails:r[18],othertype:r[19],loanbank:r[20],companyname:r[21],taxid:r[22]};
+        return {name:r[0],idno:r[1],birthday:r[2],phone:r[3],address:r[4],plate:r[5],identity:r[6],type:r[7],detail:r[8],company:r[9],premium:r[10],amount:r[11],expiry:r[12],renew:r[13],renewreason:r[14],owner:r[15],note:r[16],totalpremium:r[17],cardetails:r[18],othertype:r[19],loanbank:r[20],companyname:r[21],taxid:r[22],lastpremium:r[23]};
       });
     }else{recs=[];}
     setSb('sok','已連線，資料同步自 Google Sheets');
