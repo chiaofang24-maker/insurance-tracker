@@ -110,11 +110,10 @@ body{background:#F5FAFA;font-family:var(--h);}
 .modal-info-label{color:var(--tfd);font-weight:600;margin-right:6px;}
 .modal-section-t{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:8px;border-left:4px solid var(--tf);padding-left:8px;}
 .premium-compare{background:#FFF4E0;border-radius:10px;padding:6px 12px;margin-top:6px;font-family:var(--h);font-size:13px;color:#8A5C00;border:1px solid #F5CC80;}
-/* 重複警告 Modal */
 .dup-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;}
 .dup-modal-box{background:#fff;border-radius:22px;padding:1.6rem;width:100%;max-width:400px;}
 .dup-modal-title{font-family:var(--h);font-size:18px;font-weight:600;color:#B03030;margin-bottom:10px;}
-.dup-modal-msg{font-family:var(--h);font-size:15px;color:var(--tfdp);line-height:1.8;margin-bottom:18px;}
+.dup-modal-msg{font-family:var(--h);font-size:15px;color:var(--tfdp);line-height:1.8;margin-bottom:18px;white-space:pre-line;}
 .dup-modal-btns{display:flex;gap:10px;}
 .dup-continue-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:#E24B4A;color:#fff;border:none;cursor:pointer;flex:1;}
 .dup-cancel-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;flex:1;}
@@ -273,7 +272,6 @@ body{background:#F5FAFA;font-family:var(--h);}
   </div>
 </div>
 
-<!-- 重複警告 Modal -->
 <div id="dup-modal" class="dup-modal-overlay" style="display:none;">
   <div class="dup-modal-box">
     <div class="dup-modal-title">⚠️ 發現重複保單</div>
@@ -290,7 +288,7 @@ const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eW
 const DET=['強制險','體傷','財損','超額','拖吊','駕傷','全險'];
 const COMPANIES=['華南','國泰','新光','富邦','明台','台產','和泰','第一','旺旺','泰安','中信產','新安東京'];
 let recs=[],selM=new Date().getMonth()+1,curFilter='none';
-let pendingRec=null; // 等待確認的重複保單
+let pendingRec=null;
 
 function initDateSelects(){
   var now=new Date(),curY=now.getFullYear();
@@ -320,6 +318,16 @@ function resetDateSelects(){
   ['fb-y','fb-m','fb-d','fex-y','fex-m','fex-d'].forEach(function(id){
     var e=document.getElementById(id);if(e)e.selectedIndex=0;
   });
+}
+function normDate(d){
+  if(!d)return '';
+  try{
+    var s=String(d).trim();
+    if(s.length>=10&&s.substring(4,5)==='-')return s.substring(0,10);
+    var dt=new Date(s);
+    if(!isNaN(dt))return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    return '';
+  }catch(e){return '';}
 }
 function searchClient(q){
   var box=document.getElementById('client-suggest');
@@ -436,7 +444,6 @@ function calcT(){
   if(co&&co.checked){var cop=document.getElementById('car-other-p');if(cop)t+=parseInt(cop.value)||0;}
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
-
 function showClientModal(name){
   var clientRecs=recs.filter(function(r){return r.name===name;});
   if(!clientRecs.length)return;
@@ -467,10 +474,8 @@ function showClientModal(name){
     var d=dl(pr.expiry),cls=d<0?'exd':d<=45?'exp':'';
     var premCompare='';
     if(pr.lastpremium&&String(pr.lastpremium).trim()!==''&&pr.totalpremium&&String(pr.totalpremium).trim()!==''){
-      var last=Number(pr.lastpremium),cur=Number(pr.totalpremium);
-      var diff=cur-last;
-      var arrow=diff>0?'▲':'▼';
-      var diffColor=diff>0?'color:#B03030':'color:#2E7D42';
+      var last=Number(pr.lastpremium),cur=Number(pr.totalpremium),diff=cur-last;
+      var arrow=diff>0?'▲':'▼',diffColor=diff>0?'color:#B03030':'color:#2E7D42';
       premCompare='<div class="premium-compare">去年保費：'+last.toLocaleString()+'元　→　今年保費：'+cur.toLocaleString()+'元　<span style="'+diffColor+';font-weight:600;">'+arrow+Math.abs(diff).toLocaleString()+'元</span></div>';
     }
     polHTML+='<div class="rc '+cls+'" style="margin-bottom:8px;">'
@@ -486,15 +491,8 @@ function showClientModal(name){
   document.getElementById('client-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
-function closeModal(){
-  document.getElementById('client-modal').style.display='none';
-  document.body.style.overflow='';
-}
-function closeModalOuter(e){
-  if(e.target===document.getElementById('client-modal'))closeModal();
-}
-
-// 重複保單提醒
+function closeModal(){document.getElementById('client-modal').style.display='none';document.body.style.overflow='';}
+function closeModalOuter(e){if(e.target===document.getElementById('client-modal'))closeModal();}
 function closeDupModal(){
   document.getElementById('dup-modal').style.display='none';
   pendingRec=null;
@@ -506,7 +504,6 @@ async function confirmAddR(){
   if(pendingRec) await doAddR(pendingRec);
   pendingRec=null;
 }
-
 function filterSt(type){
   sw('search');
   curFilter=type;
@@ -515,12 +512,8 @@ function filterSt(type){
   document.getElementById('sc-exp').classList.remove('active');
   document.getElementById('sc-cli').classList.remove('active');
   document.getElementById('exp-banner').style.display='none';
-  if(type==='exp'){
-    document.getElementById('sc-exp').classList.add('active');
-    document.getElementById('exp-banner').style.display='flex';
-  }else if(type==='all'){
-    document.getElementById('sc-tot').classList.add('active');
-  }
+  if(type==='exp'){document.getElementById('sc-exp').classList.add('active');document.getElementById('exp-banner').style.display='flex';}
+  else if(type==='all'){document.getElementById('sc-tot').classList.add('active');}
   rendS();
 }
 function clearFilter(){
@@ -531,7 +524,6 @@ function clearFilter(){
   document.getElementById('sq').value='';
   document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';
 }
-
 function openRecEdit(btn,enc){
   var existing=document.getElementById('rec-edit-global');
   if(existing)existing.remove();
@@ -555,10 +547,7 @@ function openRecEdit(btn,enc){
     var detMap={};
     existDets.forEach(function(x){detMap[x.name]={premium:x.premium,amount:x.amount};});
     var cgHTML=DET.map(function(d){
-      var checked=detMap[d]?'checked':'';
-      var pv=detMap[d]?detMap[d].premium:'';
-      var av=detMap[d]?detMap[d].amount:'';
-      var showCls=detMap[d]?' show':'';
+      var checked=detMap[d]?'checked':'',pv=detMap[d]?detMap[d].premium:'',av=detMap[d]?detMap[d].amount:'',showCls=detMap[d]?' show':'';
       return '<div><div class="re-ci"><input type="checkbox" id="re-c'+d+'" '+checked+' onchange="reTogD(\''+d+'\')">'
         +'<label for="re-c'+d+'">'+d+'</label></div>'
         +'<div class="re-di'+showCls+'" id="re-d'+d+'"><span>保費</span><input type="number" id="re-p'+d+'" value="'+pv+'" placeholder="0" oninput="reCalcT()">元'
@@ -775,30 +764,25 @@ function genMsg(){
 function cpMsg(btn,enc){
   navigator.clipboard.writeText(decodeURIComponent(enc)).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製此訊息';},2000);});
 }
-
 async function addR(){
   var name=document.getElementById('fn').value.trim(),type=document.getElementById('ftp').value,expiry=getExpiry();
   if(!name||!type||!expiry){alert('請填寫姓名、險種及到期日');return;}
   var idno=document.getElementById('fid').value,phone=document.getElementById('fph').value;
   if(idno&&!/^[A-Za-z][0-9]{9}$/.test(idno)){alert('身分證字號格式錯誤，請確認');return;}
   if(phone&&!/^[0-9]{10}$/.test(phone)){alert('電話應為10碼數字');return;}
-
-  // 重複保單檢查
   var dup=recs.find(function(r){
-   return String(r.name||'').trim()===name && String(r.type||'').trim()===type && fmtDate(r.expiry)===expiry;
+    return String(r.name||'').trim()===name && String(r.type||'').trim()===type && normDate(r.expiry)===expiry;
+  });
   if(dup){
     document.getElementById('dup-modal-msg').textContent='已有一筆相同的保單：\n\n姓名：'+name+'\n險種：'+type+'\n到期日：'+expiry+'\n\n請確認是否真的要再新增一筆？';
     document.getElementById('dup-modal').style.display='flex';
-    // 先把資料存起來，等用戶確認
     pendingRec=buildRec(name,type,expiry,idno,phone);
     var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='請確認...';
     return;
   }
-
   var rec=buildRec(name,type,expiry,idno,phone);
   await doAddR(rec);
 }
-
 function buildRec(name,type,expiry,idno,phone){
   var dets=[],tot=0,loanbank='';
   if(type==='車險'){
@@ -830,7 +814,6 @@ function buildRec(name,type,expiry,idno,phone){
     loanbank:loanbank,companyname:companyname,taxid:taxid
   };
 }
-
 async function doAddR(rec){
   var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='儲存中...';
   setSb('sl2','儲存至 Google Sheets...');
@@ -846,7 +829,6 @@ async function doAddR(rec){
   }catch(e){setSb('ser','儲存失敗，請重試');}
   btn.disabled=false;btn.textContent='＋ 新增保單';
 }
-
 async function delR(name,expiry){
   if(!confirm('確定刪除 '+name+' 的這筆保單？'))return;
   setSb('sl2','刪除中...');
