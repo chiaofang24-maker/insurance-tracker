@@ -81,8 +81,9 @@ body{background:#F5FAFA;font-family:var(--h);}
 .cancel-edit-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;}
 .renew-edit{background:var(--mint);border-radius:14px;padding:10px 12px;margin-top:8px;border:1.5px solid var(--sage);}
 .renew-edit-t{font-family:var(--h);font-size:13px;font-weight:600;color:var(--tfd);margin-bottom:8px;}
-.renew-edit select{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
-.renew-edit input{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:8px;}
+.renew-edit label{font-family:var(--h);font-size:13px;color:var(--tfd);font-weight:600;display:block;margin-bottom:4px;margin-top:8px;}
+.renew-edit select{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:4px;}
+.renew-edit input{font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 11px;background:#fff;color:var(--tfdp);outline:none;width:100%;margin-bottom:4px;}
 .save-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:7px 16px;border-radius:12px;background:var(--tf);color:#fff;border:none;cursor:pointer;}
 .car-other-box{background:#fff;border-radius:12px;padding:10px 12px;margin-top:8px;border:1.5px solid var(--sage);}
 .car-other-name{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;width:100%;outline:none;background:var(--mint);margin-bottom:8px;}
@@ -328,6 +329,23 @@ function normDate(d){
     if(!isNaN(dt))return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
     return '';
   }catch(e){return '';}
+}
+function buildRenewDateSelects(rid,curExpiry){
+  var ep=normDate(curExpiry).split('-');
+  var ey=ep[0]||'',em=ep[1]||'',ed=ep[2]||'';
+  var cy=new Date().getFullYear();
+  var yOpts='<option value="">年</option>';
+  for(var y=cy-2;y<=cy+10;y++)yOpts+='<option value="'+y+'"'+(ey==y?' selected':'')+'>'+y+'年</option>';
+  var mOpts='<option value="">月</option>';
+  for(var m=1;m<=12;m++){var mv=String(m).padStart(2,'0');mOpts+='<option value="'+mv+'"'+(em===mv?' selected':'')+'>'+m+'月</option>';}
+  var dOpts='<option value="">日</option>';
+  for(var d=1;d<=31;d++){var dv=String(d).padStart(2,'0');dOpts+='<option value="'+dv+'"'+(ed===dv?' selected':'')+'>'+d+'日</option>';}
+  return '<label>到期日</label>'
+    +'<div style="display:flex;gap:5px;margin-bottom:8px;">'
+    +'<select id="rn-ey-'+rid+'" style="flex:2;font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:12px;padding:6px;background:#fff;color:var(--tfdp);outline:none;">'+yOpts+'</select>'
+    +'<select id="rn-em-'+rid+'" style="flex:1;font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:12px;padding:6px;background:#fff;color:var(--tfdp);outline:none;">'+mOpts+'</select>'
+    +'<select id="rn-ed-'+rid+'" style="flex:1;font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:12px;padding:6px;background:#fff;color:var(--tfdp);outline:none;">'+dOpts+'</select>'
+    +'</div>';
 }
 function searchClient(q){
   var box=document.getElementById('client-suggest');
@@ -686,8 +704,10 @@ function rHTML(r,cp){
     +'<button class="cb" onclick="togRenewEdit(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\',\''+r.renew+'\')">更新續保狀態</button>'
     +'<div class="renew-edit" id="re-'+rid+'" style="display:none;">'
     +'<div class="renew-edit-t">更新續保狀態</div>'
+    +'<label>續保狀態</label>'
     +'<select id="rs-'+rid+'"><option>待確認</option><option>已續保</option><option>不續保</option></select>'
-    +'<input type="text" id="rr-'+rid+'" placeholder="不續保原因（選填）">'
+    +buildRenewDateSelects(rid,r.expiry)
+    +'<input type="text" id="rr-'+rid+'" placeholder="不續保原因（選填）" style="margin-bottom:8px;">'
     +'<button class="save-btn" onclick="saveRenew(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
     +'</div></div>';
 }
@@ -700,14 +720,18 @@ function togRenewEdit(rid,name,expiry,curRenew){
 async function saveRenew(rid,name,expiry){
   var sel=document.getElementById('rs-'+rid),rrInput=document.getElementById('rr-'+rid);
   var renew=sel.value,renewreason=rrInput.value||'';
+  var ey=document.getElementById('rn-ey-'+rid).value;
+  var em=document.getElementById('rn-em-'+rid).value;
+  var ed=document.getElementById('rn-ed-'+rid).value;
+  var newExpiry=(ey&&em&&ed)?ey+'-'+em+'-'+ed:expiry;
   setSb('sl2','更新中...');
   try{
-    var url=API+'?action=update_renew&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&renew='+encodeURIComponent(renew)+'&renewreason='+encodeURIComponent(renewreason);
+    var url=API+'?action=update_renew&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&renew='+encodeURIComponent(renew)+'&renewreason='+encodeURIComponent(renewreason)+'&newExpiry='+encodeURIComponent(newExpiry);
     await fetch(url);
-    recs.forEach(function(r){if(r.name===name&&r.expiry===expiry){r.renew=renew;r.renewreason=renewreason;}});
+    recs.forEach(function(r){if(r.name===name&&r.expiry===expiry){r.renew=renew;r.renewreason=renewreason;r.expiry=newExpiry;}});
     setSb('sok','已更新續保狀態');
     document.getElementById('re-'+rid).style.display='none';
-    rendS();rendE();
+    rendS();rendE();updSt();
   }catch(e){setSb('ser','更新失敗，請重試');}
 }
 function cpR(btn,enc){
