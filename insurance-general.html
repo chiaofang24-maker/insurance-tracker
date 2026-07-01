@@ -785,8 +785,7 @@ async function addR(){
 
   // 重複保單檢查
   var dup=recs.find(function(r){
-    return String(r.name).trim()===name && String(r.type).trim()===type && String(r.expiry).substring(0,10)===expiry;
-  });
+   return String(r.name||'').trim()===name && String(r.type||'').trim()===type && fmtDate(r.expiry)===expiry;
   if(dup){
     document.getElementById('dup-modal-msg').textContent='已有一筆相同的保單：\n\n姓名：'+name+'\n險種：'+type+'\n到期日：'+expiry+'\n\n請確認是否真的要再新增一筆？';
     document.getElementById('dup-modal').style.display='flex';
