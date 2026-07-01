@@ -110,6 +110,14 @@ body{background:#F5FAFA;font-family:var(--h);}
 .modal-info-label{color:var(--tfd);font-weight:600;margin-right:6px;}
 .modal-section-t{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:8px;border-left:4px solid var(--tf);padding-left:8px;}
 .premium-compare{background:#FFF4E0;border-radius:10px;padding:6px 12px;margin-top:6px;font-family:var(--h);font-size:13px;color:#8A5C00;border:1px solid #F5CC80;}
+/* 重複警告 Modal */
+.dup-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.dup-modal-box{background:#fff;border-radius:22px;padding:1.6rem;width:100%;max-width:400px;}
+.dup-modal-title{font-family:var(--h);font-size:18px;font-weight:600;color:#B03030;margin-bottom:10px;}
+.dup-modal-msg{font-family:var(--h);font-size:15px;color:var(--tfdp);line-height:1.8;margin-bottom:18px;}
+.dup-modal-btns{display:flex;gap:10px;}
+.dup-continue-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:#E24B4A;color:#fff;border:none;cursor:pointer;flex:1;}
+.dup-cancel-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;flex:1;}
 </style>
 </head>
 <body>
@@ -265,11 +273,24 @@ body{background:#F5FAFA;font-family:var(--h);}
   </div>
 </div>
 
+<!-- 重複警告 Modal -->
+<div id="dup-modal" class="dup-modal-overlay" style="display:none;">
+  <div class="dup-modal-box">
+    <div class="dup-modal-title">⚠️ 發現重複保單</div>
+    <div class="dup-modal-msg" id="dup-modal-msg"></div>
+    <div class="dup-modal-btns">
+      <button class="dup-cancel-btn" onclick="closeDupModal()">取消，重新確認</button>
+      <button class="dup-continue-btn" onclick="confirmAddR()">確認，仍要新增</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eWq4LQvMNPQGuX7L14_0zp1Sx6fB9W9CD1QaD1XCGA/exec';
 const DET=['強制險','體傷','財損','超額','拖吊','駕傷','全險'];
 const COMPANIES=['華南','國泰','新光','富邦','明台','台產','和泰','第一','旺旺','泰安','中信產','新安東京'];
 let recs=[],selM=new Date().getMonth()+1,curFilter='none';
+let pendingRec=null; // 等待確認的重複保單
 
 function initDateSelects(){
   var now=new Date(),curY=now.getFullYear();
@@ -439,48 +460,29 @@ function showClientModal(name){
   infoHTML+='<div class="modal-info-row"><span class="modal-info-label">電話</span>'+(getBest('phone')?fmtPhone(getBest('phone')):'－')+'</div>';
   infoHTML+='<div class="modal-info-row"><span class="modal-info-label">地址</span>'+(getBest('address')||'－')+'</div>';
   infoHTML+='</div>';
-
   var polHTML='<div class="modal-section-t">所有保單（共'+clientRecs.length+'筆）</div>';
   clientRecs.forEach(function(pr){
     var dets=[];try{dets=JSON.parse(pr.cardetails||'[]');}catch(e){}
     var ds=dets.map(function(x){return x.name+'：'+Number(x.premium).toLocaleString()+'元'+(x.amount?' / '+x.amount+'萬':'');}).join('、');
     var d=dl(pr.expiry),cls=d<0?'exd':d<=45?'exp':'';
-
-    // 前年度保費對比
     var premCompare='';
     if(pr.lastpremium&&String(pr.lastpremium).trim()!==''&&pr.totalpremium&&String(pr.totalpremium).trim()!==''){
       var last=Number(pr.lastpremium),cur=Number(pr.totalpremium);
       var diff=cur-last;
       var arrow=diff>0?'▲':'▼';
       var diffColor=diff>0?'color:#B03030':'color:#2E7D42';
-      premCompare='<div class="premium-compare">'
-        +'去年保費：'+last.toLocaleString()+'元　→　今年保費：'+cur.toLocaleString()+'元　'
-        +'<span style="'+diffColor+';font-weight:600;">'+arrow+Math.abs(diff).toLocaleString()+'元</span>'
-        +'</div>';
+      premCompare='<div class="premium-compare">去年保費：'+last.toLocaleString()+'元　→　今年保費：'+cur.toLocaleString()+'元　<span style="'+diffColor+';font-weight:600;">'+arrow+Math.abs(diff).toLocaleString()+'元</span></div>';
     }
-
     polHTML+='<div class="rc '+cls+'" style="margin-bottom:8px;">'
-      +'<div class="rrow">'
-      +'<span class="bg bt">'+(pr.type||'')+'</span>'
-      +'<span class="bg bx">'+(pr.company||'')+'</span>'
+      +'<div class="rrow"><span class="bg bt">'+(pr.type||'')+'</span><span class="bg bx">'+(pr.company||'')+'</span>'
       +ebg(pr.expiry)
       +(pr.renew==='已續保'?'<span class="bg bg2">已續保</span>':pr.renew==='不續保'?'<span class="bg br">不續保</span>':'<span class="bg bx">待確認</span>')
       +'</div>'
-      +'<div class="rd">'
-      +'到期：'+fmtDate(pr.expiry)
-      +(pr.totalpremium?'　總保費：'+Number(pr.totalpremium).toLocaleString()+'元':'')
-      +(ds?'<br>'+ds:'')
-      +(pr.loanbank?'<br>貸款銀行：'+pr.loanbank:'')
-      +(pr.note?'<br>備註：'+pr.note:'')
-      +'</div>'
-      +premCompare
-      +'</div>';
+      +'<div class="rd">到期：'+fmtDate(pr.expiry)+(pr.totalpremium?'　總保費：'+Number(pr.totalpremium).toLocaleString()+'元':'')+(ds?'<br>'+ds:'')+(pr.loanbank?'<br>貸款銀行：'+pr.loanbank:'')+(pr.note?'<br>備註：'+pr.note:'')+'</div>'
+      +premCompare+'</div>';
   });
-
   var title=isCompany?(getBest('companyname')||name):name;
-  document.getElementById('modal-content').innerHTML=
-    '<div class="modal-title">'+(isCompany?'🏢 ':'👤 ')+title+'</div>'
-    +infoHTML+polHTML;
+  document.getElementById('modal-content').innerHTML='<div class="modal-title">'+(isCompany?'🏢 ':'👤 ')+title+'</div>'+infoHTML+polHTML;
   document.getElementById('client-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
@@ -490,6 +492,19 @@ function closeModal(){
 }
 function closeModalOuter(e){
   if(e.target===document.getElementById('client-modal'))closeModal();
+}
+
+// 重複保單提醒
+function closeDupModal(){
+  document.getElementById('dup-modal').style.display='none';
+  pendingRec=null;
+  var btn=document.getElementById('abtn');
+  btn.disabled=false;btn.textContent='＋ 新增保單';
+}
+async function confirmAddR(){
+  document.getElementById('dup-modal').style.display='none';
+  if(pendingRec) await doAddR(pendingRec);
+  pendingRec=null;
 }
 
 function filterSt(type){
@@ -544,23 +559,15 @@ function openRecEdit(btn,enc){
       var pv=detMap[d]?detMap[d].premium:'';
       var av=detMap[d]?detMap[d].amount:'';
       var showCls=detMap[d]?' show':'';
-      return '<div>'
-        +'<div class="re-ci"><input type="checkbox" id="re-c'+d+'" '+checked+' onchange="reTogD(\''+d+'\')">'
+      return '<div><div class="re-ci"><input type="checkbox" id="re-c'+d+'" '+checked+' onchange="reTogD(\''+d+'\')">'
         +'<label for="re-c'+d+'">'+d+'</label></div>'
-        +'<div class="re-di'+showCls+'" id="re-d'+d+'">'
-        +'<span>保費</span><input type="number" id="re-p'+d+'" value="'+pv+'" placeholder="0" oninput="reCalcT()">元'
-        +'<span>保額</span><input type="number" id="re-a'+d+'" value="'+av+'" placeholder="0">萬'
-        +'</div></div>';
+        +'<div class="re-di'+showCls+'" id="re-d'+d+'"><span>保費</span><input type="number" id="re-p'+d+'" value="'+pv+'" placeholder="0" oninput="reCalcT()">元'
+        +'<span>保額</span><input type="number" id="re-a'+d+'" value="'+av+'" placeholder="0">萬</div></div>';
     }).join('');
     var otherDet=existDets.find(function(x){return DET.indexOf(x.name)===-1;});
-    var otherChecked=otherDet?'checked':'';
-    var otherName=otherDet?otherDet.name:'';
-    var otherP=otherDet?otherDet.premium:'';
-    var otherA=otherDet?otherDet.amount:'';
-    var otherShow=otherDet?'block':'none';
+    var otherChecked=otherDet?'checked':'',otherName=otherDet?otherDet.name:'',otherP=otherDet?otherDet.premium:'',otherA=otherDet?otherDet.amount:'',otherShow=otherDet?'block':'none';
     cgHTML+='<div><div class="re-ci"><input type="checkbox" id="re-c其他" '+otherChecked+' onchange="reTogOther()"><label for="re-c其他">其他</label></div></div>';
-    carHTML='<div class="re-xtra"><div class="re-xtra-t">車險細項</div>'
-      +'<div class="re-cg" id="re-cg">'+cgHTML+'</div>'
+    carHTML='<div class="re-xtra"><div class="re-xtra-t">車險細項</div><div class="re-cg" id="re-cg">'+cgHTML+'</div>'
       +'<div id="re-other-area" style="display:'+otherShow+';background:#fff;border-radius:10px;padding:8px;margin-top:6px;border:1.5px solid var(--sage);">'
       +'<div style="font-family:var(--h);font-size:13px;font-weight:600;color:var(--tfd);margin-bottom:6px;">其他險種名稱</div>'
       +'<input type="text" id="re-other-name" value="'+otherName+'" placeholder="請填寫險種名稱" style="width:100%;font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:8px;padding:5px 8px;outline:none;background:var(--mint);margin-bottom:6px;">'
@@ -569,8 +576,7 @@ function openRecEdit(btn,enc){
       +'<input type="number" id="re-other-p" value="'+otherP+'" placeholder="0" style="font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:8px;padding:5px 7px;width:80px;outline:none;background:var(--mint);" oninput="reCalcT()">'
       +'<span style="font-family:var(--h);font-size:12px;color:var(--tfd);">元　保額</span>'
       +'<input type="number" id="re-other-a" value="'+otherA+'" placeholder="0" style="font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:8px;padding:5px 7px;width:80px;outline:none;background:var(--mint);">'
-      +'<span style="font-family:var(--h);font-size:12px;color:var(--tfd);">萬</span>'
-      +'</div></div>'
+      +'<span style="font-family:var(--h);font-size:12px;color:var(--tfd);">萬</span></div></div>'
       +'<div class="re-tot">總保費：<span id="re-ctot">0</span> 元</div></div>';
   }
   var fireHTML='';
@@ -578,8 +584,7 @@ function openRecEdit(btn,enc){
     fireHTML='<div class="re-xtra"><div class="re-xtra-t">住宅火險資料</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">'
       +'<div class="re-f"><label>保費（元）</label><input type="number" id="re-fire-pr" value="'+(r.premium||'')+'" placeholder="0"></div>'
-      +'<div class="re-f"><label>保額（萬）</label><input type="number" id="re-fire-am" value="'+(r.amount||'')+'" placeholder="0"></div>'
-      +'</div>'
+      +'<div class="re-f"><label>保額（萬）</label><input type="number" id="re-fire-am" value="'+(r.amount||'')+'" placeholder="0"></div></div>'
       +'<div class="re-f"><label>貸款銀行</label><input type="text" id="re-fire-bank" value="'+(r.loanbank||'')+'" placeholder="例：台灣銀行"></div></div>';
   }
   var othHTML='';
@@ -587,14 +592,12 @@ function openRecEdit(btn,enc){
     othHTML='<div class="re-xtra"><div class="re-xtra-t">保費保額</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
       +'<div class="re-f"><label>保費（元）</label><input type="number" id="re-oth-pr" value="'+(r.premium||'')+'" placeholder="0"></div>'
-      +'<div class="re-f"><label>保額（萬）</label><input type="number" id="re-oth-am" value="'+(r.amount||'')+'" placeholder="0"></div>'
-      +'</div></div>';
+      +'<div class="re-f"><label>保額（萬）</label><input type="number" id="re-oth-am" value="'+(r.amount||'')+'" placeholder="0"></div></div></div>';
   }
   box.innerHTML='<div class="rec-edit-t">編輯保單 ── '+r.name+'　'+r.type+'</div>'
     +'<div class="re-f"><label>保險公司</label><select id="re-company"><option value="">請選擇</option>'+coOpts+'</select></div>'
     +carHTML+fireHTML+othHTML
-    +'<div class="re-f"><label>到期日</label>'
-    +'<div style="display:flex;gap:5px;">'
+    +'<div class="re-f"><label>到期日</label><div style="display:flex;gap:5px;">'
     +'<select id="re-ey" style="flex:2;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 6px;background:#fff;color:var(--tfdp);outline:none;"><option value="">年</option>'+yOpts+'</select>'
     +'<select id="re-em" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 6px;background:#fff;color:var(--tfdp);outline:none;"><option value="">月</option>'+mOpts+'</select>'
     +'<select id="re-ed" style="flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:12px;padding:7px 6px;background:#fff;color:var(--tfdp);outline:none;"><option value="">日</option>'+dOpts+'</select>'
@@ -610,14 +613,8 @@ function openRecEdit(btn,enc){
   btn.parentNode.insertBefore(box,btn.nextSibling);
   if(r.type==='車險')reCalcT();
 }
-function reTogD(d){
-  var c=document.getElementById('re-c'+d),di=document.getElementById('re-d'+d);
-  di.className='re-di'+(c.checked?' show':'');reCalcT();
-}
-function reTogOther(){
-  var c=document.getElementById('re-c其他');
-  document.getElementById('re-other-area').style.display=c.checked?'block':'none';reCalcT();
-}
+function reTogD(d){var c=document.getElementById('re-c'+d),di=document.getElementById('re-d'+d);di.className='re-di'+(c.checked?' show':'');reCalcT();}
+function reTogOther(){var c=document.getElementById('re-c其他');document.getElementById('re-other-area').style.display=c.checked?'block':'none';reCalcT();}
 function reCalcT(){
   var t=0;
   DET.forEach(function(d){var c=document.getElementById('re-c'+d);if(c&&c.checked){var p=document.getElementById('re-p'+d);if(p)t+=parseInt(p.value)||0;}});
@@ -633,17 +630,9 @@ async function saveRecEdit(name,oldExpiry,type){
   var note=document.getElementById('re-note').value.trim();
   var dets=[],tot=0,premium=0,amount='',loanbank='';
   if(type==='車險'){
-    DET.forEach(function(d){
-      var c=document.getElementById('re-c'+d);
-      if(c&&c.checked){var p=parseInt(document.getElementById('re-p'+d).value)||0,a=document.getElementById('re-a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
-    });
+    DET.forEach(function(d){var c=document.getElementById('re-c'+d);if(c&&c.checked){var p=parseInt(document.getElementById('re-p'+d).value)||0,a=document.getElementById('re-a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}});
     var co=document.getElementById('re-c其他');
-    if(co&&co.checked){
-      var coName=document.getElementById('re-other-name').value.trim()||'其他';
-      var coP=parseInt(document.getElementById('re-other-p').value)||0;
-      var coA=document.getElementById('re-other-a').value||'';
-      dets.push({name:coName,premium:coP,amount:coA});tot+=coP;
-    }
+    if(co&&co.checked){var coName=document.getElementById('re-other-name').value.trim()||'其他',coP=parseInt(document.getElementById('re-other-p').value)||0,coA=document.getElementById('re-other-a').value||'';dets.push({name:coName,premium:coP,amount:coA});tot+=coP;}
     premium=tot;
   }else if(type==='住宅火險'){
     premium=parseInt(document.getElementById('re-fire-pr').value)||0;
@@ -657,24 +646,10 @@ async function saveRecEdit(name,oldExpiry,type){
   }
   setSb('sl2','更新中...');
   try{
-    var url=API+'?action=update_record'
-      +'&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)
-      +'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)
-      +'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note)
-      +'&premium='+encodeURIComponent(premium)+'&amount='+encodeURIComponent(amount)
-      +'&totalpremium='+encodeURIComponent(tot)+'&cardetails='+encodeURIComponent(JSON.stringify(dets))
-      +'&loanbank='+encodeURIComponent(loanbank);
+    var url=API+'?action=update_record&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)+'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)+'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note)+'&premium='+encodeURIComponent(premium)+'&amount='+encodeURIComponent(amount)+'&totalpremium='+encodeURIComponent(tot)+'&cardetails='+encodeURIComponent(JSON.stringify(dets))+'&loanbank='+encodeURIComponent(loanbank);
     await fetch(url);
-    recs.forEach(function(r){
-      if(r.name===name&&r.expiry===oldExpiry){
-        r.lastpremium=r.totalpremium;
-        r.company=company;r.expiry=newExpiry;r.renew=renew;r.note=note;
-        r.premium=premium;r.amount=amount;r.totalpremium=tot;
-        r.cardetails=JSON.stringify(dets);r.loanbank=loanbank;
-      }
-    });
-    var box=document.getElementById('rec-edit-global');
-    if(box)box.remove();
+    recs.forEach(function(r){if(r.name===name&&r.expiry===oldExpiry){r.lastpremium=r.totalpremium;r.company=company;r.expiry=newExpiry;r.renew=renew;r.note=note;r.premium=premium;r.amount=amount;r.totalpremium=tot;r.cardetails=JSON.stringify(dets);r.loanbank=loanbank;}});
+    var box=document.getElementById('rec-edit-global');if(box)box.remove();
     setSb('sok','已更新');rendS();rendE();updSt();
   }catch(e){setSb('ser','更新失敗');}
 }
@@ -710,22 +685,13 @@ function rHTML(r,cp){
     +'<span class="rn" onclick="showClientModal(\''+r.name+'\')">'+displayName+'</span>'
     +'<button class="db" onclick="delR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
     +'</div>'
-    +'<div class="rrow">'
-    +'<span class="bg bt">'+(r.type||'')+(r.othertype?' ('+r.othertype+')':'')+'</span>'
-    +'<span class="bg bx">'+(r.company||'')+'</span>'
-    +ebg(r.expiry)
+    +'<div class="rrow"><span class="bg bt">'+(r.type||'')+(r.othertype?' ('+r.othertype+')':'')+'</span>'
+    +'<span class="bg bx">'+(r.company||'')+'</span>'+ebg(r.expiry)
     +(r.renew==='已續保'?'<span class="bg bg2">已續保</span>':r.renew==='不續保'?'<span class="bg br">不續保</span>':'<span class="bg bx">待確認</span>')
     +'</div>'
-    +'<div class="rd">'
-    +(r.plate?'車牌：'+r.plate+'　':'')
-    +(r.phone?'電話：'+fmtPhone(r.phone)+'　':'')
-    +'到期：'+fmtDate(r.expiry)
-    +(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
-    +(ds?'<br>'+ds:'')
-    +(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')
-    +(r.renewreason?'<br>不續保原因：'+r.renewreason:'')
-    +(r.note?'<br>備註：'+r.note:'')
-    +'</div>'
+    +'<div class="rd">'+(r.plate?'車牌：'+r.plate+'　':'')+(r.phone?'電話：'+fmtPhone(r.phone)+'　':'')
+    +'到期：'+fmtDate(r.expiry)+(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
+    +(ds?'<br>'+ds:'')+(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')+(r.renewreason?'<br>不續保原因：'+r.renewreason:'')+(r.note?'<br>備註：'+r.note:'')+'</div>'
     +(cp?'<button class="cb" onclick="cpR(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">複製資料</button>':'')
     +'<button class="edit-btn" onclick="openRecEdit(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">編輯</button>'
     +'<button class="cb" onclick="togRenewEdit(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\',\''+r.renew+'\')">更新續保狀態</button>'
@@ -774,9 +740,7 @@ function rendS(){
   }
   if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';return;}
   f=recs.filter(function(r){
-    return String(r.name||'').toLowerCase().includes(q)
-      ||String(r.plate||'').toLowerCase().includes(q)
-      ||String(r.companyname||'').toLowerCase().includes(q);
+    return String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q)||String(r.companyname||'').toLowerCase().includes(q);
   });
   if(!f.length){document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';return;}
   document.getElementById('slist').innerHTML=f.map(function(r){return rHTML(r,true);}).join('');
@@ -803,58 +767,72 @@ function genMsg(){
   var html='';
   Object.entries(bc).forEach(function(entry){
     var co=entry[0],list=entry[1];
-    var msg='您好，以下是'+selM+'月份到期需要續保的客戶名單，麻煩提供續保資料，謝謝！\n\n'
-      +list.map(function(r,i){return(i+1)+'、'+r.name+(r.plate?' / 車牌：'+r.plate:'')+(r.idno?' / 身分證：'+r.idno:'')+' / 險種：'+r.type;}).join('\n');
-    html+='<div style="margin-bottom:14px;"><div class="co-label">【'+co+'】</div><div class="msg">'+msg+'</div>'
-      +'<button class="cb" onclick="cpMsg(this,\''+encodeURIComponent(msg)+'\')">複製此訊息</button></div>';
+    var msg='您好，以下是'+selM+'月份到期需要續保的客戶名單，麻煩提供續保資料，謝謝！\n\n'+list.map(function(r,i){return(i+1)+'、'+r.name+(r.plate?' / 車牌：'+r.plate:'')+(r.idno?' / 身分證：'+r.idno:'')+' / 險種：'+r.type;}).join('\n');
+    html+='<div style="margin-bottom:14px;"><div class="co-label">【'+co+'】</div><div class="msg">'+msg+'</div><button class="cb" onclick="cpMsg(this,\''+encodeURIComponent(msg)+'\')">複製此訊息</button></div>';
   });
   document.getElementById('rmsg').innerHTML=html;
 }
 function cpMsg(btn,enc){
   navigator.clipboard.writeText(decodeURIComponent(enc)).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製此訊息';},2000);});
 }
+
 async function addR(){
   var name=document.getElementById('fn').value.trim(),type=document.getElementById('ftp').value,expiry=getExpiry();
   if(!name||!type||!expiry){alert('請填寫姓名、險種及到期日');return;}
   var idno=document.getElementById('fid').value,phone=document.getElementById('fph').value;
   if(idno&&!/^[A-Za-z][0-9]{9}$/.test(idno)){alert('身分證字號格式錯誤，請確認');return;}
   if(phone&&!/^[0-9]{10}$/.test(phone)){alert('電話應為10碼數字');return;}
+
+  // 重複保單檢查
+  var dup=recs.find(function(r){
+    return String(r.name).trim()===name && String(r.type).trim()===type && String(r.expiry).substring(0,10)===expiry;
+  });
+  if(dup){
+    document.getElementById('dup-modal-msg').textContent='已有一筆相同的保單：\n\n姓名：'+name+'\n險種：'+type+'\n到期日：'+expiry+'\n\n請確認是否真的要再新增一筆？';
+    document.getElementById('dup-modal').style.display='flex';
+    // 先把資料存起來，等用戶確認
+    pendingRec=buildRec(name,type,expiry,idno,phone);
+    var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='請確認...';
+    return;
+  }
+
+  var rec=buildRec(name,type,expiry,idno,phone);
+  await doAddR(rec);
+}
+
+function buildRec(name,type,expiry,idno,phone){
   var dets=[],tot=0,loanbank='';
   if(type==='車險'){
-    DET.forEach(function(d){
-      var c=document.getElementById('c'+d);
-      if(c&&c.checked){var p=parseInt(document.getElementById('p'+d).value)||0,a=document.getElementById('a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}
-    });
+    DET.forEach(function(d){var c=document.getElementById('c'+d);if(c&&c.checked){var p=parseInt(document.getElementById('p'+d).value)||0,a=document.getElementById('a'+d).value||'';dets.push({name:d,premium:p,amount:a});tot+=p;}});
     var co=document.getElementById('c其他車險');
-    if(co&&co.checked){
-      var coName=document.getElementById('car-other-name').value.trim()||'其他';
-      var coP=parseInt(document.getElementById('car-other-p').value)||0;
-      var coA=document.getElementById('car-other-a').value||'';
-      dets.push({name:coName,premium:coP,amount:coA});tot+=coP;
-    }
+    if(co&&co.checked){var coName=document.getElementById('car-other-name').value.trim()||'其他',coP=parseInt(document.getElementById('car-other-p').value)||0,coA=document.getElementById('car-other-a').value||'';dets.push({name:coName,premium:coP,amount:coA});tot+=coP;}
   }else if(type==='住宅火險'){
     tot=parseInt(document.getElementById('ffire-pr').value)||0;
     loanbank=document.getElementById('ffire-bank').value.trim();
   }else{
     tot=parseInt(document.getElementById('fpr').value)||0;
   }
-  var addr=document.getElementById('fad').value.trim();
   var identity=document.getElementById('fi').value;
   var companyname=identity==='公司'?(document.getElementById('fcn').value.trim()||''):'';
   var taxid=identity==='公司'?(document.getElementById('ftx').value.trim()||''):'';
-  var rec={
-    action:'add',name:name,idno:idno,birthday:getBirthday(),phone:phone,address:addr,
+  return {
+    action:'add',name:name,idno:idno,birthday:getBirthday(),phone:phone,
+    address:document.getElementById('fad').value.trim(),
     plate:document.getElementById('fpl').value.trim(),identity:identity,
     type:type,detail:dets.map(function(x){return x.name;}).join('、'),
     company:document.getElementById('fco').value,premium:tot,
     amount:type==='住宅火險'?document.getElementById('ffire-am').value:(document.getElementById('fam')?document.getElementById('fam').value:''),
     expiry:expiry,renew:document.getElementById('frn').value,
     renewreason:document.getElementById('frnrv').value||'',
-    owner:document.getElementById('fow').value,note:document.getElementById('fnt').value.trim(),
+    owner:document.getElementById('fow').value,
+    note:document.getElementById('fnt').value.trim(),
     totalpremium:tot,cardetails:JSON.stringify(dets),
     othertype:type==='其他'?document.getElementById('fotn').value:'',
     loanbank:loanbank,companyname:companyname,taxid:taxid
   };
+}
+
+async function doAddR(rec){
   var btn=document.getElementById('abtn');btn.disabled=true;btn.textContent='儲存中...';
   setSb('sl2','儲存至 Google Sheets...');
   try{
@@ -869,6 +847,7 @@ async function addR(){
   }catch(e){setSb('ser','儲存失敗，請重試');}
   btn.disabled=false;btn.textContent='＋ 新增保單';
 }
+
 async function delR(name,expiry){
   if(!confirm('確定刪除 '+name+' 的這筆保單？'))return;
   setSb('sl2','刪除中...');
