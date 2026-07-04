@@ -129,11 +129,12 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 
   <div id="sb" class="sb sl2" style="display:none;"></div>
 
-  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr 1fr;">
+  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
     <div class="tab on" onclick="sw('decrypt')">🔓 解密</div>
     <div class="tab" onclick="sw('merge')">📄 合併</div>
     <div class="tab" onclick="sw('split')">✂️ 分割</div>
     <div class="tab" onclick="sw('insert')">📌 插頁</div>
+    <div class="tab" onclick="sw('toimg')">🖼️ 轉圖</div>
   </div>
 
   <!-- ══════════ 解密 ══════════ -->
@@ -279,6 +280,33 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
       <div id="insertResult"></div>
     </div>
   </div>
+  <!-- ══════════ 轉圖片 ══════════ -->
+  <div id="pnl-toimg" class="pnl">
+    <div class="card">
+      <div class="ch">🖼️ PDF 轉 JPG 圖片</div>
+      <p style="font-size:13px;color:#888;margin-bottom:14px;">每一頁轉成一張 JPG，方便傳 Line 使用</p>
+      <div class="drop-zone" onclick="document.getElementById('toimgInput').click()">
+        <span>🖼️</span>
+        <p id="toimgFileName">點此選擇 PDF 檔案</p>
+        <small>一次選一個檔案</small>
+      </div>
+      <input type="file" id="toimgInput" accept=".pdf" style="display:none" onchange="loadToImg(this)">
+      <div class="f">
+        <label>圖片品質（畫質越高、檔案越大）</label>
+        <select id="toimgQuality" style="width:100%;font-family:var(--font);font-size:15px;border:2px solid var(--sage);border-radius:14px;padding:10px 14px;background:var(--mint);color:var(--tfdp);outline:none;">
+          <option value="1.5">標準（適合 Line 傳輸）</option>
+          <option value="2.0">高畫質</option>
+          <option value="3.0">超高畫質（檔案較大）</option>
+        </select>
+      </div>
+      <button class="abtn" id="toimgBtn" onclick="doToImg()" disabled>🖼️ 開始轉換並下載</button>
+      <div class="prog" id="toimgProg">
+        <div class="prog-text" id="toimgProgText">處理中...</div>
+        <div class="prog-bar-wrap"><div class="prog-bar" id="toimgProgBar" style="width:0%"></div></div>
+      </div>
+      <div id="toimgResult"></div>
+    </div>
+  </div>
 
 </div>
 </div>
@@ -286,7 +314,7 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 <script>
 /* ── 分頁切換 ── */
 function sw(t){
-  var tabs=['decrypt','merge','split','insert'];
+  var tabs=['decrypt','merge','split','insert','toimg'];
   document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',tabs[i]===t);});
   document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
   document.getElementById('pnl-'+t).classList.add('on');
@@ -642,6 +670,56 @@ async function doInsert(){
       +'<p style="font-size:13px;color:#888;margin-top:8px;">已插入 '+srcIdxs.length+' 頁，總頁數：'+mainDoc.getPageCount()+' 頁</p>';
     setSb('sok','✅ 插頁完成！共 '+mainDoc.getPageCount()+' 頁');
   }catch(e){setSb('ser','插頁失敗：'+e.message);}
+  btn.disabled=false;prog.style.display='none';
+}
+
+/* ════════════════════ 轉圖片 ════════════════════ */
+var toimgPdfBytes=null;
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+function loadToImg(input){
+  var f=input.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    toimgPdfBytes=e.target.result;
+    document.getElementById('toimgFileName').textContent='✅ '+f.name;
+    document.getElementById('toimgBtn').disabled=false;
+  };
+  r.readAsArrayBuffer(f);input.value='';
+}
+
+async function doToImg(){
+  if(!toimgPdfBytes){alert('請先選擇 PDF 檔案');return;}
+  var btn=document.getElementById('toimgBtn');
+  btn.disabled=true;
+  var prog=document.getElementById('toimgProg');
+  var bar=document.getElementById('toimgProgBar');
+  var txt=document.getElementById('toimgProgText');
+  var scale=parseFloat(document.getElementById('toimgQuality').value)||1.5;
+  prog.style.display='block';
+  document.getElementById('toimgResult').innerHTML='';
+  try{
+    var loadingTask=pdfjsLib.getDocument({data:new Uint8Array(toimgPdfBytes)});
+    var pdf=await loadingTask.promise;
+    var total=pdf.numPages;
+    var links='<div class="result-btns">';
+    for(var i=1;i<=total;i++){
+      txt.textContent='轉換第 '+i+' / '+total+' 頁...';
+      bar.style.width=Math.round((i/total)*100)+'%';
+      var page=await pdf.getPage(i);
+      var viewport=page.getViewport({scale:scale});
+      var canvas=document.createElement('canvas');
+      canvas.width=viewport.width;canvas.height=viewport.height;
+      var ctx=canvas.getContext('2d');
+      await page.render({canvasContext:ctx,viewport:viewport}).promise;
+      var imgUrl=canvas.toDataURL('image/jpeg',0.92);
+      var fname='第'+i+'頁.jpg';
+      links+='<a class="dl-btn" href="'+imgUrl+'" download="'+fname+'">⬇️ 第'+i+'頁</a>';
+    }
+    links+='</div><p style="font-size:13px;color:#888;margin-top:8px;">共 '+total+' 張圖片，點擊各按鈕下載</p>';
+    document.getElementById('toimgResult').innerHTML=links;
+    setSb('sok','✅ 轉換完成！共 '+total+' 張');
+  }catch(e){setSb('ser','轉換失敗：'+e.message);}
   btn.disabled=false;prog.style.display='none';
 }
 </script>
