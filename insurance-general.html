@@ -62,7 +62,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 .bg2{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
 .bx{background:#F5F5F5;color:#666;border:1.5px solid #DDD;}
 .rd{font-family:var(--h);font-size:14px;color:#777;margin-top:6px;line-height:1.8;}
-.client-info{background:var(--mint);border-radius:12px;padding:8px 12px;margin-top:8px;font-family:var(--h);font-size:13px;color:var(--tfdp);line-height:1.9;border:1px solid var(--sage);}
 .cb{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
 .db{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
 .emp{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
@@ -119,6 +118,12 @@ body{background:#F5FAFA;font-family:var(--h);}
 .dup-modal-btns{display:flex;gap:10px;}
 .dup-continue-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:#E24B4A;color:#fff;border:none;cursor:pointer;flex:1;}
 .dup-cancel-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;flex:1;}
+/* 查詢客戶基本資料卡片 */
+.client-card{background:var(--mint);border-radius:18px;padding:1rem 1.2rem;margin-bottom:12px;border:1.5px solid var(--tfm);}
+.client-card-title{font-family:var(--h);font-size:16px;font-weight:600;color:var(--tfd);margin-bottom:8px;border-left:4px solid var(--tf);padding-left:8px;}
+.client-card-row{font-family:var(--h);font-size:14px;color:var(--tfdp);line-height:2;}
+.client-card-label{color:var(--tfd);font-weight:600;margin-right:6px;}
+.policy-section-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:8px;margin-top:4px;}
 </style>
 </head>
 <body>
@@ -254,6 +259,7 @@ body{background:#F5FAFA;font-family:var(--h);}
   <button class="exp-banner-close" onclick="clearFilter()">✕ 清除篩選</button>
 </div>
 <input class="si" id="sq" type="text" placeholder="輸入姓名、公司名稱或車牌搜尋..." oninput="rendS()">
+<div id="client-card-area"></div>
 <div id="slist"><div class="emp">輸入關鍵字開始搜尋</div></div>
 </div>
 
@@ -463,6 +469,38 @@ function calcT(){
   if(co&&co.checked){var cop=document.getElementById('car-other-p');if(cop)t+=parseInt(cop.value)||0;}
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
+
+// ===== 查詢頁客戶基本資料卡片 =====
+function rendClientCard(name){
+  var area=document.getElementById('client-card-area');
+  if(!name){area.innerHTML='';return;}
+  var clientRecs=recs.filter(function(r){return r.name===name;});
+  if(!clientRecs.length){area.innerHTML='';return;}
+  function getBest(field){
+    var found=clientRecs.find(function(r){return r[field]&&String(r[field]).trim()!=='';});
+    return found?found[field]:'';
+  }
+  var identity=getBest('identity')||'個人';
+  var isCompany=identity==='公司';
+  var html='<div class="client-card">';
+  html+='<div class="client-card-title">'+(isCompany?'🏢 ':'👤 ')+(isCompany?(getBest('companyname')||name):name)+'</div>';
+  if(isCompany){
+    html+='<div class="client-card-row"><span class="client-card-label">公司名稱</span>'+(getBest('companyname')||'－')+'</div>';
+    html+='<div class="client-card-row"><span class="client-card-label">統一編號</span>'+(getBest('taxid')||'－')+'</div>';
+    html+='<div class="client-card-row"><span class="client-card-label">負責人</span>'+name+'</div>';
+  }else{
+    html+='<div class="client-card-row"><span class="client-card-label">身分證</span>'+(getBest('idno')||'－')+'</div>';
+    var bday=getBest('birthday');
+    html+='<div class="client-card-row"><span class="client-card-label">生日</span>'+(bday?fmtDate(bday):'－')+'</div>';
+  }
+  html+='<div class="client-card-row"><span class="client-card-label">電話</span>'+(getBest('phone')?fmtPhone(getBest('phone')):'－')+'</div>';
+  html+='<div class="client-card-row"><span class="client-card-label">車牌</span>'+(getBest('plate')||'－')+'</div>';
+  html+='<div class="client-card-row"><span class="client-card-label">地址</span>'+(getBest('address')||'－')+'</div>';
+  html+='</div>';
+  html+='<div class="policy-section-t">保單列表（共'+clientRecs.length+'筆）</div>';
+  area.innerHTML=html;
+}
+
 function showClientModal(name){
   var clientRecs=recs.filter(function(r){return r.name===name;});
   if(!clientRecs.length)return;
@@ -527,6 +565,7 @@ function filterSt(type){
   sw('search');
   curFilter=type;
   document.getElementById('sq').value='';
+  document.getElementById('client-card-area').innerHTML='';
   document.getElementById('sc-tot').classList.remove('active');
   document.getElementById('sc-exp').classList.remove('active');
   document.getElementById('sc-cli').classList.remove('active');
@@ -541,6 +580,7 @@ function clearFilter(){
   document.getElementById('sc-exp').classList.remove('active');
   document.getElementById('exp-banner').style.display='none';
   document.getElementById('sq').value='';
+  document.getElementById('client-card-area').innerHTML='';
   document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';
 }
 function openRecEdit(btn,enc){
@@ -688,25 +728,11 @@ function rHTML(r,cp){
   var ds=dets.map(function(x){return x.name+'：'+Number(x.premium).toLocaleString()+'元'+(x.amount?' / '+x.amount+'萬':'');}).join('、');
   var rid='r'+r.name.replace(/\s/g,'')+r.expiry.replace(/-/g,'');
   var displayName=r.identity==='公司'&&r.companyname?r.companyname+'（'+r.name+'）':r.name;
-  // 客戶基本資料區塊（只在查詢頁顯示）
-  var clientInfoHTML='';
-  if(cp){
-    var infoLines=[];
-    if(r.idno) infoLines.push('身分證：'+r.idno);
-    if(r.birthday) infoLines.push('生日：'+fmtDate(r.birthday));
-    if(r.phone) infoLines.push('電話：'+fmtPhone(r.phone));
-    if(r.plate) infoLines.push('車牌：'+r.plate);
-    if(r.address) infoLines.push('地址：'+r.address);
-    if(infoLines.length>0){
-      clientInfoHTML='<div class="client-info">'+infoLines.join('　')+'</div>';
-    }
-  }
   return '<div class="rc '+cls+'" id="'+rid+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;">'
     +'<span class="rn" onclick="showClientModal(\''+r.name+'\')">'+displayName+'</span>'
     +'<button class="db" onclick="delR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
     +'</div>'
-    +clientInfoHTML
     +'<div class="rrow"><span class="bg bt">'+(r.type||'')+(r.othertype?' ('+r.othertype+')':'')+'</span>'
     +'<span class="bg bx">'+(r.company||'')+'</span>'+ebg(r.expiry)
     +(r.renew==='已續保'?'<span class="bg bg2">已續保</span>':r.renew==='不續保'?'<span class="bg br">不續保</span>':'<span class="bg bx">待確認</span>')
@@ -760,17 +786,45 @@ function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
   var td=new Date(),d45=new Date();d45.setDate(d45.getDate()+45);
   var f;
+
+  // 清除客戶基本資料卡片
+  var cardArea=document.getElementById('client-card-area');
+
   if(curFilter==='exp'){
+    cardArea.innerHTML='';
     f=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45;});
     f.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
     document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">目前沒有即將到期的保單</div>';
     return;
   }
-  if(!q){document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';return;}
+  if(!q){
+    cardArea.innerHTML='';
+    document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';
+    return;
+  }
+
   f=recs.filter(function(r){
-    return String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q)||String(r.companyname||'').toLowerCase().includes(q);
+    return String(r.name||'').toLowerCase().includes(q)
+      ||String(r.plate||'').toLowerCase().includes(q)
+      ||String(r.companyname||'').toLowerCase().includes(q);
   });
-  if(!f.length){document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';return;}
+
+  if(!f.length){
+    cardArea.innerHTML='';
+    document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';
+    return;
+  }
+
+  // 判斷是否只搜尋到同一個人
+  var names=new Set(f.map(function(r){return r.name;}));
+  if(names.size===1){
+    // 只有一個人，顯示客戶基本資料卡片
+    rendClientCard(f[0].name);
+  }else{
+    // 多個人，不顯示客戶卡片
+    cardArea.innerHTML='';
+  }
+
   document.getElementById('slist').innerHTML=f.map(function(r){return rHTML(r,true);}).join('');
 }
 function initM(){
