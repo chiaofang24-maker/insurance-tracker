@@ -62,6 +62,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 .bg2{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
 .bx{background:#F5F5F5;color:#666;border:1.5px solid #DDD;}
 .rd{font-family:var(--h);font-size:14px;color:#777;margin-top:6px;line-height:1.8;}
+.client-info{background:var(--mint);border-radius:12px;padding:8px 12px;margin-top:8px;font-family:var(--h);font-size:13px;color:var(--tfdp);line-height:1.9;border:1px solid var(--sage);}
 .cb{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
 .db{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
 .emp{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
@@ -687,16 +688,30 @@ function rHTML(r,cp){
   var ds=dets.map(function(x){return x.name+'：'+Number(x.premium).toLocaleString()+'元'+(x.amount?' / '+x.amount+'萬':'');}).join('、');
   var rid='r'+r.name.replace(/\s/g,'')+r.expiry.replace(/-/g,'');
   var displayName=r.identity==='公司'&&r.companyname?r.companyname+'（'+r.name+'）':r.name;
+  // 客戶基本資料區塊（只在查詢頁顯示）
+  var clientInfoHTML='';
+  if(cp){
+    var infoLines=[];
+    if(r.idno) infoLines.push('身分證：'+r.idno);
+    if(r.birthday) infoLines.push('生日：'+fmtDate(r.birthday));
+    if(r.phone) infoLines.push('電話：'+fmtPhone(r.phone));
+    if(r.plate) infoLines.push('車牌：'+r.plate);
+    if(r.address) infoLines.push('地址：'+r.address);
+    if(infoLines.length>0){
+      clientInfoHTML='<div class="client-info">'+infoLines.join('　')+'</div>';
+    }
+  }
   return '<div class="rc '+cls+'" id="'+rid+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;">'
     +'<span class="rn" onclick="showClientModal(\''+r.name+'\')">'+displayName+'</span>'
     +'<button class="db" onclick="delR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
     +'</div>'
+    +clientInfoHTML
     +'<div class="rrow"><span class="bg bt">'+(r.type||'')+(r.othertype?' ('+r.othertype+')':'')+'</span>'
     +'<span class="bg bx">'+(r.company||'')+'</span>'+ebg(r.expiry)
     +(r.renew==='已續保'?'<span class="bg bg2">已續保</span>':r.renew==='不續保'?'<span class="bg br">不續保</span>':'<span class="bg bx">待確認</span>')
     +'</div>'
-    +'<div class="rd">'+(r.plate?'車牌：'+r.plate+'　':'')+(r.phone?'電話：'+fmtPhone(r.phone)+'　':'')
+    +'<div class="rd">'
     +'到期：'+fmtDate(r.expiry)+(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
     +(ds?'<br>'+ds:'')+(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')+(r.renewreason?'<br>不續保原因：'+r.renewreason:'')+(r.note?'<br>備註：'+r.note:'')+'</div>'
     +(cp?'<button class="cb" onclick="cpR(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">複製資料</button>':'')
