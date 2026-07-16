@@ -61,6 +61,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .fbtn{font-family:var(--h);font-size:14px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;}
 .fbtn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.err-box{background:#FDECEA;border:1.5px solid #F0A8A8;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-family:var(--h);font-size:14px;color:#B03030;display:none;line-height:1.8;}
 </style>
 </head>
 <body>
@@ -71,10 +72,10 @@ body{background:#F5FAFA;font-family:var(--h);}
   <div class="tab on" onclick="sw('input')">新增通知項目</div>
   <div class="tab" onclick="sw('list')">到期清單</div>
 </div>
-
 <div id="pnl-input" class="pnl on">
 <div class="card">
   <div class="ch">新增到期通知</div>
+  <div id="err-box" class="err-box"></div>
   <div class="row">
     <div class="f"><label>客戶姓名</label><input id="fn" type="text" placeholder="王小明"></div>
     <div class="f">
@@ -87,16 +88,13 @@ body{background:#F5FAFA;font-family:var(--h);}
       </select>
     </div>
   </div>
-
   <div id="xcc" style="display:none" class="row">
     <div class="f"><label>銀行名稱</label><input id="fbank" type="text" placeholder="玉山銀行"></div>
     <div class="f"><label>卡號末四碼</label><input id="fcard" type="text" placeholder="1234" maxlength="4"></div>
   </div>
-
   <div id="xsave" style="display:none" class="row1">
     <div class="f"><label>保單號碼</label><input id="fpolicy" type="text" placeholder="選填"></div>
   </div>
-
   <div class="row1">
     <div class="f">
       <label>到期日／申請日</label>
@@ -107,14 +105,12 @@ body{background:#F5FAFA;font-family:var(--h);}
       </div>
     </div>
   </div>
-
   <div class="row1">
     <div class="f"><label>備註</label><textarea id="fnt" placeholder="補充說明..."></textarea></div>
   </div>
   <button class="abtn" id="abtn" onclick="addR()">＋ 新增</button>
 </div>
 </div>
-
 <div id="pnl-list" class="pnl">
   <div class="st">
     <div class="sc"><div class="sn" id="stot">—</div><div class="sl">總筆數</div></div>
@@ -132,7 +128,6 @@ body{background:#F5FAFA;font-family:var(--h);}
   <div id="rlist"><div class="emp">載入中...</div></div>
 </div>
 </div>
-
 <script>
 var API='https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
 var recs=[],curFilter='all';
@@ -150,14 +145,11 @@ function fmtDate(d){
     return s.substring(0,10);
   }catch(e){return String(d).substring(0,10);}
 }
-
-
 var TYPE_MSG={
   '儲蓄險到期':'您好！您的儲蓄險保單即將到期，請問您有收到保險公司的通知了嗎？\n\n到期後您可以選擇：\n1. 領回滿期金\n2. 轉入其他保單\n\n需要提供的文件：\n・身分證正本\n・原保單\n・存摺封面\n\n請問您方便什麼時候來辦理呢？',
   '生存年金可申請':'您好！您的生存年金已到達可申請日期 🎉\n\n申請方式：\n1. 臨櫃辦理\n2. 填寫申請書郵寄\n\n需要準備的文件：\n・身分證正本\n・存摺封面\n・印章\n\n請問您需要我協助安排辦理事宜嗎？',
   '信用卡效期到期':'您好！您的信用卡即將到期，保費自動扣款可能會受到影響。\n\n請確認：\n1. 是否已收到新卡\n2. 啟用新卡後，請通知我更新保費扣款資料\n\n如需更換扣款信用卡，請提供：\n・新卡銀行名稱\n・新卡有效年月\n\n請問您的新卡是否已經收到了呢？'
 };
-
 function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 function sw(t){
   document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','list'][i]===t);});
@@ -183,12 +175,22 @@ function getExpiry(){
   var y=document.getElementById('fex-y').value,m=document.getElementById('fex-m').value,d=document.getElementById('fex-d').value;
   return(y&&m&&d)?y+'-'+m+'-'+d:'';
 }
+function showErr(msg){
+  var box=document.getElementById('err-box');
+  box.innerHTML=msg;
+  box.style.display='block';
+  box.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function hideErr(){
+  document.getElementById('err-box').style.display='none';
+}
 function resetForm(){
   ['fn','fbank','fcard','fpolicy','fnt'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('ftp').value='';
   ['fex-y','fex-m','fex-d'].forEach(function(id){document.getElementById(id).selectedIndex=0;});
   document.getElementById('xcc').style.display='none';
   document.getElementById('xsave').style.display='none';
+  hideErr();
 }
 async function loadR(){
   try{
@@ -290,10 +292,21 @@ function rendList(){
   document.getElementById('rlist').innerHTML=f.length?f.map(function(r){return rHTML(r);}).join(''):'<div class="emp">沒有符合的記錄</div>';
 }
 async function addR(){
+  hideErr();
   var name=document.getElementById('fn').value.trim();
   var type=document.getElementById('ftp').value;
+  var y=document.getElementById('fex-y').value;
+  var m=document.getElementById('fex-m').value;
+  var d=document.getElementById('fex-d').value;
   var expiry=getExpiry();
-  if(!name||!type||!expiry){alert('請填寫姓名、類型及到期日');return;}
+  var missing=[];
+  if(!name) missing.push('・客戶姓名　尚未填寫');
+  if(!type) missing.push('・通知類型　尚未選擇');
+  if(!y||!m||!d) missing.push('・到期日　年／月／日 需全部選擇');
+  if(missing.length){
+    showErr('⚠️ 請補齊以下欄位：<br>'+missing.join('<br>'));
+    return;
+  }
   var note=document.getElementById('fnt').value.trim();
   var bank=document.getElementById('fbank').value.trim();
   var card=document.getElementById('fcard').value.trim();
