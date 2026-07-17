@@ -118,7 +118,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 .dup-modal-btns{display:flex;gap:10px;}
 .dup-continue-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:#E24B4A;color:#fff;border:none;cursor:pointer;flex:1;}
 .dup-cancel-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;flex:1;}
-/* 查詢客戶基本資料卡片 */
 .client-card{background:var(--mint);border-radius:18px;padding:1rem 1.2rem;margin-bottom:12px;border:1.5px solid var(--tfm);}
 .client-card-title{font-family:var(--h);font-size:16px;font-weight:600;color:var(--tfd);margin-bottom:8px;border-left:4px solid var(--tf);padding-left:8px;}
 .client-card-row{font-family:var(--h);font-size:14px;color:var(--tfdp);line-height:2;}
@@ -469,8 +468,6 @@ function calcT(){
   if(co&&co.checked){var cop=document.getElementById('car-other-p');if(cop)t+=parseInt(cop.value)||0;}
   var el=document.getElementById('ctot');if(el)el.textContent=t.toLocaleString();
 }
-
-// ===== 查詢頁客戶基本資料卡片 =====
 function rendClientCard(name){
   var area=document.getElementById('client-card-area');
   if(!name){area.innerHTML='';return;}
@@ -500,7 +497,6 @@ function rendClientCard(name){
   html+='<div class="policy-section-t">保單列表（共'+clientRecs.length+'筆）</div>';
   area.innerHTML=html;
 }
-
 function showClientModal(name){
   var clientRecs=recs.filter(function(r){return r.name===name;});
   if(!clientRecs.length)return;
@@ -738,6 +734,7 @@ function rHTML(r,cp){
     +(r.renew==='已續保'?'<span class="bg bg2">已續保</span>':r.renew==='不續保'?'<span class="bg br">不續保</span>':'<span class="bg bx">待確認</span>')
     +'</div>'
     +'<div class="rd">'
+    +(r.plate?'車牌：'+r.plate+'　':'')
     +'到期：'+fmtDate(r.expiry)+(r.totalpremium?'　總保費：'+Number(r.totalpremium).toLocaleString()+'元':'')
     +(ds?'<br>'+ds:'')+(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')+(r.renewreason?'<br>不續保原因：'+r.renewreason:'')+(r.note?'<br>備註：'+r.note:'')+'</div>'
     +(cp?'<button class="cb" onclick="cpR(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">複製資料</button>':'')
@@ -786,10 +783,7 @@ function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
   var td=new Date(),d45=new Date();d45.setDate(d45.getDate()+45);
   var f;
-
-  // 清除客戶基本資料卡片
   var cardArea=document.getElementById('client-card-area');
-
   if(curFilter==='exp'){
     cardArea.innerHTML='';
     f=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45;});
@@ -802,29 +796,20 @@ function rendS(){
     document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';
     return;
   }
-
   f=recs.filter(function(r){
-    return String(r.name||'').toLowerCase().includes(q)
-      ||String(r.plate||'').toLowerCase().includes(q)
-      ||String(r.companyname||'').toLowerCase().includes(q);
+    return String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q)||String(r.companyname||'').toLowerCase().includes(q);
   });
-
   if(!f.length){
     cardArea.innerHTML='';
     document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';
     return;
   }
-
-  // 判斷是否只搜尋到同一個人
   var names=new Set(f.map(function(r){return r.name;}));
   if(names.size===1){
-    // 只有一個人，顯示客戶基本資料卡片
     rendClientCard(f[0].name);
   }else{
-    // 多個人，不顯示客戶卡片
     cardArea.innerHTML='';
   }
-
   document.getElementById('slist').innerHTML=f.map(function(r){return rHTML(r,true);}).join('');
 }
 function initM(){
