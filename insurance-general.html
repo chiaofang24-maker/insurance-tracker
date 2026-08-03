@@ -123,6 +123,36 @@ body{background:#F5FAFA;font-family:var(--h);}
 .client-card-row{font-family:var(--h);font-size:14px;color:var(--tfdp);line-height:2;}
 .client-card-label{color:var(--tfd);font-weight:600;margin-right:6px;}
 .policy-section-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:8px;margin-top:4px;}
+
+/* ── 到期提醒：緊湊列表樣式 ── */
+.e-section-hdr{display:flex;align-items:center;gap:8px;margin:14px 0 6px;}
+.e-section-hdr span{font-family:var(--h);font-size:13px;font-weight:600;color:var(--tfd);}
+.e-section-hdr::after{content:'';flex:1;height:1.5px;background:var(--sage);}
+.e-row{border:1.5px solid var(--sage);border-radius:14px;margin-bottom:7px;overflow:hidden;background:#fff;}
+.e-row.warn{border-color:#F5CC80;background:#FFFBF0;}
+.e-row.danger{border-color:#F0A8A8;background:#FFF5F5;}
+.e-row.done{border-color:#A8D5B2;background:#F0FDF4;}
+.e-row.gray{border-color:#DDD;background:#F9F9F9;}
+.e-main{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;}
+.e-name{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfdp);min-width:58px;}
+.e-plate{font-family:var(--h);font-size:11px;color:var(--tfd);background:var(--tfl);border-radius:4px;padding:2px 7px;border:1px solid var(--sage);white-space:nowrap;}
+.e-type{font-family:var(--h);font-size:12px;color:#888;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.e-days{font-family:var(--h);font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.e-days-warn{background:#FFF4E0;color:#8A5C00;}
+.e-days-ok{background:#E6F4EA;color:#2E7D42;}
+.e-days-exp{background:#FDECEA;color:#B03030;}
+.e-days-done{background:#E6F4EA;color:#2E7D42;}
+.e-days-no{background:#F5F5F5;color:#666;}
+.e-prem{font-family:var(--h);font-size:13px;color:#888;text-align:right;min-width:52px;white-space:nowrap;}
+.e-expand{padding:10px 12px 12px;border-top:1.5px solid var(--sage);background:var(--mint);}
+.e-reason{font-family:var(--h);font-size:13px;color:#888;margin-bottom:8px;}
+.e-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.e-label{font-family:var(--h);font-size:12px;font-weight:600;color:var(--tfd);}
+.e-sel{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;background:#fff;color:var(--tfdp);outline:none;}
+.e-date-in{font-family:var(--h);font-size:14px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;background:#fff;color:var(--tfdp);outline:none;}
+.e-rr-in{font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;background:#fff;color:var(--tfdp);outline:none;width:130px;}
+.e-save-btn{font-family:var(--h);font-size:13px;font-weight:600;padding:6px 16px;border-radius:10px;background:var(--tf);color:#fff;border:none;cursor:pointer;}
+.e-edit-btn{font-family:var(--h);font-size:13px;padding:6px 14px;border-radius:10px;background:#fff;color:var(--tfd);border:1.5px solid var(--sage);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -134,7 +164,6 @@ body{background:#F5FAFA;font-family:var(--h);}
   <div class="tab" onclick="sw('search')">查詢</div>
   <div class="tab" onclick="sw('expiry')">到期提醒</div>
 </div>
-
 <div id="pnl-input" class="pnl on">
 <div class="card">
 <div class="ch">客戶基本資料</div>
@@ -169,7 +198,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 </div>
 <div class="row1"><div class="f"><label>地址</label><input id="fad" type="text" placeholder="例：台南市善化區中山路1號"></div></div>
 </div>
-
 <div class="card">
 <div class="ch">保單資料</div>
 <div class="row">
@@ -246,7 +274,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 <button class="abtn" id="abtn" onclick="addR()">＋ 新增保單</button>
 </div>
 </div>
-
 <div id="pnl-search" class="pnl">
 <div class="st">
   <div class="sc" id="sc-tot" onclick="filterSt('all')"><div class="sn" id="stot">—</div><div class="sl">總保單數</div></div>
@@ -261,7 +288,6 @@ body{background:#F5FAFA;font-family:var(--h);}
 <div id="client-card-area"></div>
 <div id="slist"><div class="emp">輸入關鍵字開始搜尋</div></div>
 </div>
-
 <div id="pnl-expiry" class="pnl">
 <div class="card">
   <div class="ch">選擇到期月份</div>
@@ -271,14 +297,12 @@ body{background:#F5FAFA;font-family:var(--h);}
 </div>
 <div id="elist"></div>
 </div>
-
 <div id="client-modal" class="modal-overlay" style="display:none;" onclick="closeModalOuter(event)">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div id="modal-content"></div>
   </div>
 </div>
-
 <div id="dup-modal" class="dup-modal-overlay" style="display:none;">
   <div class="dup-modal-box">
     <div class="dup-modal-title">⚠️ 發現重複保單</div>
@@ -289,14 +313,12 @@ body{background:#F5FAFA;font-family:var(--h);}
     </div>
   </div>
 </div>
-
 <script>
 const API='https://script.google.com/macros/s/AKfycbyesIjaz0CIIMplfk_hyEBp__W5eWq4LQvMNPQGuX7L14_0zp1Sx6fB9W9CD1QaD1XCGA/exec';
 const DET=['強制險','體傷','財損','超額','拖吊','駕傷','全險'];
 const COMPANIES=['華南','國泰','新光','富邦','明台','台產','和泰','第一','旺旺','泰安','中信產','新安東京'];
 let recs=[],selM=new Date().getMonth()+1,curFilter='none';
 let pendingRec=null;
-
 function initDateSelects(){
   var now=new Date(),curY=now.getFullYear();
   var ysel=document.getElementById('fb-y');
@@ -821,11 +843,101 @@ function selMonth(m){
   document.querySelectorAll('.mb').forEach(function(b,i){b.classList.toggle('on',i+1===m);});
   rendE();
 }
+
+/* ── 到期提醒：緊湊列表 ── */
+function eHTML(r){
+  var d=dl(r.expiry);
+  var rid='er'+r.name.replace(/\s/g,'')+r.expiry.replace(/-/g,'');
+  var daysCls,daysTxt,rowCls;
+  if(r.renew==='已續保'){daysTxt='已續保';daysCls='e-days-done';rowCls='done';}
+  else if(r.renew==='不續保'){daysTxt='不續保';daysCls='e-days-no';rowCls='gray';}
+  else if(d<0){daysTxt='已到期';daysCls='e-days-exp';rowCls='danger';}
+  else if(d<=15){daysTxt='剩'+d+'天';daysCls='e-days-warn';rowCls='warn';}
+  else{daysTxt='剩'+d+'天';daysCls='e-days-ok';rowCls='';}
+  var premium=r.totalpremium?'$'+Number(r.totalpremium).toLocaleString():'—';
+  var plate=r.plate?'<span class="e-plate">'+r.plate+'</span>':'';
+  var typeStr=(r.type||'')+(r.company?'・'+r.company:'');
+  var displayName=r.identity==='公司'&&r.companyname?r.companyname:r.name;
+  var curDateStr=normDate(r.expiry);
+  var expandContent;
+  if(r.renew==='不續保'){
+    expandContent=(r.renewreason?'<div class="e-reason">原因：'+r.renewreason+'</div>':'')
+      +'<button class="e-edit-btn" onclick="openRecEdit(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">編輯保單</button>';
+  }else{
+    expandContent='<div class="e-actions">'
+      +'<span class="e-label">續保狀態</span>'
+      +'<select class="e-sel" id="rs-'+rid+'"><option>待確認</option><option>已續保</option><option>不續保</option></select>'
+      +'<span class="e-label">到期日</span>'
+      +'<input type="date" class="e-date-in" id="rd-'+rid+'" value="'+curDateStr+'">'
+      +'<input type="text" class="e-rr-in" id="rr-'+rid+'" placeholder="不續保原因（選填）">'
+      +'<button class="e-save-btn" onclick="saveERow(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\')">儲存</button>'
+      +'</div>'
+      +'<button class="e-edit-btn" style="margin-top:8px;" onclick="openRecEdit(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">編輯保單</button>';
+  }
+  return '<div class="e-row '+rowCls+'" id="'+rid+'">'
+    +'<div class="e-main" onclick="togERow(\''+rid+'\',\''+r.renew+'\')">'
+    +'<span class="e-name">'+displayName+'</span>'
+    +plate
+    +'<span class="e-type">'+typeStr+'</span>'
+    +'<span class="e-days '+daysCls+'">'+daysTxt+'</span>'
+    +'<span class="e-prem">'+premium+'</span>'
+    +'</div>'
+    +'<div class="e-expand" id="ee-'+rid+'" style="display:none;">'
+    +expandContent
+    +'</div></div>';
+}
+function togERow(rid,curRenew){
+  var exp=document.getElementById('ee-'+rid);
+  var isOpen=exp.style.display!=='none';
+  document.querySelectorAll('[id^="ee-"]').forEach(function(e){e.style.display='none';});
+  var existing=document.getElementById('rec-edit-global');
+  if(existing)existing.remove();
+  if(!isOpen){
+    exp.style.display='block';
+    var sel=document.getElementById('rs-'+rid);
+    if(sel)sel.value=curRenew||'待確認';
+  }
+}
+async function saveERow(rid,name,oldExpiry){
+  var sel=document.getElementById('rs-'+rid);
+  var dateIn=document.getElementById('rd-'+rid);
+  var rrInput=document.getElementById('rr-'+rid);
+  if(!sel)return;
+  var renew=sel.value;
+  var renewreason=rrInput?rrInput.value.trim():'';
+  var newExpiry=(dateIn&&dateIn.value)?dateIn.value:oldExpiry;
+  setSb('sl2','更新中...');
+  try{
+    await fetch(API+'?action=update_renew&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(oldExpiry)+'&renew='+encodeURIComponent(renew)+'&renewreason='+encodeURIComponent(renewreason)+'&newExpiry='+encodeURIComponent(newExpiry));
+    recs.forEach(function(r){if(r.name===name&&r.expiry===oldExpiry){r.renew=renew;r.renewreason=renewreason;r.expiry=newExpiry;}});
+    setSb('sok','已更新續保狀態');
+    document.getElementById('ee-'+rid).style.display='none';
+    rendS();rendE();updSt();
+  }catch(e){setSb('ser','更新失敗，請重試');}
+}
 function rendE(){
   var mr=recs.filter(function(r){return r.expiry&&new Date(r.expiry).getMonth()+1===selM;});
   mr.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
-  document.getElementById('elist').innerHTML=mr.length?mr.map(function(r){return rHTML(r,false);}).join(''):'<div class="emp">'+selM+'月沒有到期保單</div>';
+  var active=mr.filter(function(r){return r.renew!=='不續保';});
+  var noRenew=mr.filter(function(r){return r.renew==='不續保';});
+  var owners={},ownerOrder=[];
+  active.forEach(function(r){
+    var o=r.owner||'未指定';
+    if(!owners[o]){owners[o]=[];ownerOrder.push(o);}
+    owners[o].push(r);
+  });
+  var html='';
+  ownerOrder.forEach(function(o){
+    html+='<div class="e-section-hdr"><span>'+o+'　共 '+owners[o].length+' 筆</span></div>';
+    html+=owners[o].map(function(r){return eHTML(r);}).join('');
+  });
+  if(noRenew.length){
+    html+='<div class="e-section-hdr"><span>不續保　共 '+noRenew.length+' 筆</span></div>';
+    html+=noRenew.map(function(r){return eHTML(r);}).join('');
+  }
+  document.getElementById('elist').innerHTML=html||'<div class="emp">'+selM+'月沒有到期保單</div>';
 }
+
 function genMsg(){
   var mr=recs.filter(function(r){return r.expiry&&new Date(r.expiry).getMonth()+1===selM;});
   if(!mr.length){document.getElementById('rmsg').innerHTML='<div class="emp">沒有資料可產出</div>';return;}
@@ -834,7 +946,18 @@ function genMsg(){
   var html='';
   Object.entries(bc).forEach(function(entry){
     var co=entry[0],list=entry[1];
-    var msg='您好，以下是'+selM+'月份到期需要續保的客戶名單，麻煩提供續保資料，謝謝！\n\n'+list.map(function(r,i){return(i+1)+'、'+r.name+(r.plate?' / 車牌：'+r.plate:'')+(r.idno?' / 身分證：'+r.idno:'')+' / 險種：'+r.type;}).join('\n');
+    // 同一客戶（姓名＋車牌相同）合併成一筆，險種合併顯示
+    var merged={},mergedOrder=[];
+    list.forEach(function(r){
+      var key=r.name+'|'+(r.plate||'');
+      if(!merged[key]){merged[key]={r:r,types:[r.type]};mergedOrder.push(key);}
+      else if(r.type&&merged[key].types.indexOf(r.type)===-1){merged[key].types.push(r.type);}
+    });
+    var msg='您好，以下是'+selM+'月份到期需要續保的客戶名單，麻煩提供續保資料，謝謝！\n\n'
+      +mergedOrder.map(function(key,i){
+        var item=merged[key],r=item.r;
+        return (i+1)+'、'+r.name+(r.plate?' / 車牌：'+r.plate:'')+(r.idno?' / 身分證：'+r.idno:'')+' / 險種：'+item.types.join('、');
+      }).join('\n');
     html+='<div style="margin-bottom:14px;"><div class="co-label">【'+co+'】</div><div class="msg">'+msg+'</div><button class="cb" onclick="cpMsg(this,\''+encodeURIComponent(msg)+'\')">複製此訊息</button></div>';
   });
   document.getElementById('rmsg').innerHTML=html;
