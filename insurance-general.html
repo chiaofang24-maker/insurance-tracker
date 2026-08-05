@@ -284,6 +284,10 @@ body{background:#F5FAFA;font-family:var(--h);}
   <span>⚠️ 顯示 45 天內即將到期保單</span>
   <button class="exp-banner-close" onclick="clearFilter()">✕ 清除篩選</button>
 </div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+  <div class="f"><label>險種</label><select id="flt-type" onchange="rendS()" style="font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 11px;background:var(--mint);color:var(--tfdp);outline:none;width:100%;"><option value="">全部險種</option></select></div>
+  <div class="f"><label>續保狀態</label><select id="flt-renew" onchange="rendS()" style="font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 11px;background:var(--mint);color:var(--tfdp);outline:none;width:100%;"><option value="">全部狀態</option><option>待確認</option><option>已續保</option><option>不續保</option></select></div>
+</div>
 <input class="si" id="sq" type="text" placeholder="輸入姓名、公司名稱或車牌搜尋..." oninput="rendS()">
 <div id="client-card-area"></div>
 <div id="slist"><div class="emp">輸入關鍵字開始搜尋</div></div>
@@ -735,7 +739,7 @@ async function loadR(){
       });
     }else{recs=[];}
     setSb('sok','已連線，資料同步自 Google Sheets');
-    updSt();
+    updSt();initTypeFilter();
   }catch(e){setSb('ser','無法連線，請檢查網路');}
 }
 function updSt(){
@@ -807,33 +811,48 @@ function cpR(btn,enc){
   var t='【客戶資料】\n姓名：'+r.name+(r.companyname?'\n公司：'+r.companyname:'')+(r.taxid?'\n統編：'+r.taxid:'')+'\n車牌：'+(r.plate||'－')+'\n電話：'+(r.phone||'－')+'\n身分證：'+(r.idno||'－')+'\n\n【保單資料】\n險種：'+r.type+(r.othertype?' ('+r.othertype+')':'')+'\n保險公司：'+r.company+'\n到期日：'+r.expiry+'\n總保費：'+(r.totalpremium?Number(r.totalpremium).toLocaleString()+'元':'－')+(ds?'\n'+ds:'')+(r.loanbank?'\n貸款銀行：'+r.loanbank:'')+(r.note?'\n備註：'+r.note:'');
   navigator.clipboard.writeText(t).then(function(){btn.textContent='已複製！';setTimeout(function(){btn.textContent='複製資料';},2000);});
 }
+function initTypeFilter(){
+  var sel=document.getElementById('flt-type');
+  if(!sel)return;
+  var types=[...new Set(recs.map(function(r){return r.type||'';}).filter(Boolean))].sort();
+  var cur=sel.value;
+  sel.innerHTML='<option value="">全部險種</option>'+types.map(function(t){return '<option'+(t===cur?' selected':'')+'>'+t+'</option>';}).join('');
+}
 function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
+  var fltType=document.getElementById('flt-type').value;
+  var fltRenew=document.getElementById('flt-renew').value;
   var td=new Date(),d45=new Date();d45.setDate(d45.getDate()+45);
   var f;
   var cardArea=document.getElementById('client-card-area');
   if(curFilter==='exp'){
     cardArea.innerHTML='';
     f=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45;});
+    if(fltType)f=f.filter(function(r){return r.type===fltType;});
+    if(fltRenew)f=f.filter(function(r){return r.renew===fltRenew;});
     f.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
-    document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">目前沒有即將到期的保單</div>';
+    document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">目前沒有符合條件的保單</div>';
     return;
   }
-  if(!q){
+  var hasFilter=fltType||fltRenew;
+  if(!q&&!hasFilter){
     cardArea.innerHTML='';
-    document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';
+    document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字或選擇篩選條件</div>';
     return;
   }
   f=recs.filter(function(r){
-    return String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q)||String(r.companyname||'').toLowerCase().includes(q);
+    var matchQ=!q||(String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q)||String(r.companyname||'').toLowerCase().includes(q));
+    var matchType=!fltType||r.type===fltType;
+    var matchRenew=!fltRenew||r.renew===fltRenew;
+    return matchQ&&matchType&&matchRenew;
   });
   if(!f.length){
     cardArea.innerHTML='';
-    document.getElementById('slist').innerHTML='<div class="emp">找不到「'+document.getElementById('sq').value+'」，共有'+recs.length+'筆資料</div>';
+    document.getElementById('slist').innerHTML='<div class="emp">找不到符合條件的保單</div>';
     return;
   }
   var names=new Set(f.map(function(r){return r.name;}));
-  if(names.size===1){
+  if(names.size===1&&!hasFilter){
     rendClientCard(f[0].name);
   }else{
     cardArea.innerHTML='';
