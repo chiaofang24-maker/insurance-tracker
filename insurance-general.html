@@ -673,6 +673,11 @@ function openRecEdit(btn,enc){
     +'<option'+(r.renew==='已續保'?' selected':'')+'>已續保</option>'
     +'<option'+(r.renew==='不續保'?' selected':'')+'>不續保</option>'
     +'</select></div>'
+    +'<div class="re-f"><label>負責人</label><select id="re-owner">'
+    +'<option'+(r.owner==='巧'?' selected':'')+'>巧</option>'
+    +'<option'+(r.owner==='吳忠皇'?' selected':'')+'>吳忠皇</option>'
+    +'<option'+(r.owner==='小剛'?' selected':'')+'>小剛</option>'
+    +'</select></div>'
     +'<div class="re-f"><label>備註</label><input id="re-note" type="text" value="'+(r.note||'')+'" placeholder="補充說明..."></div>'
     +'<button class="save-edit-btn" onclick="saveRecEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">儲存</button>'
     +'<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
@@ -712,9 +717,10 @@ async function saveRecEdit(name,oldExpiry,type){
   }
   setSb('sl2','更新中...');
   try{
-    var url=API+'?action=update_record&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)+'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)+'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note)+'&premium='+encodeURIComponent(premium)+'&amount='+encodeURIComponent(amount)+'&totalpremium='+encodeURIComponent(tot)+'&cardetails='+encodeURIComponent(JSON.stringify(dets))+'&loanbank='+encodeURIComponent(loanbank);
+    var owner=document.getElementById('re-owner').value;
+    var url=API+'?action=update_record&name='+encodeURIComponent(name)+'&oldExpiry='+encodeURIComponent(oldExpiry)+'&company='+encodeURIComponent(company)+'&expiry='+encodeURIComponent(newExpiry)+'&renew='+encodeURIComponent(renew)+'&note='+encodeURIComponent(note)+'&premium='+encodeURIComponent(premium)+'&amount='+encodeURIComponent(amount)+'&totalpremium='+encodeURIComponent(tot)+'&cardetails='+encodeURIComponent(JSON.stringify(dets))+'&loanbank='+encodeURIComponent(loanbank)+'&owner='+encodeURIComponent(owner);
     await fetch(url);
-    recs.forEach(function(r){if(r.name===name&&r.expiry===oldExpiry){r.lastpremium=r.totalpremium;r.company=company;r.expiry=newExpiry;r.renew=renew;r.note=note;r.premium=premium;r.amount=amount;r.totalpremium=tot;r.cardetails=JSON.stringify(dets);r.loanbank=loanbank;}});
+    recs.forEach(function(r){if(r.name===name&&r.expiry===oldExpiry){r.lastpremium=r.totalpremium;r.company=company;r.expiry=newExpiry;r.renew=renew;r.note=note;r.premium=premium;r.amount=amount;r.totalpremium=tot;r.cardetails=JSON.stringify(dets);r.loanbank=loanbank;r.owner=owner;}});
     var box=document.getElementById('rec-edit-global');if(box)box.remove();
     setSb('sok','已更新');rendS();rendE();updSt();
   }catch(e){setSb('ser','更新失敗');}
