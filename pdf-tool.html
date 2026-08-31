@@ -129,12 +129,13 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 
   <div id="sb" class="sb sl2" style="display:none;"></div>
 
-  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;">
+  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;">
     <div class="tab on" onclick="sw('decrypt')">🔓 解密</div>
     <div class="tab" onclick="sw('merge')">📄 合併</div>
     <div class="tab" onclick="sw('split')">✂️ 分割</div>
     <div class="tab" onclick="sw('insert')">📌 插頁</div>
     <div class="tab" onclick="sw('toimg')">🖼️ 轉圖</div>
+    <div class="tab" onclick="sw('topdf')">🖼️➡️PDF</div>
   </div>
 
   <!-- ══════════ 解密 ══════════ -->
@@ -308,13 +309,38 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
     </div>
   </div>
 
+  <!-- ══════════ 圖片轉PDF ══════════ -->
+  <div id="pnl-topdf" class="pnl">
+    <div class="card">
+      <div class="ch">🖼️➡️ 圖片轉 PDF</div>
+      <p style="font-size:13px;color:#888;margin-bottom:14px;">將一張或多張圖片合併成一個 PDF 檔案</p>
+      <div class="drop-zone" onclick="document.getElementById('topdfInput').click()" id="topdfDrop">
+        <span>🖼️</span>
+        <p>點此選擇圖片</p>
+        <small>支援 JPG、PNG，可一次選多張</small>
+      </div>
+      <input type="file" id="topdfInput" accept="image/jpeg,image/png,image/jpg" multiple style="display:none" onchange="addTopdfFiles(this)">
+      <div class="file-list" id="topdfList"></div>
+      <div class="f">
+        <label>輸出檔名</label>
+        <input type="text" id="topdfOutputName" value="圖片轉PDF">
+      </div>
+      <button class="abtn" id="topdfBtn" onclick="doTopdf()">🖼️ 開始轉換並下載</button>
+      <div class="prog" id="topdfProg">
+        <div class="prog-text" id="topdfProgText">處理中...</div>
+        <div class="prog-bar-wrap"><div class="prog-bar" id="topdfProgBar" style="width:0%"></div></div>
+      </div>
+      <div id="topdfResult"></div>
+    </div>
+  </div>
+
 </div>
 </div>
 
 <script>
 /* ── 分頁切換 ── */
 function sw(t){
-  var tabs=['decrypt','merge','split','insert','toimg'];
+  var tabs=['decrypt','merge','split','insert','toimg','topdf'];
   document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',tabs[i]===t);});
   document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
   document.getElementById('pnl-'+t).classList.add('on');
@@ -719,6 +745,82 @@ async function doToImg(){
     links+='</div><p style="font-size:13px;color:#888;margin-top:8px;">共 '+total+' 張圖片，點擊各按鈕下載</p>';
     document.getElementById('toimgResult').innerHTML=links;
     setSb('sok','✅ 轉換完成！共 '+total+' 張');
+  }catch(e){setSb('ser','轉換失敗：'+e.message);}
+  btn.disabled=false;prog.style.display='none';
+}
+
+/* ════════════════════ 圖片轉PDF ════════════════════ */
+var topdfFiles=[];
+
+['dragover','dragleave','drop'].forEach(function(evt){
+  var dz=document.getElementById('topdfDrop');
+  dz.addEventListener(evt,function(e){
+    e.preventDefault();
+    if(evt==='dragover') dz.classList.add('dragover');
+    if(evt==='dragleave'||evt==='drop') dz.classList.remove('dragover');
+    if(evt==='drop'){
+      var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type.startsWith('image/');});
+      files.forEach(function(f){topdfFiles.push(f);});
+      rendTopdfList();
+    }
+  });
+});
+
+function addTopdfFiles(input){
+  Array.from(input.files).forEach(function(f){topdfFiles.push(f);});
+  input.value='';
+  rendTopdfList();
+}
+
+function rendTopdfList(){
+  var list=document.getElementById('topdfList');
+  if(!topdfFiles.length){list.innerHTML='';return;}
+  list.innerHTML=topdfFiles.map(function(f,i){
+    return '<div class="file-item">'
+      +'<span class="file-name">'+f.name+'</span>'
+      +'<div class="file-btns">'
+      +(i>0?'<button class="up-btn" onclick="moveTopdf('+i+',-1)">↑</button>':'')
+      +(i<topdfFiles.length-1?'<button class="dn-btn" onclick="moveTopdf('+i+',1)">↓</button>':'')
+      +'<button class="rm-btn" onclick="removeTopdf('+i+')">移除</button>'
+      +'</div></div>';
+  }).join('');
+}
+function moveTopdf(i,dir){var j=i+dir;if(j<0||j>=topdfFiles.length)return;var t=topdfFiles[i];topdfFiles[i]=topdfFiles[j];topdfFiles[j]=t;rendTopdfList();}
+function removeTopdf(i){topdfFiles.splice(i,1);rendTopdfList();}
+
+async function doTopdf(){
+  if(!topdfFiles.length){alert('請先選擇圖片');return;}
+  var btn=document.getElementById('topdfBtn');
+  btn.disabled=true;
+  var prog=document.getElementById('topdfProg');
+  var bar=document.getElementById('topdfProgBar');
+  var txt=document.getElementById('topdfProgText');
+  prog.style.display='block';
+  try{
+    var pdfDoc=await PDFLib.PDFDocument.create();
+    for(var i=0;i<topdfFiles.length;i++){
+      txt.textContent='處理第 '+(i+1)+' / '+topdfFiles.length+' 張...';
+      bar.style.width=Math.round(((i+1)/topdfFiles.length)*100)+'%';
+      var f=topdfFiles[i];
+      var buf=await f.arrayBuffer();
+      var img;
+      if(f.type==='image/png'){
+        img=await pdfDoc.embedPng(buf);
+      }else{
+        img=await pdfDoc.embedJpg(buf);
+      }
+      var page=pdfDoc.addPage([img.width,img.height]);
+      page.drawImage(img,{x:0,y:0,width:img.width,height:img.height});
+    }
+    txt.textContent='產生輸出檔案...';
+    var bytes=await pdfDoc.save();
+    var blob=new Blob([bytes],{type:'application/pdf'});
+    var url=URL.createObjectURL(blob);
+    var name=(document.getElementById('topdfOutputName').value||'圖片轉PDF')+'.pdf';
+    document.getElementById('topdfResult').innerHTML=
+      '<div class="result-btns"><a class="dl-btn" href="'+url+'" download="'+name+'">⬇️ 下載 PDF</a></div>'
+      +'<p style="font-size:13px;color:#888;margin-top:8px;">共 '+topdfFiles.length+' 張圖片合併完成</p>';
+    setSb('sok','✅ 轉換完成！共 '+topdfFiles.length+' 張圖片');
   }catch(e){setSb('ser','轉換失敗：'+e.message);}
   btn.disabled=false;prog.style.display='none';
 }
