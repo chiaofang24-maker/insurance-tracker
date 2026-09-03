@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>保單服務記錄</title>
+<title>保單服務系統</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
 body{background:#F5FAFA;font-family:var(--h);}
-.app{padding:1rem;max-width:600px;margin:0 auto;}
+.app{padding:1rem;max-width:640px;margin:0 auto;}
 .hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
 .hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
 .hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
@@ -16,34 +16,50 @@ body{background:#F5FAFA;font-family:var(--h);}
 .sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
 .sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
 .ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
-.st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
-.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
-.sc-link{background:var(--tf);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfd);cursor:pointer;transition:opacity 0.15s;}
-.sc-link:active{opacity:0.8;}
-.sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
-.sn-white{font-family:var(--h);font-size:26px;font-weight:600;color:#fff;}
-.sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
-.sl-white{font-family:var(--h);font-size:13px;color:rgba(255,255,255,0.9);margin-top:2px;}
+/* Tabs 2x2 */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;}
+.tab{font-family:var(--h);font-size:15px;font-weight:600;padding:11px 8px;border-radius:16px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;line-height:1.3;}
+.tab.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.pnl{display:none;}.pnl.on{display:block;}
+/* Card */
 .card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
 .ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
+/* Form */
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
 .row1{display:grid;grid-template-columns:1fr;margin-bottom:10px;}
 .f label{font-family:var(--h);font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
 .f input,.f select,.f textarea{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;}
 .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--tf);background:#fff;}
 .f textarea{height:60px;resize:none;}
+.date-row{display:flex;gap:5px;}
+.date-row select{flex:1;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;}
 .xtra{background:var(--tfl);border-radius:16px;padding:12px 14px;margin-bottom:10px;border:1.5px dashed var(--tfm);}
 .xtra-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:8px;}
+.radio-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;}
+.radio-item{display:flex;align-items:center;gap:6px;font-family:var(--h);font-size:16px;color:var(--tfdp);}
+.radio-item input{width:17px;height:17px;accent-color:var(--tf);}
 .abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
 .abtn:disabled{opacity:0.5;cursor:not-allowed;}
-.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:10px;}
-
-/* ── 分組卡片 ── */
+/* Stats */
+.st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sc-link{background:var(--tf);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfd);cursor:pointer;}
+.sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
+.sn-w{font-family:var(--h);font-size:26px;font-weight:600;color:#fff;}
+.sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
+.sl-w{font-family:var(--h);font-size:13px;color:rgba(255,255,255,0.9);margin-top:2px;}
+/* Tags */
+.tag{display:inline-block;font-family:var(--h);font-size:13px;padding:2px 10px;border-radius:20px;font-weight:600;}
+.tag-teal{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
+.tag-green{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
+.tag-amber{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.tag-red{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
+.tag-purple{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
+/* 服務記錄 分組卡片 */
 .group-card{background:#fff;border-radius:18px;border:1.5px solid var(--sage);margin-bottom:14px;overflow:hidden;}
 .group-name{font-family:var(--h);font-size:22px;font-weight:700;color:var(--tfdp);padding:14px 16px 12px;display:flex;align-items:center;gap:10px;background:var(--mint);border-bottom:1.5px solid var(--sage);}
 .group-count{font-size:13px;font-weight:400;color:var(--tfm);background:#fff;border:1px solid var(--tfm);border-radius:10px;padding:2px 9px;}
 .group-entries{padding:0 12px;}
-/* 每筆子記錄 */
 .sub-entry{padding:12px 4px;border-bottom:1px dashed var(--sage);}
 .sub-entry:last-child{border-bottom:none;}
 .sub-entry-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;flex-wrap:wrap;gap:6px;}
@@ -52,46 +68,62 @@ body{background:#F5FAFA;font-family:var(--h);}
 .sub-detail{font-family:var(--h);font-size:13px;color:#666;margin-top:5px;padding-left:6px;border-left:2px solid var(--sage);}
 .sub-detail .sub-lbl{color:var(--tfd);font-weight:600;margin-right:6px;}
 .sub-entry-acts{display:flex;align-items:center;gap:4px;}
+/* 到期清單 */
+.rc{background:#fff;border-radius:18px;padding:1rem 1.2rem;margin-bottom:10px;border:1.5px solid var(--sage);}
+.rc.urgent{border-color:#F0A8A8;background:#FFF5F5;}
+.rc.soon{border-color:#F5CC80;background:#FFFBF0;}
+.rc.done{border-color:#A8D5B2;background:#F0FFF4;opacity:0.7;}
+.rn{font-family:var(--h);font-size:20px;font-weight:600;color:var(--tfdp);}
+.rrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.bg{font-family:var(--h);font-size:13px;padding:3px 10px;border-radius:18px;font-weight:600;}
+.ba{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.br{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
+.bg2{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
+.bx{background:#F5F5F5;color:#666;border:1.5px solid #DDD;}
+.type-c1{background:#E0F7F6;color:#077B78;border:1.5px solid #5DCEC9;}
+.type-c2{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
+.type-c3{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
+.rd{font-family:var(--h);font-size:14px;color:#777;margin-top:6px;line-height:1.8;}
+.msg-box{background:var(--mint);border:1.5px solid var(--sage);border-radius:14px;padding:12px;margin-top:8px;font-family:var(--h);font-size:14px;color:var(--tfdp);white-space:pre-wrap;line-height:1.7;display:none;}
+/* Shared buttons */
 .record-date-badge{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--mint);border:1px solid var(--sage);border-radius:10px;padding:3px 9px;}
 .del-btn{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
 .del-btn:hover{color:#B03030;}
-.tag{display:inline-block;font-family:var(--h);font-size:13px;padding:2px 10px;border-radius:20px;font-weight:600;}
-.tag-teal{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
-.tag-green{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
-.tag-amber{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
-.tag-red{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
-.tag-purple{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
 .edit-btn{font-family:var(--h);font-size:13px;background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;border-radius:10px;padding:4px 12px;cursor:pointer;}
-.empty{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
+.cb{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
+.done-btn{font-family:var(--h);font-size:13px;color:#2E7D42;background:#E6F4EA;border:1px solid #A8D5B2;border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
 .edit-box{background:var(--mint);border:1.5px solid var(--sage);border-radius:16px;padding:12px 14px;margin-top:10px;}
 .edit-box-t{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:12px;}
 .save-edit-btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 18px;border-radius:12px;background:var(--tf);color:#fff;border:none;cursor:pointer;margin-right:8px;}
 .cancel-edit-btn{font-family:var(--h);font-size:14px;padding:8px 18px;border-radius:12px;background:#fff;color:#888;border:1.5px solid var(--sage);cursor:pointer;}
-.radio-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;}
-.radio-item{display:flex;align-items:center;gap:6px;font-family:var(--h);font-size:16px;color:var(--tfdp);}
-.radio-item input{width:17px;height:17px;accent-color:var(--tf);}
-
-/* 清除篩選按鈕 */
+/* Filter / search */
+.filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.fbtn{font-family:var(--h);font-size:14px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;}
+.fbtn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:10px;}
 .clear-btn{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:4px 12px;cursor:pointer;margin-top:6px;}
 .filter-count{font-family:var(--h);font-size:13px;color:var(--tfm);margin-top:6px;text-align:right;}
+.err-box{background:#FDECEA;border:1.5px solid #F0A8A8;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-family:var(--h);font-size:14px;color:#B03030;display:none;line-height:1.8;}
+.emp{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
+/* 信用卡自動加入提示 */
+.auto-note{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:7px 13px;margin-bottom:10px;display:none;}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="hdr"><h1>保單服務記錄</h1><p>隨時記錄，隨時查詢</p></div>
+<div class="hdr"><h1>保單服務系統</h1><p>服務記錄・到期追蹤・一站管理</p></div>
 <div id="sb" class="sb sl2">連線中，載入資料...</div>
 
-<!-- 統計卡：總記錄 | 🔍查詢篩選 | 客戶數 -->
-<div class="st">
-  <div class="sc"><div class="sn" id="s-total">—</div><div class="sl">總記錄</div></div>
-  <div class="sc-link" onclick="document.getElementById('query-card').scrollIntoView({behavior:'smooth'})">
-    <div class="sn-white">🔍</div>
-    <div class="sl-white">查詢篩選</div>
-  </div>
-  <div class="sc"><div class="sn" id="s-clients">—</div><div class="sl">客戶數</div></div>
+<!-- ── Tabs 2×2 ── -->
+<div class="tabs">
+  <div class="tab on"  onclick="sw('add-svc')">新增服務記錄</div>
+  <div class="tab"     onclick="sw('add-exp')">新增到期通知</div>
+  <div class="tab"     onclick="sw('exp-list')">到期清單</div>
+  <div class="tab"     onclick="sw('svc-list')">服務記錄</div>
 </div>
 
-<!-- 新增記錄 -->
+<!-- ════ Panel 1：新增服務記錄 ════ -->
+<div id="pnl-add-svc" class="pnl on">
 <div class="card">
   <div class="ch">新增保單服務記錄</div>
   <div class="row">
@@ -103,418 +135,562 @@ body{background:#F5FAFA;font-family:var(--h);}
       <label>服務類型</label>
       <select id="f-type" onchange="onTypeChange()">
         <option value="">請選擇</option>
-        <option>信用卡變更</option>
-        <option>保費繳費方式變更</option>
-        <option>理賠申請</option>
-        <option>加退保</option>
-        <option>保單復效</option>
-        <option>受益人變更</option>
-        <option>聯絡資料變更</option>
-        <option>保單借款</option>
-        <option>契約轉換</option>
-        <option>其他</option>
+        <option>信用卡變更</option><option>保費繳費方式變更</option><option>理賠申請</option>
+        <option>加退保</option><option>保單復效</option><option>受益人變更</option>
+        <option>聯絡資料變更</option><option>保單借款</option><option>契約轉換</option><option>其他</option>
       </select>
     </div>
     <div class="f">
       <label>保險公司</label>
       <select id="f-company">
         <option value="">請選擇</option>
-        <option>全球人壽</option><option>宏泰人壽</option><option>凱基人壽</option>
-        <option>新光人壽</option><option>遠雄人壽</option><option>台灣人壽</option>
-        <option>安達人壽</option><option>台銀人壽</option><option>富邦人壽</option>
-        <option>第一金人壽</option><option>友邦人壽</option><option>元大人壽</option>
-        <option>安聯人壽</option><option>保誠人壽</option><option>國泰人壽</option>
-        <option>南山人壽</option><option>其他</option>
+        <option>全球人壽</option><option>宏泰人壽</option><option>凱基人壽</option><option>新光人壽</option>
+        <option>遠雄人壽</option><option>台灣人壽</option><option>安達人壽</option><option>台銀人壽</option>
+        <option>富邦人壽</option><option>第一金人壽</option><option>友邦人壽</option><option>元大人壽</option>
+        <option>安聯人壽</option><option>保誠人壽</option><option>國泰人壽</option><option>南山人壽</option><option>其他</option>
       </select>
     </div>
   </div>
-  <div class="row1">
-    <div class="f"><label>保單號碼</label><input id="f-policy" type="text" placeholder="選填"></div>
-  </div>
+  <div class="row1"><div class="f"><label>保單號碼</label><input id="f-policy" type="text" placeholder="選填"></div></div>
   <div id="extra-wrap" style="display:none;"></div>
-  <div class="row1">
-    <div class="f"><label>備註說明</label><textarea id="f-note" placeholder="補充細節..."></textarea></div>
-  </div>
+  <div id="cc-exp-note" class="auto-note">✅ 填寫有效年月後，儲存時將自動加入到期清單</div>
+  <div class="row1"><div class="f"><label>備註說明</label><textarea id="f-note" placeholder="補充細節..."></textarea></div></div>
   <button class="abtn" id="add-btn" onclick="addRecord()">＋ 新增記錄</button>
 </div>
-
-<!-- 查詢篩選 -->
-<div class="card" id="query-card">
-  <div class="ch">查詢篩選</div>
-  <div class="row1">
-    <input class="si" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
-  </div>
-  <div class="row">
-    <div class="f">
-      <label>服務類型</label>
-      <select id="filter-type" onchange="renderRecords()">
-        <option value="">全部類型</option>
-        <option>信用卡變更</option>
-        <option>保費繳費方式變更</option>
-        <option>理賠申請</option>
-        <option>加退保</option>
-        <option>保單復效</option>
-        <option>受益人變更</option>
-        <option>聯絡資料變更</option>
-        <option>保單借款</option>
-        <option>契約轉換</option>
-        <option>其他</option>
-      </select>
-    </div>
-    <div class="f">
-      <label>保險公司</label>
-      <select id="filter-company" onchange="renderRecords()">
-        <option value="">全部公司</option>
-        <option>全球人壽</option><option>宏泰人壽</option><option>凱基人壽</option>
-        <option>新光人壽</option><option>遠雄人壽</option><option>台灣人壽</option>
-        <option>安達人壽</option><option>台銀人壽</option><option>富邦人壽</option>
-        <option>第一金人壽</option><option>友邦人壽</option><option>元大人壽</option>
-        <option>安聯人壽</option><option>保誠人壽</option><option>國泰人壽</option>
-        <option>南山人壽</option><option>其他</option>
-      </select>
-    </div>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-    <button class="clear-btn" onclick="clearFilters()">✕ 清除篩選</button>
-    <div class="filter-count" id="filter-count"></div>
-  </div>
 </div>
 
-<!-- 記錄列表 -->
+<!-- ════ Panel 2：新增到期通知（儲蓄險／生存年金） ════ -->
+<div id="pnl-add-exp" class="pnl">
 <div class="card">
-  <div class="ch">記錄列表</div>
-  <div id="list"></div>
+  <div class="ch">新增到期通知</div>
+  <div id="exp-err" class="err-box"></div>
+  <div class="row">
+    <div class="f"><label>客戶姓名</label><input id="en" type="text" placeholder="王小明"></div>
+    <div class="f">
+      <label>通知類型</label>
+      <select id="etp">
+        <option value="">請選擇</option>
+        <option value="儲蓄險到期">儲蓄險到期</option>
+        <option value="生存年金可申請">生存年金可申請</option>
+      </select>
+    </div>
+  </div>
+  <div class="row1"><div class="f"><label>保單號碼</label><input id="epolicy" type="text" placeholder="選填"></div></div>
+  <div class="row1">
+    <div class="f">
+      <label>到期日／申請日</label>
+      <div class="date-row">
+        <select id="ey"><option value="">年</option></select>
+        <select id="em"><option value="">月</option></select>
+        <select id="ed"><option value="">日</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="row1"><div class="f"><label>備註</label><textarea id="ent" placeholder="補充說明..."></textarea></div></div>
+  <button class="abtn" id="exp-btn" onclick="addExpiry()">＋ 新增通知</button>
 </div>
 </div>
+
+<!-- ════ Panel 3：到期清單 ════ -->
+<div id="pnl-exp-list" class="pnl">
+  <div class="st">
+    <div class="sc"><div class="sn" id="stot">—</div><div class="sl">待處理</div></div>
+    <div class="sc"><div class="sn" id="s30">—</div><div class="sl">30天內</div></div>
+    <div class="sc"><div class="sn" id="s90">—</div><div class="sl">90天內</div></div>
+  </div>
+  <div class="filter-row">
+    <button class="fbtn on" onclick="setExpF('all',this)">全部</button>
+    <button class="fbtn" onclick="setExpF('儲蓄險到期',this)">儲蓄險</button>
+    <button class="fbtn" onclick="setExpF('生存年金可申請',this)">生存年金</button>
+    <button class="fbtn" onclick="setExpF('信用卡效期到期',this)">信用卡</button>
+    <button class="fbtn" onclick="setExpF('待處理',this)">待處理</button>
+    <button class="fbtn" onclick="setExpF('已處理',this)">已處理</button>
+  </div>
+  <div id="rlist"><div class="emp">載入中...</div></div>
+</div>
+
+<!-- ════ Panel 4：服務記錄列表 ════ -->
+<div id="pnl-svc-list" class="pnl">
+  <div class="st">
+    <div class="sc"><div class="sn" id="s-total">—</div><div class="sl">總記錄</div></div>
+    <div class="sc-link" onclick="document.getElementById('qcard').scrollIntoView({behavior:'smooth'})">
+      <div class="sn-w">🔍</div><div class="sl-w">查詢篩選</div>
+    </div>
+    <div class="sc"><div class="sn" id="s-clients">—</div><div class="sl">客戶數</div></div>
+  </div>
+  <div class="card" id="qcard">
+    <div class="ch">查詢篩選</div>
+    <input class="si" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
+    <div class="row">
+      <div class="f">
+        <label>服務類型</label>
+        <select id="filter-type" onchange="renderRecords()">
+          <option value="">全部類型</option>
+          <option>信用卡變更</option><option>保費繳費方式變更</option><option>理賠申請</option>
+          <option>加退保</option><option>保單復效</option><option>受益人變更</option>
+          <option>聯絡資料變更</option><option>保單借款</option><option>契約轉換</option><option>其他</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>保險公司</label>
+        <select id="filter-company" onchange="renderRecords()">
+          <option value="">全部公司</option>
+          <option>全球人壽</option><option>宏泰人壽</option><option>凱基人壽</option><option>新光人壽</option>
+          <option>遠雄人壽</option><option>台灣人壽</option><option>安達人壽</option><option>台銀人壽</option>
+          <option>富邦人壽</option><option>第一金人壽</option><option>友邦人壽</option><option>元大人壽</option>
+          <option>安聯人壽</option><option>保誠人壽</option><option>國泰人壽</option><option>南山人壽</option><option>其他</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <button class="clear-btn" onclick="clearFilters()">✕ 清除篩選</button>
+      <div class="filter-count" id="filter-count"></div>
+    </div>
+  </div>
+  <div class="card"><div class="ch">記錄列表</div><div id="list"></div></div>
+</div>
+</div><!-- end .app -->
 
 <script>
-var API = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
+// ── APIs ──
+var API1 = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
+var API2 = 'https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
+
 var COMPANIES = ['全球人壽','宏泰人壽','凱基人壽','新光人壽','遠雄人壽','台灣人壽','安達人壽','台銀人壽','富邦人壽','第一金人壽','友邦人壽','元大人壽','安聯人壽','保誠人壽','國泰人壽','南山人壽','其他'];
-var TYPE_TAG = {'信用卡變更':'tag-teal','理賠申請':'tag-red','加退保':'tag-green','保費繳費方式變更':'tag-amber','保單復效':'tag-green','受益人變更':'tag-purple','聯絡資料變更':'tag-teal','保單借款':'tag-amber','契約轉換':'tag-purple','其他':'tag-teal'};
-var records = [];
+var TYPE_TAG  = {'信用卡變更':'tag-teal','理賠申請':'tag-red','加退保':'tag-green','保費繳費方式變更':'tag-amber','保單復效':'tag-green','受益人變更':'tag-purple','聯絡資料變更':'tag-teal','保單借款':'tag-amber','契約轉換':'tag-purple','其他':'tag-teal'};
+var TYPE_MSG  = {
+  '儲蓄險到期':'您好！您的儲蓄險保單即將到期，請問您有收到保險公司的通知了嗎？\n\n到期後您可以選擇：\n1. 領回滿期金\n2. 轉入其他保單\n\n需要提供的文件：\n・身分證正本\n・原保單\n・存摺封面\n\n請問您方便什麼時候來辦理呢？',
+  '生存年金可申請':'您好！您的生存年金已到達可申請日期 🎉\n\n申請方式：\n1. 臨櫃辦理\n2. 填寫申請書郵寄\n\n需要準備的文件：\n・身分證正本\n・存摺封面\n・印章\n\n請問您需要我協助安排辦理事宜嗎？',
+  '信用卡效期到期':'您好！您的信用卡即將到期，保費自動扣款可能會受到影響。\n\n請確認：\n1. 是否已收到新卡\n2. 啟用新卡後，請通知我更新保費扣款資料\n\n如需更換扣款信用卡，請提供：\n・新卡銀行名稱\n・新卡有效年月\n\n請問您的新卡是否已經收到了呢？'
+};
 
+var records    = [];
+var expiryRecs = [];
+var curExpF    = 'all';
+
+// ── Utils ──
+function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 function fmtDate(d){
-  if(!d) return '';
-  var s = String(d).trim();
-  if(s.length >= 10) return s.substring(0, 10);
-  return s;
+  if(!d)return'－';
+  try{
+    var s=String(d);
+    if(s.indexOf('GMT')!==-1||s.indexOf('00:00:00')!==-1){
+      var dt=new Date(s);
+      return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    }
+    return s.substring(0,10);
+  }catch(e){return String(d).substring(0,10);}
 }
-function setSb(t, m) {
-  var b = document.getElementById('sb');
-  b.className = 'sb ' + t;
-  b.textContent = m;
+function monthToExpiry(ym){
+  if(!ym)return'';
+  var p=ym.split('-');
+  if(p.length<2)return'';
+  var y=parseInt(p[0]),m=parseInt(p[1]);
+  var last=new Date(y,m,0).getDate();
+  return y+'-'+String(m).padStart(2,'0')+'-'+String(last).padStart(2,'0');
 }
-function clearFilters() {
-  document.getElementById('search').value = '';
-  document.getElementById('filter-type').value = '';
-  document.getElementById('filter-company').value = '';
-  renderRecords();
+function dl(ex){
+  var t=new Date();t.setHours(0,0,0,0);
+  var d=new Date(ex);d.setHours(0,0,0,0);
+  return Math.round((d-t)/864e5);
 }
 
-function buildExtraHTML(type, prefix, existingExtra) {
-  var extra = existingExtra || {};
-  var html = '';
-  if (type === '信用卡變更') {
-    html += '<div class="xtra"><div class="xtra-t">信用卡資料</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-    html += '<div class="f"><label>銀行名稱</label><input id="' + prefix + 'bank" type="text" placeholder="玉山銀行" value="' + (extra['銀行名稱'] || '') + '"></div>';
-    html += '<div class="f"><label>卡號後四碼</label><input id="' + prefix + 'card4" type="text" placeholder="1234" maxlength="4" value="' + (extra['卡號後四碼'] || '') + '"></div>';
-    html += '<div class="f"><label>有效年月</label><input id="' + prefix + 'expiry" type="month" value="' + (extra['有效年月'] || '') + '"></div>';
-    html += '</div>';
-    html += '<div class="f"><label>繳款人</label>';
-    html += '<div class="radio-row">';
-    html += '<label class="radio-item"><input type="radio" name="' + prefix + 'payer" value="要保人"' + (extra['繳款人'] === '要保人' ? ' checked' : '') + '> 要保人</label>';
-    html += '<label class="radio-item"><input type="radio" name="' + prefix + 'payer" value="被保人"' + (extra['繳款人'] === '被保人' ? ' checked' : '') + '> 被保人</label>';
-    html += '<label class="radio-item"><input type="radio" name="' + prefix + 'payer" value="其他"' + (extra['繳款人'] && extra['繳款人'] !== '要保人' && extra['繳款人'] !== '被保人' ? ' checked' : '') + ' onchange="togPayerOther(\'' + prefix + '\')"> 其他</label>';
-    html += '</div>';
-    html += '<div id="' + prefix + 'payer-other" style="margin-top:6px;' + (extra['繳款人'] && extra['繳款人'] !== '要保人' && extra['繳款人'] !== '被保人' ? '' : 'display:none;') + '">';
-    html += '<input id="' + prefix + 'payer-other-input" type="text" placeholder="繳款人姓名" value="' + (extra['繳款人'] && extra['繳款人'] !== '要保人' && extra['繳款人'] !== '被保人' ? extra['繳款人'] : '') + '">';
-    html += '</div></div></div>';
-  } else if (type === '保費繳費方式變更') {
-    html += '<div class="xtra"><div class="xtra-t">繳費資料</div>';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-    html += '<div class="f" style="grid-column:1/-1"><label>繳費方式</label><select id="' + prefix + 'paytype">';
-    ['年繳','半年繳','季繳','月繳'].forEach(function(o) {
-      html += '<option' + (extra['繳費方式'] === o ? ' selected' : '') + '>' + o + '</option>';
-    });
-    html += '</select></div>';
-    html += '<div class="f"><label>銀行名稱</label><input id="' + prefix + 'paybank" type="text" placeholder="台灣銀行" value="' + (extra['銀行名稱'] || '') + '"></div>';
-    html += '<div class="f"><label>帳號末四碼</label><input id="' + prefix + 'payacct" type="text" placeholder="####" maxlength="4" value="' + (extra['帳號末四碼'] || '') + '"></div>';
-    html += '</div>';
-    html += '<div class="f"><label>繳款人</label>';
-    html += '<div class="radio-row">';
-    html += '<label class="radio-item"><input type="radio" name="' + prefix + 'payer" value="要保人"' + (extra['繳款人'] === '要保人' ? ' checked' : '') + '> 要保人</label>';
-    html += '<label class="radio-item"><input type="radio" name="' + prefix + 'payer" value="被保人"' + (extra['繳款人'] === '被保人' ? ' checked' : '') + '> 被保人</label>';
-    html += '<label class="radio-item"><input type="radio" name="' + prefix + 'payer" value="其他"' + (extra['繳款人'] && extra['繳款人'] !== '要保人' && extra['繳款人'] !== '被保人' ? ' checked' : '') + ' onchange="togPayerOther(\'' + prefix + '\')"> 其他</label>';
-    html += '</div>';
-    html += '<div id="' + prefix + 'payer-other" style="margin-top:6px;' + (extra['繳款人'] && extra['繳款人'] !== '要保人' && extra['繳款人'] !== '被保人' ? '' : 'display:none;') + '">';
-    html += '<input id="' + prefix + 'payer-other-input" type="text" placeholder="繳款人姓名" value="' + (extra['繳款人'] && extra['繳款人'] !== '要保人' && extra['繳款人'] !== '被保人' ? extra['繳款人'] : '') + '">';
-    html += '</div></div></div>';
+// ── Tab switch ──
+function sw(t){
+  ['add-svc','add-exp','exp-list','svc-list'].forEach(function(id,i){
+    document.querySelectorAll('.tab')[i].classList.toggle('on',id===t);
+    document.getElementById('pnl-'+id).classList.toggle('on',id===t);
+  });
+  if(t==='exp-list') rendExpList();
+  if(t==='svc-list') renderRecords();
+}
+
+// ── Load ──
+async function loadAll(){
+  setSb('sl2','連線中，載入資料...');
+  try{
+    var[r1,r2]=await Promise.all([fetch(API1),fetch(API2)]);
+    var[d1,d2]=await Promise.all([r1.json(),r2.json()]);
+    records=Array.isArray(d1)?d1:[];
+    expiryRecs=Array.isArray(d2)?d2:[];
+    setSb('sok','已連線，資料同步自 Google Sheets');
+    updSvcStats();updExpStats();
+  }catch(e){setSb('ser','無法連線，請檢查網路');}
+}
+
+// ════════════════════════════
+// ══ 服務記錄 功能 ══
+// ════════════════════════════
+function onTypeChange(){
+  var type=document.getElementById('f-type').value;
+  var wrap=document.getElementById('extra-wrap');
+  var html=buildExtraHTML(type,'f-',{});
+  if(html){wrap.innerHTML=html;wrap.style.display='block';}
+  else{wrap.innerHTML='';wrap.style.display='none';}
+  // 信用卡：監聽有效年月欄位
+  var note=document.getElementById('cc-exp-note');
+  if(type==='信用卡變更'){
+    note.style.display='block';
+  }else{
+    note.style.display='none';
+  }
+}
+
+function buildExtraHTML(type,prefix,ex){
+  var html='';
+  if(type==='信用卡變更'){
+    html+='<div class="xtra"><div class="xtra-t">信用卡資料</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+    html+='<div class="f"><label>銀行名稱</label><input id="'+prefix+'bank" type="text" placeholder="玉山銀行" value="'+(ex['銀行名稱']||'')+'"></div>';
+    html+='<div class="f"><label>卡號後四碼</label><input id="'+prefix+'card4" type="text" placeholder="1234" maxlength="4" value="'+(ex['卡號後四碼']||'')+'"></div>';
+    html+='<div class="f"><label>有效年月</label><input id="'+prefix+'expiry" type="month" value="'+(ex['有效年月']||'')+'"></div>';
+    html+='</div>';
+    html+='<div class="f"><label>繳款人</label><div class="radio-row">';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="要保人"'+(ex['繳款人']==='要保人'?' checked':'')+'>要保人</label>';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="被保人"'+(ex['繳款人']==='被保人'?' checked':'')+'>被保人</label>';
+    var isOther=ex['繳款人']&&ex['繳款人']!=='要保人'&&ex['繳款人']!=='被保人';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="其他"'+(isOther?' checked':'')+' onchange="togPO(\''+prefix+'\')">其他</label>';
+    html+='</div><div id="'+prefix+'payer-other" style="margin-top:6px;'+(isOther?'':'display:none;')+'">';
+    html+='<input id="'+prefix+'payer-other-input" type="text" placeholder="繳款人姓名" value="'+(isOther?ex['繳款人']:'')+'"></div></div></div>';
+  }else if(type==='保費繳費方式變更'){
+    html+='<div class="xtra"><div class="xtra-t">繳費資料</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+    html+='<div class="f" style="grid-column:1/-1"><label>繳費方式</label><select id="'+prefix+'paytype">';
+    ['年繳','半年繳','季繳','月繳'].forEach(function(o){html+='<option'+(ex['繳費方式']===o?' selected':'')+'>'+o+'</option>';});
+    html+='</select></div>';
+    html+='<div class="f"><label>銀行名稱</label><input id="'+prefix+'paybank" type="text" placeholder="台灣銀行" value="'+(ex['銀行名稱']||'')+'"></div>';
+    html+='<div class="f"><label>帳號末四碼</label><input id="'+prefix+'payacct" type="text" placeholder="####" maxlength="4" value="'+(ex['帳號末四碼']||'')+'"></div></div>';
+    html+='<div class="f"><label>繳款人</label><div class="radio-row">';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="要保人"'+(ex['繳款人']==='要保人'?' checked':'')+'>要保人</label>';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="被保人"'+(ex['繳款人']==='被保人'?' checked':'')+'>被保人</label>';
+    var isOther2=ex['繳款人']&&ex['繳款人']!=='要保人'&&ex['繳款人']!=='被保人';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="其他"'+(isOther2?' checked':'')+' onchange="togPO(\''+prefix+'\')">其他</label>';
+    html+='</div><div id="'+prefix+'payer-other" style="margin-top:6px;'+(isOther2?'':'display:none;')+'">';
+    html+='<input id="'+prefix+'payer-other-input" type="text" placeholder="繳款人姓名" value="'+(isOther2?ex['繳款人']:'')+'"></div></div></div>';
   }
   return html;
 }
-function togPayerOther(prefix) {
-  var v = document.querySelector('input[name="' + prefix + 'payer"]:checked');
-  var box = document.getElementById(prefix + 'payer-other');
-  if (box) box.style.display = (v && v.value === '其他') ? 'block' : 'none';
+
+function togPO(prefix){
+  var v=document.querySelector('input[name="'+prefix+'payer"]:checked');
+  var box=document.getElementById(prefix+'payer-other');
+  if(box)box.style.display=(v&&v.value==='其他')?'block':'none';
 }
-function getExtraValues(prefix, type) {
-  var extra = {};
-  if (type === '信用卡變更') {
-    var bank = document.getElementById(prefix + 'bank');
-    var card4 = document.getElementById(prefix + 'card4');
-    var expiry = document.getElementById(prefix + 'expiry');
-    if (bank) extra['銀行名稱'] = bank.value;
-    if (card4) extra['卡號後四碼'] = card4.value;
-    if (expiry) extra['有效年月'] = expiry.value;
-    var payer = document.querySelector('input[name="' + prefix + 'payer"]:checked');
-    if (payer) {
-      if (payer.value === '其他') {
-        var oi = document.getElementById(prefix + 'payer-other-input');
-        extra['繳款人'] = oi ? oi.value.trim() || '其他' : '其他';
-      } else {
-        extra['繳款人'] = payer.value;
-      }
+
+function getExtraVals(prefix,type){
+  var ex={};
+  if(type==='信用卡變更'){
+    var bank=document.getElementById(prefix+'bank');
+    var card4=document.getElementById(prefix+'card4');
+    var expiry=document.getElementById(prefix+'expiry');
+    if(bank)ex['銀行名稱']=bank.value;
+    if(card4)ex['卡號後四碼']=card4.value;
+    if(expiry)ex['有效年月']=expiry.value;
+    var payer=document.querySelector('input[name="'+prefix+'payer"]:checked');
+    if(payer){
+      if(payer.value==='其他'){var oi=document.getElementById(prefix+'payer-other-input');ex['繳款人']=oi?oi.value.trim()||'其他':'其他';}
+      else ex['繳款人']=payer.value;
     }
-  } else if (type === '保費繳費方式變更') {
-    var pt = document.getElementById(prefix + 'paytype');
-    var pb = document.getElementById(prefix + 'paybank');
-    var pa = document.getElementById(prefix + 'payacct');
-    if (pt) extra['繳費方式'] = pt.value;
-    if (pb) extra['銀行名稱'] = pb.value;
-    if (pa) extra['帳號末四碼'] = pa.value;
-    var payer = document.querySelector('input[name="' + prefix + 'payer"]:checked');
-    if (payer) {
-      if (payer.value === '其他') {
-        var oi = document.getElementById(prefix + 'payer-other-input');
-        extra['繳款人'] = oi ? oi.value.trim() || '其他' : '其他';
-      } else {
-        extra['繳款人'] = payer.value;
-      }
+  }else if(type==='保費繳費方式變更'){
+    var pt=document.getElementById(prefix+'paytype');
+    var pb=document.getElementById(prefix+'paybank');
+    var pa=document.getElementById(prefix+'payacct');
+    if(pt)ex['繳費方式']=pt.value;
+    if(pb)ex['銀行名稱']=pb.value;
+    if(pa)ex['帳號末四碼']=pa.value;
+    var payer=document.querySelector('input[name="'+prefix+'payer"]:checked');
+    if(payer){
+      if(payer.value==='其他'){var oi=document.getElementById(prefix+'payer-other-input');ex['繳款人']=oi?oi.value.trim()||'其他':'其他';}
+      else ex['繳款人']=payer.value;
     }
   }
-  return extra;
+  return ex;
 }
-function onTypeChange() {
-  var type = document.getElementById('f-type').value;
-  var wrap = document.getElementById('extra-wrap');
-  var html = buildExtraHTML(type, 'f-', {});
-  if (html) { wrap.innerHTML = html; wrap.style.display = 'block'; }
-  else { wrap.innerHTML = ''; wrap.style.display = 'none'; }
+
+async function addRecord(){
+  var name=document.getElementById('f-name').value.trim();
+  var date=document.getElementById('f-date').value;
+  var type=document.getElementById('f-type').value;
+  var company=document.getElementById('f-company').value;
+  var policy=document.getElementById('f-policy').value.trim();
+  var note=document.getElementById('f-note').value.trim();
+  if(!name||!date||!type){alert('請填寫客戶姓名、日期及服務類型');return;}
+  var extra=getExtraVals('f-',type);
+  var rec={action:'add',id:Date.now(),name:name,date:date,type:type,company:company,policy:policy,note:note,extra:extra};
+  var btn=document.getElementById('add-btn');
+  btn.disabled=true;btn.textContent='儲存中...';
+  setSb('sl2','儲存至 Google Sheets...');
+  try{
+    // 1. 儲存服務記錄
+    await fetch(API1,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
+    records.unshift(rec);
+
+    // 2. 信用卡變更有填有效年月 → 自動加入到期清單
+    var autoExp=false;
+    if(type==='信用卡變更'&&extra['有效年月']){
+      var cardExpiry=monthToExpiry(extra['有效年月']);
+      var bank=extra['銀行名稱']||'';
+      var card4=extra['卡號後四碼']||'';
+      var expNote=[bank?'銀行：'+bank:'',card4?'末四碼：'+card4:'',company?'保險公司：'+company:''].filter(Boolean).join(' / ');
+      var expRec={action:'add',name:name,type:'信用卡效期到期',expiry:cardExpiry,note:expNote,status:'待處理'};
+      await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify(expRec)});
+      expiryRecs.unshift({name:name,type:'信用卡效期到期',expiry:cardExpiry,note:expNote,status:'待處理'});
+      updExpStats();
+      autoExp=true;
+    }
+
+    // 清空表單
+    ['f-name','f-company','f-policy','f-note'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('f-type').value='';
+    document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('extra-wrap').innerHTML='';
+    document.getElementById('extra-wrap').style.display='none';
+    document.getElementById('cc-exp-note').style.display='none';
+    setSb('sok',autoExp?'已儲存，並自動加入到期清單 ✅':'已儲存並同步至 Google Sheets');
+    updSvcStats();
+  }catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='＋ 新增記錄';
 }
-async function loadRecords() {
-  try {
-    var res = await fetch(API);
-    var d = await res.json();
-    records = Array.isArray(d) ? d : [];
-    setSb('sok', '已連線，資料同步自 Google Sheets');
-    renderRecords();
-  } catch(e) {
-    setSb('ser', '無法連線，請檢查網路');
-  }
+
+async function deleteRecord(id){
+  if(!confirm('確定刪除這筆記錄？'))return;
+  setSb('sl2','刪除中...');
+  try{
+    await fetch(API1,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',id:id})});
+    records=records.filter(function(r){return String(r.id)!==String(id);});
+    setSb('sok','已刪除');renderRecords();updSvcStats();
+  }catch(e){setSb('ser','刪除失敗');}
 }
-async function addRecord() {
-  var name = document.getElementById('f-name').value.trim();
-  var date = document.getElementById('f-date').value;
-  var type = document.getElementById('f-type').value;
-  var company = document.getElementById('f-company').value;
-  var policy = document.getElementById('f-policy').value.trim();
-  var note = document.getElementById('f-note').value.trim();
-  if (!name || !date || !type) { alert('請填寫客戶姓名、日期及服務類型'); return; }
-  var extra = getExtraValues('f-', type);
-  var record = { action: 'add', id: Date.now(), name: name, date: date, type: type, company: company, policy: policy, note: note, extra: extra };
-  var btn = document.getElementById('add-btn');
-  btn.disabled = true; btn.textContent = '儲存中...';
-  setSb('sl2', '儲存至 Google Sheets...');
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(record) });
-    records.unshift(record);
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-type').value = '';
-    document.getElementById('f-company').value = '';
-    document.getElementById('f-policy').value = '';
-    document.getElementById('f-note').value = '';
-    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('extra-wrap').innerHTML = '';
-    document.getElementById('extra-wrap').style.display = 'none';
-    setSb('sok', '已儲存並同步至 Google Sheets');
-    renderRecords();
-  } catch(e) { setSb('ser', '儲存失敗，請重試'); }
-  btn.disabled = false; btn.textContent = '＋ 新增記錄';
+
+function updSvcStats(){
+  document.getElementById('s-total').textContent=records.length;
+  document.getElementById('s-clients').textContent=new Set(records.map(function(r){return r.name;})).size;
 }
-async function deleteRecord(id) {
-  if (!confirm('確定刪除這筆記錄？')) return;
-  setSb('sl2', '刪除中...');
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', id: id }) });
-    records = records.filter(function(r) { return String(r.id) !== String(id); });
-    setSb('sok', '已刪除');
-    renderRecords();
-  } catch(e) { setSb('ser', '刪除失敗'); }
+function clearFilters(){
+  document.getElementById('search').value='';
+  document.getElementById('filter-type').value='';
+  document.getElementById('filter-company').value='';
+  renderRecords();
 }
-function openEditBox(idx) {
-  var r = records[idx];
-  if (!r) return;
-  var existingBox = document.getElementById('edit-box-' + idx);
-  if (existingBox) { existingBox.remove(); return; }
-  var extra = {};
-  if (typeof r.extra === 'string' && r.extra) {
-    try { extra = JSON.parse(r.extra); } catch(e) { extra = {}; }
-  } else if (r.extra && typeof r.extra === 'object') {
-    extra = r.extra;
-  }
-  var coOpts = COMPANIES.map(function(c) {
-    return '<option' + (r.company === c ? ' selected' : '') + '>' + c + '</option>';
-  }).join('');
-  var typeOpts = ['信用卡變更','保費繳費方式變更','理賠申請','加退保','保單復效','受益人變更','聯絡資料變更','保單借款','契約轉換','其他'].map(function(t) {
-    return '<option' + (r.type === t ? ' selected' : '') + '>' + t + '</option>';
-  }).join('');
-  var box = document.createElement('div');
-  box.id = 'edit-box-' + idx;
-  box.className = 'edit-box';
-  box.innerHTML = '<div class="edit-box-t">編輯記錄</div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>客戶姓名</label>'
-    + '<input id="et-name-' + idx + '" type="text" value="' + (r.name || '') + '" placeholder="客戶姓名"></div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>服務類型</label>'
-    + '<select id="et-type-' + idx + '" onchange="onEditTypeChange(' + idx + ')">'
-    + '<option value="">請選擇</option>' + typeOpts + '</select></div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>保險公司</label>'
-    + '<select id="et-company-' + idx + '"><option value="">請選擇</option>' + coOpts + '</select></div>'
-    + '<div class="f" style="margin-bottom:10px;"><label>保單號碼</label>'
-    + '<input id="et-policy-' + idx + '" type="text" value="' + (r.policy || '') + '" placeholder="選填"></div>'
-    + '<div id="et-extra-' + idx + '">' + buildExtraHTML(r.type, 'et' + idx + '-', extra) + '</div>'
-    + '<div class="f" style="margin-bottom:14px;"><label>備註</label>'
-    + '<textarea id="et-note-' + idx + '" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">' + (r.note || '') + '</textarea></div>'
-    + '<button class="save-edit-btn" onclick="saveEdit(' + idx + ')">儲存</button>'
-    + '<button class="cancel-edit-btn" onclick="document.getElementById(\'edit-box-' + idx + '\').remove()">取消</button>';
-  var recEl = document.getElementById('rec-' + idx);
-  if (recEl) recEl.appendChild(box);
+
+function openEditBox(idx){
+  var r=records[idx];if(!r)return;
+  var existing=document.getElementById('edit-box-'+idx);
+  if(existing){existing.remove();return;}
+  var ex={};
+  if(typeof r.extra==='string'&&r.extra){try{ex=JSON.parse(r.extra);}catch(e){ex={};}}
+  else if(r.extra&&typeof r.extra==='object'){ex=r.extra;}
+  var coOpts=COMPANIES.map(function(c){return'<option'+(r.company===c?' selected':'')+'>'+c+'</option>';}).join('');
+  var typeOpts=['信用卡變更','保費繳費方式變更','理賠申請','加退保','保單復效','受益人變更','聯絡資料變更','保單借款','契約轉換','其他'].map(function(t){return'<option'+(r.type===t?' selected':'')+'>'+t+'</option>';}).join('');
+  var box=document.createElement('div');
+  box.id='edit-box-'+idx;box.className='edit-box';
+  box.innerHTML='<div class="edit-box-t">編輯記錄</div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>客戶姓名</label><input id="et-name-'+idx+'" type="text" value="'+(r.name||'')+'"></div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>服務類型</label><select id="et-type-'+idx+'" onchange="onEditType('+idx+')"><option value="">請選擇</option>'+typeOpts+'</select></div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>保險公司</label><select id="et-co-'+idx+'"><option value="">請選擇</option>'+coOpts+'</select></div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>保單號碼</label><input id="et-pol-'+idx+'" type="text" value="'+(r.policy||'')+'" placeholder="選填"></div>'
+    +'<div id="et-ex-'+idx+'">'+buildExtraHTML(r.type,'et'+idx+'-',ex)+'</div>'
+    +'<div class="f" style="margin-bottom:14px;"><label>備註</label><textarea id="et-note-'+idx+'" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
+    +'<button class="save-edit-btn" onclick="saveEdit('+idx+')">儲存</button>'
+    +'<button class="cancel-edit-btn" onclick="document.getElementById(\'edit-box-'+idx+'\').remove()">取消</button>';
+  var el=document.getElementById('rec-'+idx);
+  if(el)el.appendChild(box);
 }
-function onEditTypeChange(idx) {
-  var type = document.getElementById('et-type-' + idx).value;
-  var wrap = document.getElementById('et-extra-' + idx);
-  if (wrap) wrap.innerHTML = buildExtraHTML(type, 'et' + idx + '-', {});
+function onEditType(idx){
+  var type=document.getElementById('et-type-'+idx).value;
+  var wrap=document.getElementById('et-ex-'+idx);
+  if(wrap)wrap.innerHTML=buildExtraHTML(type,'et'+idx+'-',{});
 }
-async function saveEdit(idx) {
-  var r = records[idx];
-  if (!r) return;
-  var nameEl = document.getElementById('et-name-' + idx);
-  var name = nameEl ? nameEl.value.trim() : r.name;
-  if (!name) { alert('客戶姓名不能為空'); return; }
-  var type = document.getElementById('et-type-' + idx).value;
-  var company = document.getElementById('et-company-' + idx).value;
-  var policy = document.getElementById('et-policy-' + idx).value.trim();
-  var note = document.getElementById('et-note-' + idx).value.trim();
-  var extra = getExtraValues('et' + idx + '-', type);
-  var extraText = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('、');
-  setSb('sl2', '更新中...');
-  try {
-    var url = API + '?action=edit&id=' + encodeURIComponent(r.id) + '&name=' + encodeURIComponent(name) + '&type=' + encodeURIComponent(type) + '&company=' + encodeURIComponent(company) + '&policy=' + encodeURIComponent(policy) + '&note=' + encodeURIComponent(note) + '&extra=' + encodeURIComponent(extraText);
+async function saveEdit(idx){
+  var r=records[idx];if(!r)return;
+  var name=(document.getElementById('et-name-'+idx)||{}).value||'';
+  name=name.trim();if(!name){alert('客戶姓名不能為空');return;}
+  var type=document.getElementById('et-type-'+idx).value;
+  var company=document.getElementById('et-co-'+idx).value;
+  var policy=document.getElementById('et-pol-'+idx).value.trim();
+  var note=document.getElementById('et-note-'+idx).value.trim();
+  var extra=getExtraVals('et'+idx+'-',type);
+  var extraText=Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('、');
+  setSb('sl2','更新中...');
+  try{
+    var url=API1+'?action=edit&id='+encodeURIComponent(r.id)+'&name='+encodeURIComponent(name)+'&type='+encodeURIComponent(type)+'&company='+encodeURIComponent(company)+'&policy='+encodeURIComponent(policy)+'&note='+encodeURIComponent(note)+'&extra='+encodeURIComponent(extraText);
     await fetch(url);
-    records[idx].name = name;
-    records[idx].type = type;
-    records[idx].company = company;
-    records[idx].policy = policy;
-    records[idx].note = note;
-    records[idx].extra = extra;
-    setSb('sok', '已更新');
-    renderRecords();
-  } catch(e) { setSb('ser', '更新失敗'); }
+    records[idx].name=name;records[idx].type=type;records[idx].company=company;
+    records[idx].policy=policy;records[idx].note=note;records[idx].extra=extra;
+    setSb('sok','已更新');renderRecords();
+  }catch(e){setSb('ser','更新失敗');}
 }
 
-function renderRecords() {
-  var q = document.getElementById('search').value.trim().toLowerCase();
-  var fType = document.getElementById('filter-type').value;
-  var fCompany = document.getElementById('filter-company').value;
-
-  var filtered = records.filter(function(r) {
-    var matchName = !q || (r.name && r.name.toLowerCase().includes(q));
-    var matchType = !fType || r.type === fType;
-    var matchCompany = !fCompany || r.company === fCompany;
-    return matchName && matchType && matchCompany;
+function renderRecords(){
+  var q=document.getElementById('search').value.trim().toLowerCase();
+  var fT=document.getElementById('filter-type').value;
+  var fC=document.getElementById('filter-company').value;
+  var filtered=records.filter(function(r){
+    return(!q||(r.name&&r.name.toLowerCase().includes(q)))&&(!fT||r.type===fT)&&(!fC||r.company===fC);
   });
-
-  // 統計
-  document.getElementById('s-total').textContent = records.length;
-  document.getElementById('s-clients').textContent = new Set(records.map(function(r) { return r.name; })).size;
-
-  // 篩選結果數
-  var countEl = document.getElementById('filter-count');
-  if (q || fType || fCompany) {
-    countEl.textContent = '找到 ' + filtered.length + ' 筆記錄';
-  } else {
-    countEl.textContent = '';
-  }
-
-  var list = document.getElementById('list');
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty">尚無符合的記錄</div>';
-    return;
-  }
-
-  // ── 依客戶姓名分組 ──
-  var groups = {};
-  var groupOrder = [];
-  filtered.forEach(function(r) {
-    if (!groups[r.name]) {
-      groups[r.name] = [];
-      groupOrder.push(r.name);
-    }
-    groups[r.name].push(r);
-  });
-
-  list.innerHTML = groupOrder.map(function(name) {
-    var groupRecs = groups[name];
-
-    var subEntries = groupRecs.map(function(r) {
-      var idx = records.indexOf(r);
-      var tagClass = TYPE_TAG[r.type] || 'tag-teal';
-      var extra = {};
-      var extraParts = '';
-      if (typeof r.extra === 'string' && r.extra) {
-        try {
-          extra = JSON.parse(r.extra);
-          extraParts = Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');
-        } catch(e) {
-          extraParts = r.extra; // 已是格式化字串，直接顯示
-        }
-      } else if (r.extra && typeof r.extra === 'object') {
-        extra = r.extra;
-        extraParts = Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');
-      }
-
-      var details = '';
-      if (r.policy) details += '<div class="sub-detail"><span class="sub-lbl">保單號碼</span>' + r.policy + '</div>';
-      if (extraParts) details += '<div class="sub-detail"><span class="sub-lbl">詳細</span>' + extraParts + '</div>';
-      if (r.note) details += '<div class="sub-detail"><span class="sub-lbl">備註</span>' + r.note + '</div>';
-
-      return '<div class="sub-entry" id="rec-' + idx + '">'
-        + '<div class="sub-entry-top">'
-        + '<div class="sub-entry-tags">'
-        + '<span class="record-date-badge">' + fmtDate(r.date) + '</span>'
-        + (r.type ? '<span class="tag ' + tagClass + '">' + r.type + '</span>' : '')
-        + (r.company ? '<span class="sub-company">' + r.company + '</span>' : '')
-        + '</div>'
-        + '<div class="sub-entry-acts">'
-        + '<button class="edit-btn" onclick="openEditBox(' + idx + ')">✏️ 編輯</button>'
-        + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')" title="刪除">✕</button>'
-        + '</div>'
-        + '</div>'
-        + details
-        + '</div>';
+  updSvcStats();
+  document.getElementById('filter-count').textContent=(q||fT||fC)?'找到 '+filtered.length+' 筆記錄':'';
+  var list=document.getElementById('list');
+  if(!filtered.length){list.innerHTML='<div class="emp">尚無符合的記錄</div>';return;}
+  var groups={},order=[];
+  filtered.forEach(function(r){if(!groups[r.name]){groups[r.name]=[];order.push(r.name);}groups[r.name].push(r);});
+  list.innerHTML=order.map(function(name){
+    var gRecs=groups[name];
+    var entries=gRecs.map(function(r){
+      var idx=records.indexOf(r);
+      var tagClass=TYPE_TAG[r.type]||'tag-teal';
+      var ex={},extraParts='';
+      if(typeof r.extra==='string'&&r.extra){try{ex=JSON.parse(r.extra);extraParts=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');}catch(e){extraParts=r.extra;}}
+      else if(r.extra&&typeof r.extra==='object'){ex=r.extra;extraParts=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');}
+      var details='';
+      if(r.policy)details+='<div class="sub-detail"><span class="sub-lbl">保單號碼</span>'+r.policy+'</div>';
+      if(extraParts)details+='<div class="sub-detail"><span class="sub-lbl">詳細</span>'+extraParts+'</div>';
+      if(r.note)details+='<div class="sub-detail"><span class="sub-lbl">備註</span>'+r.note+'</div>';
+      return'<div class="sub-entry" id="rec-'+idx+'">'
+        +'<div class="sub-entry-top"><div class="sub-entry-tags">'
+        +'<span class="record-date-badge">'+fmtDate(r.date)+'</span>'
+        +(r.type?'<span class="tag '+tagClass+'">'+r.type+'</span>':'')
+        +(r.company?'<span class="sub-company">'+r.company+'</span>':'')
+        +'</div><div class="sub-entry-acts">'
+        +'<button class="edit-btn" onclick="openEditBox('+idx+')">✏️ 編輯</button>'
+        +'<button class="del-btn" onclick="deleteRecord(\''+r.id+'\')" title="刪除">✕</button>'
+        +'</div></div>'+details+'</div>';
     }).join('');
-
-    return '<div class="group-card">'
-      + '<div class="group-name">' + name
-      + '<span class="group-count">' + groupRecs.length + ' 筆</span>'
-      + '</div>'
-      + '<div class="group-entries">' + subEntries + '</div>'
-      + '</div>';
+    return'<div class="group-card"><div class="group-name">'+name+'<span class="group-count">'+gRecs.length+' 筆</span></div><div class="group-entries">'+entries+'</div></div>';
   }).join('');
 }
 
-document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-loadRecords();
+// ════════════════════════════
+// ══ 到期通知 功能 ══
+// ════════════════════════════
+function initExpDates(){
+  var now=new Date(),cy=now.getFullYear();
+  var ys=document.getElementById('ey');
+  for(var y=cy;y<=cy+20;y++){var o=document.createElement('option');o.value=y;o.textContent=y+'年';ys.appendChild(o);}
+  var ms=document.getElementById('em');
+  for(var m=1;m<=12;m++){var o=document.createElement('option');o.value=String(m).padStart(2,'0');o.textContent=m+'月';ms.appendChild(o);}
+  var ds=document.getElementById('ed');
+  for(var d=1;d<=31;d++){var o=document.createElement('option');o.value=String(d).padStart(2,'0');o.textContent=d+'日';ds.appendChild(o);}
+}
+
+async function addExpiry(){
+  var box=document.getElementById('exp-err');box.style.display='none';
+  var name=document.getElementById('en').value.trim();
+  var type=document.getElementById('etp').value;
+  var y=document.getElementById('ey').value,m=document.getElementById('em').value,d=document.getElementById('ed').value;
+  var missing=[];
+  if(!name)missing.push('・客戶姓名');
+  if(!type)missing.push('・通知類型');
+  if(!y||!m||!d)missing.push('・到期日（年/月/日）');
+  if(missing.length){box.innerHTML='⚠️ 請補齊：<br>'+missing.join('<br>');box.style.display='block';return;}
+  var expiry=y+'-'+m+'-'+d;
+  var note=document.getElementById('ent').value.trim();
+  var policy=document.getElementById('epolicy').value.trim();
+  var fullNote=(policy?'保單號碼：'+policy+(note?'、'+note:''):note);
+  var rec={action:'add',name:name,type:type,expiry:expiry,note:fullNote,status:'待處理'};
+  var btn=document.getElementById('exp-btn');btn.disabled=true;btn.textContent='儲存中...';
+  setSb('sl2','儲存至 Google Sheets...');
+  try{
+    await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
+    expiryRecs.unshift({name:name,type:type,expiry:expiry,status:'待處理',note:fullNote});
+    ['en','ent','epolicy'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('etp').value='';
+    ['ey','em','ed'].forEach(function(id){document.getElementById(id).selectedIndex=0;});
+    setSb('sok','已儲存');updExpStats();
+  }catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='＋ 新增通知';
+}
+
+function updExpStats(){
+  var active=expiryRecs.filter(function(r){return r.status!=='已處理';});
+  document.getElementById('stot').textContent=active.length;
+  document.getElementById('s30').textContent=active.filter(function(r){var d=dl(r.expiry);return d>=0&&d<=30;}).length;
+  document.getElementById('s90').textContent=active.filter(function(r){var d=dl(r.expiry);return d>=0&&d<=90;}).length;
+}
+
+function setExpF(f,btn){
+  curExpF=f;
+  document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');rendExpList();
+}
+
+function typeBadge(t){
+  if(t==='儲蓄險到期')return'<span class="bg type-c1">儲蓄險到期</span>';
+  if(t==='生存年金可申請')return'<span class="bg type-c2">生存年金</span>';
+  if(t==='信用卡效期到期')return'<span class="bg type-c3">信用卡到期</span>';
+  return'<span class="bg bx">'+t+'</span>';
+}
+
+function rHTML(r){
+  var d=dl(r.expiry);
+  var cls=r.status==='已處理'?'done':d<=30?'urgent':d<=90?'soon':'';
+  var uid='r'+r.name.replace(/[^a-zA-Z0-9一-鿿]/g,'')+String(r.expiry).replace(/-/g,'')+String(r.type).charAt(0);
+  var dbadge=d<0?'<span class="bg br">已過期</span>':d<=30?'<span class="bg br">剩'+d+'天</span>':d<=90?'<span class="bg ba">剩'+d+'天</span>':'<span class="bg bg2">剩'+d+'天</span>';
+  return'<div class="rc '+cls+'" id="'+uid+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<span class="rn">'+r.name+'</span>'
+    +'<button class="del-btn" onclick="delExpR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
+    +'</div>'
+    +'<div class="rrow">'+typeBadge(r.type)+dbadge
+    +(r.status==='已處理'?'<span class="bg bg2">已處理</span>':'<span class="bg bx">待處理</span>')
+    +'</div>'
+    +'<div class="rd">到期日：'+fmtDate(r.expiry)+(r.note?'　備註：'+r.note:'')+'</div>'
+    +(r.status!=='已處理'?
+      '<button class="cb" onclick="togMsg(\''+uid+'\',\''+r.type+'\',\''+r.name+'\')">產出提醒訊息</button>'
+      +'<button class="done-btn" onclick="markDone(\''+uid+'\',\''+r.name+'\',\''+r.expiry+'\')">標記已處理</button>'
+      :'')
+    +'<div class="msg-box" id="msg-'+uid+'"></div>'
+    +'</div>';
+}
+
+function togMsg(uid,type,name){
+  var box=document.getElementById('msg-'+uid);
+  if(box.style.display==='block'){box.style.display='none';return;}
+  var msg=TYPE_MSG[type]||'請聯絡客戶確認相關事宜。';
+  box.textContent=msg;box.style.display='block';
+  if(!box.nextSibling||box.nextSibling.textContent!=='複製訊息'){
+    var cpbtn=document.createElement('button');
+    cpbtn.className='cb';cpbtn.textContent='複製訊息';
+    cpbtn.onclick=function(){
+      navigator.clipboard.writeText(msg).then(function(){cpbtn.textContent='已複製！';setTimeout(function(){cpbtn.textContent='複製訊息';},2000);});
+    };
+    box.parentNode.insertBefore(cpbtn,box.nextSibling);
+  }
+}
+
+async function markDone(uid,name,expiry){
+  setSb('sl2','更新中...');
+  try{
+    var url=API2+'?action=update_status&name='+encodeURIComponent(name)+'&expiry='+encodeURIComponent(expiry)+'&status='+encodeURIComponent('已處理');
+    await fetch(url);
+    expiryRecs.forEach(function(r){if(r.name===name&&r.expiry===expiry)r.status='已處理';});
+    setSb('sok','已標記為已處理');rendExpList();updExpStats();
+  }catch(e){setSb('ser','更新失敗，請重試');}
+}
+
+async function delExpR(name,expiry){
+  if(!confirm('確定刪除？'))return;
+  setSb('sl2','刪除中...');
+  try{
+    await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',name:name,expiry:expiry})});
+    expiryRecs=expiryRecs.filter(function(r){return!(r.name===name&&r.expiry===expiry);});
+    setSb('sok','已刪除');rendExpList();updExpStats();
+  }catch(e){setSb('ser','刪除失敗');}
+}
+
+function rendExpList(){
+  var f=expiryRecs;
+  if(curExpF==='待處理')f=expiryRecs.filter(function(r){return r.status!=='已處理';});
+  else if(curExpF==='已處理')f=expiryRecs.filter(function(r){return r.status==='已處理';});
+  else if(curExpF!=='all')f=expiryRecs.filter(function(r){return r.type===curExpF;});
+  f=f.slice().sort(function(a,b){return new Date(a.expiry)-new Date(b.expiry);});
+  document.getElementById('rlist').innerHTML=f.length?f.map(function(r){return rHTML(r);}).join(''):'<div class="emp">沒有符合的記錄</div>';
+}
+
+// ── Init ──
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+initExpDates();
+loadAll();
 </script>
 </body>
 </html>
