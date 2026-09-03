@@ -521,6 +521,14 @@ async function saveEdit(idx){
   }catch(e){setSb('ser','更新失敗');}
 }
 
+function togDetail(id){
+  var el=document.getElementById(id);if(!el)return;
+  var show=el.style.display==='none'||el.style.display==='';
+  el.style.display=show?'block':'none';
+  var arr=document.getElementById('arr-'+id);
+  if(arr)arr.textContent=show?'▲':'▼';
+}
+
 function renderRecords(){
   var q=document.getElementById('search').value.trim().toLowerCase();
   var fT=document.getElementById('filter-type').value;
@@ -542,19 +550,24 @@ function renderRecords(){
       var ex={},extraParts='';
       if(typeof r.extra==='string'&&r.extra){try{ex=JSON.parse(r.extra);extraParts=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');}catch(e){extraParts=r.extra;}}
       else if(r.extra&&typeof r.extra==='object'){ex=r.extra;extraParts=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');}
+      var hasDetail=r.policy||extraParts||r.note;
       var details='';
       if(r.policy)details+='<div class="sub-detail"><span class="sub-lbl">保單號碼</span>'+r.policy+'</div>';
       if(extraParts)details+='<div class="sub-detail"><span class="sub-lbl">詳細</span>'+extraParts+'</div>';
       if(r.note)details+='<div class="sub-detail"><span class="sub-lbl">備註</span>'+r.note+'</div>';
       return'<div class="sub-entry" id="rec-'+idx+'">'
-        +'<div class="sub-entry-top"><div class="sub-entry-tags">'
+        +'<div class="sub-entry-top" style="cursor:pointer;" onclick="togDetail(\'det-'+idx+'\')">'
+        +'<div class="sub-entry-tags">'
         +'<span class="record-date-badge">'+fmtDate(r.date)+'</span>'
         +(r.type?'<span class="tag '+tagClass+'">'+r.type+'</span>':'')
         +(r.company?'<span class="sub-company">'+r.company+'</span>':'')
         +'</div><div class="sub-entry-acts">'
-        +'<button class="edit-btn" onclick="openEditBox('+idx+')">✏️ 編輯</button>'
-        +'<button class="del-btn" onclick="deleteRecord(\''+r.id+'\')" title="刪除">✕</button>'
-        +'</div></div>'+details+'</div>';
+        +(hasDetail?'<span id="arr-det-'+idx+'" style="color:var(--tfm);font-size:12px;padding:0 4px;">▼</span>':'')
+        +'<button class="edit-btn" onclick="event.stopPropagation();openEditBox('+idx+')">✏️ 編輯</button>'
+        +'<button class="del-btn" onclick="event.stopPropagation();deleteRecord(\''+r.id+'\')" title="刪除">✕</button>'
+        +'</div></div>'
+        +'<div id="det-'+idx+'" style="display:none;">'+details+'</div>'
+        +'</div>';
     }).join('');
     return'<div class="group-card"><div class="group-name">'+name+'<span class="group-count">'+gRecs.length+' 筆</span></div><div class="group-entries">'+entries+'</div></div>';
   }).join('');
@@ -626,21 +639,27 @@ function rHTML(r){
   var cls=r.status==='已處理'?'done':d<=30?'urgent':d<=90?'soon':'';
   var uid='r'+r.name.replace(/[^a-zA-Z0-9一-鿿]/g,'')+String(r.expiry).replace(/-/g,'')+String(r.type).charAt(0);
   var dbadge=d<0?'<span class="bg br">已過期</span>':d<=30?'<span class="bg br">剩'+d+'天</span>':d<=90?'<span class="bg ba">剩'+d+'天</span>':'<span class="bg bg2">剩'+d+'天</span>';
+  var detId='expdet-'+uid;
   return'<div class="rc '+cls+'" id="'+uid+'">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togDetail(\''+detId+'\')">'
+    +'<div>'
     +'<span class="rn">'+r.name+'</span>'
-    +'<button class="del-btn" onclick="delExpR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
-    +'</div>'
-    +'<div class="rrow">'+typeBadge(r.type)+dbadge
+    +'<div class="rrow" style="margin-top:4px;">'+typeBadge(r.type)+dbadge
     +(r.status==='已處理'?'<span class="bg bg2">已處理</span>':'<span class="bg bx">待處理</span>')
-    +'</div>'
-    +'<div class="rd">到期日：'+fmtDate(r.expiry)+(r.note?'　備註：'+r.note:'')+'</div>'
+    +'</div></div>'
+    +'<div style="display:flex;align-items:center;gap:6px;">'
+    +'<span id="arr-'+detId+'" style="color:var(--tfm);font-size:13px;">▼</span>'
+    +'<button class="del-btn" onclick="event.stopPropagation();delExpR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
+    +'</div></div>'
+    +'<div id="'+detId+'" style="display:none;">'
+    +'<div class="rd" style="margin-top:8px;">到期日：'+fmtDate(r.expiry)+(r.note?'<br>備註：'+r.note:'')+'</div>'
     +'<button class="edit-btn" style="margin-top:6px;" onclick="openExpEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">✏️ 編輯</button>'
     +(r.status!=='已處理'?
       '<button class="cb" onclick="togMsg(\''+uid+'\',\''+r.type+'\',\''+r.name+'\')">產出提醒訊息</button>'
       +'<button class="done-btn" onclick="markDone(\''+uid+'\',\''+r.name+'\',\''+r.expiry+'\')">標記已處理</button>'
       :'')
     +'<div class="msg-box" id="msg-'+uid+'"></div>'
+    +'</div>'
     +'</div>';
 }
 
