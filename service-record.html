@@ -635,12 +635,64 @@ function rHTML(r){
     +(r.status==='已處理'?'<span class="bg bg2">已處理</span>':'<span class="bg bx">待處理</span>')
     +'</div>'
     +'<div class="rd">到期日：'+fmtDate(r.expiry)+(r.note?'　備註：'+r.note:'')+'</div>'
+    +'<button class="edit-btn" style="margin-top:6px;" onclick="openExpEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">✏️ 編輯</button>'
     +(r.status!=='已處理'?
       '<button class="cb" onclick="togMsg(\''+uid+'\',\''+r.type+'\',\''+r.name+'\')">產出提醒訊息</button>'
       +'<button class="done-btn" onclick="markDone(\''+uid+'\',\''+r.name+'\',\''+r.expiry+'\')">標記已處理</button>'
       :'')
     +'<div class="msg-box" id="msg-'+uid+'"></div>'
     +'</div>';
+}
+
+function openExpEdit(name,expiry,type){
+  var uid='r'+name.replace(/[^a-zA-Z0-9一-鿿]/g,'')+String(expiry).replace(/-/g,'')+String(type).charAt(0);
+  var boxId='exp-edit-'+uid;
+  var existing=document.getElementById(boxId);
+  if(existing){existing.remove();return;}
+  var r=expiryRecs.find(function(x){return x.name===name&&x.expiry===expiry;});
+  if(!r)return;
+  var parts=(r.expiry||'').split('-');
+  var ey=parts[0]||'',em=parts[1]||'',ed=parts[2]||'';
+  var now=new Date(),cy=now.getFullYear();
+  var sel='font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 6px;background:var(--mint);color:var(--tfdp);outline:none;flex:1;';
+  var yOpts='<option value="">年</option>';
+  for(var y=cy-5;y<=cy+20;y++)yOpts+='<option value="'+y+'"'+(String(ey)===String(y)?' selected':'')+'>'+y+'年</option>';
+  var mOpts='<option value="">月</option>';
+  for(var m=1;m<=12;m++){var mv=String(m).padStart(2,'0');mOpts+='<option value="'+mv+'"'+(em===mv?' selected':'')+'>'+ m+'月</option>';}
+  var dOpts='<option value="">日</option>';
+  for(var dd=1;dd<=31;dd++){var dv=String(dd).padStart(2,'0');dOpts+='<option value="'+dv+'"'+(ed===dv?' selected':'')+'>'+ dd+'日</option>';}
+  var box=document.createElement('div');
+  box.id=boxId;box.className='edit-box';
+  box.innerHTML='<div class="edit-box-t">編輯到期通知</div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>客戶姓名</label><input id="ee-name-'+uid+'" type="text" value="'+r.name+'"></div>'
+    +'<div class="f" style="margin-bottom:10px;"><label>到期日</label><div class="date-row">'
+    +'<select id="ee-y-'+uid+'" style="'+sel+'">'+yOpts+'</select>'
+    +'<select id="ee-m-'+uid+'" style="'+sel+'">'+mOpts+'</select>'
+    +'<select id="ee-d-'+uid+'" style="'+sel+'">'+dOpts+'</select>'
+    +'</div></div>'
+    +'<div class="f" style="margin-bottom:14px;"><label>備註</label><textarea id="ee-note-'+uid+'" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
+    +'<button class="save-edit-btn" onclick="saveExpEdit(\''+name+'\',\''+expiry+'\',\''+uid+'\')">儲存</button>'
+    +'<button class="cancel-edit-btn" onclick="document.getElementById(\''+boxId+'\').remove()">取消</button>';
+  var el=document.getElementById(uid);
+  if(el)el.appendChild(box);
+}
+
+async function saveExpEdit(origName,origExpiry,uid){
+  var newName=(document.getElementById('ee-name-'+uid)||{}).value||'';
+  newName=newName.trim();if(!newName){alert('客戶姓名不能為空');return;}
+  var y=document.getElementById('ee-y-'+uid).value;
+  var m=document.getElementById('ee-m-'+uid).value;
+  var dd=document.getElementById('ee-d-'+uid).value;
+  if(!y||!m||!dd){alert('請選擇完整的到期日');return;}
+  var newExpiry=y+'-'+m+'-'+dd;
+  var note=document.getElementById('ee-note-'+uid).value.trim();
+  setSb('sl2','更新中...');
+  try{
+    var url=API2+'?action=edit&name='+encodeURIComponent(origName)+'&expiry='+encodeURIComponent(origExpiry)+'&newname='+encodeURIComponent(newName)+'&newexpiry='+encodeURIComponent(newExpiry)+'&note='+encodeURIComponent(note);
+    await fetch(url);
+    expiryRecs.forEach(function(r){if(r.name===origName&&r.expiry===origExpiry){r.name=newName;r.expiry=newExpiry;r.note=note;}});
+    setSb('sok','已更新');rendExpList();updExpStats();
+  }catch(e){setSb('ser','更新失敗');}
 }
 
 function togMsg(uid,type,name){
