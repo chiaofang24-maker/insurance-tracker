@@ -213,7 +213,7 @@ body{background:#F5FAFA;font-family:var(--h);}
     <select id="ftp" onchange="updType()">
       <option value="">請選擇</option>
       <option>車險</option><option>住宅火險</option>
-      <option>商業火險</option><option>公共意外責任險</option><option>產品責任險</option>
+      <option>商業火險</option><option>商業綜合保險</option><option>產品責任險</option>
       <option>家庭責任險</option><option>雇主僱補險</option><option>團險</option><option>其他</option>
     </select>
   </div>
@@ -284,8 +284,9 @@ body{background:#F5FAFA;font-family:var(--h);}
   <span>⚠️ 顯示 45 天內即將到期保單</span>
   <button class="exp-banner-close" onclick="clearFilter()">✕ 清除篩選</button>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
   <div class="f"><label>險種</label><select id="flt-type" onchange="rendS()" style="font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 11px;background:var(--mint);color:var(--tfdp);outline:none;width:100%;"><option value="">全部險種</option></select></div>
+  <div class="f"><label>保險公司</label><select id="flt-company" onchange="rendS()" style="font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 11px;background:var(--mint);color:var(--tfdp);outline:none;width:100%;"><option value="">全部公司</option></select></div>
   <div class="f"><label>續保狀態</label><select id="flt-renew" onchange="rendS()" style="font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:8px 11px;background:var(--mint);color:var(--tfdp);outline:none;width:100%;"><option value="">全部狀態</option><option>待確認</option><option>已續保</option><option>不續保</option></select></div>
 </div>
 <input class="si" id="sq" type="text" placeholder="輸入姓名、公司名稱或車牌搜尋..." oninput="rendS()">
@@ -817,24 +818,31 @@ function initTypeFilter(){
   var types=[...new Set(recs.map(function(r){return r.type||'';}).filter(Boolean))].sort();
   var cur=sel.value;
   sel.innerHTML='<option value="">全部險種</option>'+types.map(function(t){return '<option'+(t===cur?' selected':'')+'>'+t+'</option>';}).join('');
+  var csel=document.getElementById('flt-company');
+  if(!csel)return;
+  var companies=[...new Set(recs.map(function(r){return r.company||'';}).filter(Boolean))].sort();
+  var curC=csel.value;
+  csel.innerHTML='<option value="">全部公司</option>'+companies.map(function(c){return '<option'+(c===curC?' selected':'')+'>'+c+'</option>';}).join('');
 }
 function rendS(){
   var q=document.getElementById('sq').value.trim().toLowerCase();
   var fltType=document.getElementById('flt-type').value;
   var fltRenew=document.getElementById('flt-renew').value;
+  var fltCompany=document.getElementById('flt-company').value;
   var td=new Date(),d45=new Date();d45.setDate(d45.getDate()+45);
   var f;
   var cardArea=document.getElementById('client-card-area');
   if(curFilter==='exp'){
     cardArea.innerHTML='';
-    f=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45;});
+    f=recs.filter(function(r){var d=new Date(r.expiry);return d>=td&&d<=d45&&r.renew!=='不續保';});
     if(fltType)f=f.filter(function(r){return r.type===fltType;});
     if(fltRenew)f=f.filter(function(r){return r.renew===fltRenew;});
+    if(fltCompany)f=f.filter(function(r){return r.company===fltCompany;});
     f.sort(function(a,b){return dl(a.expiry)-dl(b.expiry);});
     document.getElementById('slist').innerHTML=f.length?f.map(function(r){return rHTML(r,true);}).join(''):'<div class="emp">目前沒有符合條件的保單</div>';
     return;
   }
-  var hasFilter=fltType||fltRenew;
+  var hasFilter=fltType||fltRenew||fltCompany;
   if(!q&&!hasFilter){
     cardArea.innerHTML='';
     document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字或選擇篩選條件</div>';
@@ -844,7 +852,8 @@ function rendS(){
     var matchQ=!q||(String(r.name||'').toLowerCase().includes(q)||String(r.plate||'').toLowerCase().includes(q)||String(r.companyname||'').toLowerCase().includes(q));
     var matchType=!fltType||r.type===fltType;
     var matchRenew=!fltRenew||r.renew===fltRenew;
-    return matchQ&&matchType&&matchRenew;
+    var matchCompany=!fltCompany||r.company===fltCompany;
+    return matchQ&&matchType&&matchRenew&&matchCompany;
   });
   if(!f.length){
     cardArea.innerHTML='';
