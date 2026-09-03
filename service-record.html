@@ -18,8 +18,12 @@ body{background:#F5FAFA;font-family:var(--h);}
 .ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
 .st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
 .sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sc-link{background:var(--tf);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfd);cursor:pointer;transition:opacity 0.15s;}
+.sc-link:active{opacity:0.8;}
 .sn{font-family:var(--h);font-size:26px;font-weight:600;color:var(--tfd);}
+.sn-white{font-family:var(--h);font-size:26px;font-weight:600;color:#fff;}
 .sl{font-family:var(--h);font-size:13px;color:var(--tfd);margin-top:2px;}
+.sl-white{font-family:var(--h);font-size:13px;color:rgba(255,255,255,0.9);margin-top:2px;}
 .card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
 .ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-family:var(--h);font-size:17px;font-weight:600;color:var(--tfd);}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
@@ -32,22 +36,30 @@ body{background:#F5FAFA;font-family:var(--h);}
 .xtra-t{font-family:var(--h);font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:8px;}
 .abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:6px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
 .abtn:disabled{opacity:0.5;cursor:not-allowed;}
-.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:12px;}
-.record{padding:12px 0;border-bottom:1.5px dashed var(--sage);}
+.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:10px;}
+
+/* ── 記錄卡片：名字為主 ── */
+.record{padding:14px 0;border-bottom:1.5px dashed var(--sage);}
 .record:last-child{border-bottom:none;}
-.record-top{display:flex;justify-content:space-between;align-items:flex-start;}
-.record-name{font-family:var(--h);font-size:20px;font-weight:600;color:var(--tfdp);}
-.record-date{font-family:var(--h);font-size:14px;color:var(--tfm);}
-.tag{display:inline-block;font-family:var(--h);font-size:13px;padding:3px 12px;border-radius:20px;font-weight:600;margin-top:5px;}
+.record-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.record-name{font-family:var(--h);font-size:22px;font-weight:700;color:var(--tfdp);}
+.record-actions{display:flex;align-items:center;gap:6px;}
+.record-date-badge{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--mint);border:1px solid var(--sage);border-radius:10px;padding:3px 9px;}
+.del-btn{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
+.del-btn:hover{color:#B03030;}
+
+/* 子項目列表 */
+.record-sub{display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:3px solid var(--sage);margin-bottom:10px;}
+.sub-row{display:flex;align-items:flex-start;gap:6px;font-family:var(--h);font-size:14px;}
+.sub-label{color:var(--tfd);font-weight:600;min-width:56px;flex-shrink:0;}
+.sub-val{color:#444;flex:1;}
+.tag{display:inline-block;font-family:var(--h);font-size:13px;padding:2px 10px;border-radius:20px;font-weight:600;}
 .tag-teal{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
 .tag-green{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
 .tag-amber{background:#FFF4E0;color:#8A5C00;border:1.5px solid #F5CC80;}
 .tag-red{background:#FDECEA;color:#B03030;border:1.5px solid #F0A8A8;}
 .tag-purple{background:#F0EEFE;color:#4A3AAA;border:1.5px solid #C5BDEF;}
-.record-extra{font-family:var(--h);font-size:14px;color:var(--tfd);margin-top:5px;background:var(--mint);border-radius:10px;padding:5px 10px;display:inline-block;}
-.record-note{font-family:var(--h);font-size:15px;color:#666;margin-top:5px;}
-.edit-btn{font-family:var(--h);font-size:13px;background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;border-radius:10px;padding:3px 10px;cursor:pointer;margin-top:6px;margin-right:6px;}
-.del-btn{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
+.edit-btn{font-family:var(--h);font-size:13px;background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;border-radius:10px;padding:4px 12px;cursor:pointer;}
 .empty{font-family:var(--h);font-size:17px;color:var(--tfm);text-align:center;padding:2rem 0;}
 .edit-box{background:var(--mint);border:1.5px solid var(--sage);border-radius:16px;padding:12px 14px;margin-top:10px;}
 .edit-box-t{font-family:var(--h);font-size:15px;font-weight:600;color:var(--tfd);margin-bottom:12px;}
@@ -56,18 +68,28 @@ body{background:#F5FAFA;font-family:var(--h);}
 .radio-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;}
 .radio-item{display:flex;align-items:center;gap:6px;font-family:var(--h);font-size:16px;color:var(--tfdp);}
 .radio-item input{width:17px;height:17px;accent-color:var(--tf);}
+
+/* 清除篩選按鈕 */
+.clear-btn{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:4px 12px;cursor:pointer;margin-top:6px;}
+.filter-count{font-family:var(--h);font-size:13px;color:var(--tfm);margin-top:6px;text-align:right;}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="hdr"><h1>保單服務記錄</h1><p>隨時記錄，隨時查詢</p></div>
 <div id="sb" class="sb sl2">連線中，載入資料...</div>
+
+<!-- 統計卡：總記錄 | 🔍查詢篩選 | 客戶數 -->
 <div class="st">
   <div class="sc"><div class="sn" id="s-total">—</div><div class="sl">總記錄</div></div>
-  <div class="sc"><div class="sn" id="s-today">—</div><div class="sl">今日</div></div>
+  <div class="sc-link" onclick="document.getElementById('query-card').scrollIntoView({behavior:'smooth'})">
+    <div class="sn-white">🔍</div>
+    <div class="sl-white">查詢篩選</div>
+  </div>
   <div class="sc"><div class="sn" id="s-clients">—</div><div class="sl">客戶數</div></div>
 </div>
 
+<!-- 新增記錄 -->
 <div class="card">
   <div class="ch">新增保單服務記錄</div>
   <div class="row">
@@ -114,11 +136,49 @@ body{background:#F5FAFA;font-family:var(--h);}
   <button class="abtn" id="add-btn" onclick="addRecord()">＋ 新增記錄</button>
 </div>
 
-<div class="card">
-  <div class="ch">查詢記錄</div>
-  <input class="si" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
+<!-- 查詢篩選 -->
+<div class="card" id="query-card">
+  <div class="ch">查詢篩選</div>
+  <div class="row1">
+    <input class="si" id="search" type="text" placeholder="輸入客戶姓名搜尋..." oninput="renderRecords()">
+  </div>
+  <div class="row">
+    <div class="f">
+      <label>服務類型</label>
+      <select id="filter-type" onchange="renderRecords()">
+        <option value="">全部類型</option>
+        <option>信用卡變更</option>
+        <option>保費繳費方式變更</option>
+        <option>理賠申請</option>
+        <option>加退保</option>
+        <option>保單復效</option>
+        <option>受益人變更</option>
+        <option>聯絡資料變更</option>
+        <option>保單借款</option>
+        <option>契約轉換</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="f">
+      <label>保險公司</label>
+      <select id="filter-company" onchange="renderRecords()">
+        <option value="">全部公司</option>
+        <option>全球人壽</option><option>宏泰人壽</option><option>凱基人壽</option>
+        <option>新光人壽</option><option>遠雄人壽</option><option>台灣人壽</option>
+        <option>安達人壽</option><option>台銀人壽</option><option>富邦人壽</option>
+        <option>第一金人壽</option><option>友邦人壽</option><option>元大人壽</option>
+        <option>安聯人壽</option><option>保誠人壽</option><option>國泰人壽</option>
+        <option>南山人壽</option><option>其他</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <button class="clear-btn" onclick="clearFilters()">✕ 清除篩選</button>
+    <div class="filter-count" id="filter-count"></div>
+  </div>
 </div>
 
+<!-- 記錄列表 -->
 <div class="card">
   <div class="ch">記錄列表</div>
   <div id="list"></div>
@@ -137,11 +197,16 @@ function fmtDate(d){
   if(s.length >= 10) return s.substring(0, 10);
   return s;
 }
-
 function setSb(t, m) {
   var b = document.getElementById('sb');
   b.className = 'sb ' + t;
   b.textContent = m;
+}
+function clearFilters() {
+  document.getElementById('search').value = '';
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-company').value = '';
+  renderRecords();
 }
 
 function buildExtraHTML(type, prefix, existingExtra) {
@@ -186,13 +251,11 @@ function buildExtraHTML(type, prefix, existingExtra) {
   }
   return html;
 }
-
 function togPayerOther(prefix) {
   var v = document.querySelector('input[name="' + prefix + 'payer"]:checked');
   var box = document.getElementById(prefix + 'payer-other');
   if (box) box.style.display = (v && v.value === '其他') ? 'block' : 'none';
 }
-
 function getExtraValues(prefix, type) {
   var extra = {};
   if (type === '信用卡變更') {
@@ -230,7 +293,6 @@ function getExtraValues(prefix, type) {
   }
   return extra;
 }
-
 function onTypeChange() {
   var type = document.getElementById('f-type').value;
   var wrap = document.getElementById('extra-wrap');
@@ -238,7 +300,6 @@ function onTypeChange() {
   if (html) { wrap.innerHTML = html; wrap.style.display = 'block'; }
   else { wrap.innerHTML = ''; wrap.style.display = 'none'; }
 }
-
 async function loadRecords() {
   try {
     var res = await fetch(API);
@@ -250,7 +311,6 @@ async function loadRecords() {
     setSb('ser', '無法連線，請檢查網路');
   }
 }
-
 async function addRecord() {
   var name = document.getElementById('f-name').value.trim();
   var date = document.getElementById('f-date').value;
@@ -280,7 +340,6 @@ async function addRecord() {
   } catch(e) { setSb('ser', '儲存失敗，請重試'); }
   btn.disabled = false; btn.textContent = '＋ 新增記錄';
 }
-
 async function deleteRecord(id) {
   if (!confirm('確定刪除這筆記錄？')) return;
   setSb('sl2', '刪除中...');
@@ -291,7 +350,6 @@ async function deleteRecord(id) {
     renderRecords();
   } catch(e) { setSb('ser', '刪除失敗'); }
 }
-
 function openEditBox(idx) {
   var r = records[idx];
   if (!r) return;
@@ -323,13 +381,11 @@ function openEditBox(idx) {
   var recEl = document.getElementById('rec-' + idx);
   if (recEl) recEl.appendChild(box);
 }
-
 function onEditTypeChange(idx) {
   var type = document.getElementById('et-type-' + idx).value;
   var wrap = document.getElementById('et-extra-' + idx);
   if (wrap) wrap.innerHTML = buildExtraHTML(type, 'et' + idx + '-', {});
 }
-
 async function saveEdit(idx) {
   var r = records[idx];
   if (!r) return;
@@ -355,33 +411,73 @@ async function saveEdit(idx) {
 
 function renderRecords() {
   var q = document.getElementById('search').value.trim().toLowerCase();
-  var filtered = q ? records.filter(function(r) { return r.name && r.name.toLowerCase().includes(q); }) : records;
-  var today = new Date().toISOString().split('T')[0];
+  var fType = document.getElementById('filter-type').value;
+  var fCompany = document.getElementById('filter-company').value;
+
+  var filtered = records.filter(function(r) {
+    var matchName = !q || (r.name && r.name.toLowerCase().includes(q));
+    var matchType = !fType || r.type === fType;
+    var matchCompany = !fCompany || r.company === fCompany;
+    return matchName && matchType && matchCompany;
+  });
+
+  // 統計
   document.getElementById('s-total').textContent = records.length;
-  document.getElementById('s-today').textContent = records.filter(function(r) { return r.date === today; }).length;
   document.getElementById('s-clients').textContent = new Set(records.map(function(r) { return r.name; })).size;
+
+  // 篩選結果數
+  var countEl = document.getElementById('filter-count');
+  if (q || fType || fCompany) {
+    countEl.textContent = '找到 ' + filtered.length + ' 筆記錄';
+  } else {
+    countEl.textContent = '';
+  }
+
   var list = document.getElementById('list');
-  if (!filtered.length) { list.innerHTML = '<div class="empty">尚無記錄</div>'; return; }
-  list.innerHTML = filtered.map(function(r, i) {
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">尚無符合的記錄</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(r) {
     var idx = records.indexOf(r);
     var tagClass = TYPE_TAG[r.type] || 'tag-teal';
     var extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
-    var extraItems = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('　｜　');
+
+    // 組合子項目
+    var subItems = '';
+
+    // 服務類型
+    if (r.type) {
+      subItems += '<div class="sub-row"><span class="sub-label">服務類型</span><span class="sub-val"><span class="tag ' + tagClass + '">' + r.type + '</span></span></div>';
+    }
+    // 保險公司
+    if (r.company) {
+      subItems += '<div class="sub-row"><span class="sub-label">保險公司</span><span class="sub-val">' + r.company + '</span></div>';
+    }
+    // 保單號碼
+    if (r.policy) {
+      subItems += '<div class="sub-row"><span class="sub-label">保單號碼</span><span class="sub-val">' + r.policy + '</span></div>';
+    }
+    // 額外欄位（信用卡/繳費方式）
+    Object.entries(extra).filter(function(e) { return e[1]; }).forEach(function(e) {
+      subItems += '<div class="sub-row"><span class="sub-label">' + e[0] + '</span><span class="sub-val">' + e[1] + '</span></div>';
+    });
+    // 備註
+    if (r.note) {
+      subItems += '<div class="sub-row"><span class="sub-label">備註</span><span class="sub-val">' + r.note + '</span></div>';
+    }
+
     return '<div class="record" id="rec-' + idx + '">'
-      + '<div class="record-top">'
+      + '<div class="record-header">'
       + '<span class="record-name">' + r.name + '</span>'
-      + '<span style="display:flex;align-items:center;gap:4px;">'
-      + '<span class="record-date">' + fmtDate(r.date) + '</span>'
-      + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')">✕</button>'
-      + '</span></div>'
-      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;">'
-      + '<span class="tag ' + tagClass + '">' + (r.type || '') + '</span>'
-      + (r.company ? '<span style="font-family:var(--h);font-size:14px;color:#888;">' + r.company + '</span>' : '')
-      + (r.policy ? '<span style="font-family:var(--h);font-size:13px;color:#aaa;">保單：' + r.policy + '</span>' : '')
+      + '<span class="record-actions">'
+      + '<span class="record-date-badge">' + fmtDate(r.date) + '</span>'
+      + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')" title="刪除">✕</button>'
+      + '</span>'
       + '</div>'
-      + (extraItems ? '<div class="record-extra">' + extraItems + '</div>' : '')
-      + (r.note ? '<div class="record-note">' + r.note + '</div>' : '')
-      + '<button class="edit-btn" onclick="openEditBox(' + idx + ')">編輯</button>'
+      + '<div class="record-sub">' + subItems + '</div>'
+      + '<button class="edit-btn" onclick="openEditBox(' + idx + ')">✏️ 編輯</button>'
       + '</div>';
   }).join('');
 }
