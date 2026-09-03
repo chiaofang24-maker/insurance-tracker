@@ -357,7 +357,12 @@ function openEditBox(idx) {
   if (!r) return;
   var existingBox = document.getElementById('edit-box-' + idx);
   if (existingBox) { existingBox.remove(); return; }
-  var extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
+  var extra = {};
+  if (typeof r.extra === 'string' && r.extra) {
+    try { extra = JSON.parse(r.extra); } catch(e) { extra = {}; }
+  } else if (r.extra && typeof r.extra === 'object') {
+    extra = r.extra;
+  }
   var coOpts = COMPANIES.map(function(c) {
     return '<option' + (r.company === c ? ' selected' : '') + '>' + c + '</option>';
   }).join('');
@@ -464,8 +469,19 @@ function renderRecords() {
     var subEntries = groupRecs.map(function(r) {
       var idx = records.indexOf(r);
       var tagClass = TYPE_TAG[r.type] || 'tag-teal';
-      var extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
-      var extraParts = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('　');
+      var extra = {};
+      var extraParts = '';
+      if (typeof r.extra === 'string' && r.extra) {
+        try {
+          extra = JSON.parse(r.extra);
+          extraParts = Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');
+        } catch(e) {
+          extraParts = r.extra; // 已是格式化字串，直接顯示
+        }
+      } else if (r.extra && typeof r.extra === 'object') {
+        extra = r.extra;
+        extraParts = Object.entries(extra).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');
+      }
 
       var details = '';
       if (r.policy) details += '<div class="sub-detail"><span class="sub-lbl">保單號碼</span>' + r.policy + '</div>';
