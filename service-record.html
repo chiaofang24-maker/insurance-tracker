@@ -38,21 +38,23 @@ body{background:#F5FAFA;font-family:var(--h);}
 .abtn:disabled{opacity:0.5;cursor:not-allowed;}
 .si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;margin-bottom:10px;}
 
-/* ── 記錄卡片：名字為主 ── */
-.record{padding:14px 0;border-bottom:1.5px dashed var(--sage);}
-.record:last-child{border-bottom:none;}
-.record-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.record-name{font-family:var(--h);font-size:22px;font-weight:700;color:var(--tfdp);}
-.record-actions{display:flex;align-items:center;gap:6px;}
+/* ── 分組卡片 ── */
+.group-card{background:#fff;border-radius:18px;border:1.5px solid var(--sage);margin-bottom:14px;overflow:hidden;}
+.group-name{font-family:var(--h);font-size:22px;font-weight:700;color:var(--tfdp);padding:14px 16px 12px;display:flex;align-items:center;gap:10px;background:var(--mint);border-bottom:1.5px solid var(--sage);}
+.group-count{font-size:13px;font-weight:400;color:var(--tfm);background:#fff;border:1px solid var(--tfm);border-radius:10px;padding:2px 9px;}
+.group-entries{padding:0 12px;}
+/* 每筆子記錄 */
+.sub-entry{padding:12px 4px;border-bottom:1px dashed var(--sage);}
+.sub-entry:last-child{border-bottom:none;}
+.sub-entry-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;flex-wrap:wrap;gap:6px;}
+.sub-entry-tags{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.sub-company{font-family:var(--h);font-size:14px;color:#555;font-weight:600;}
+.sub-detail{font-family:var(--h);font-size:13px;color:#666;margin-top:5px;padding-left:6px;border-left:2px solid var(--sage);}
+.sub-detail .sub-lbl{color:var(--tfd);font-weight:600;margin-right:6px;}
+.sub-entry-acts{display:flex;align-items:center;gap:4px;}
 .record-date-badge{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--mint);border:1px solid var(--sage);border-radius:10px;padding:3px 9px;}
 .del-btn{font-family:var(--h);font-size:13px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 6px;}
 .del-btn:hover{color:#B03030;}
-
-/* 子項目列表 */
-.record-sub{display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:3px solid var(--sage);margin-bottom:10px;}
-.sub-row{display:flex;align-items:flex-start;gap:6px;font-family:var(--h);font-size:14px;}
-.sub-label{color:var(--tfd);font-weight:600;min-width:56px;flex-shrink:0;}
-.sub-val{color:#444;flex:1;}
 .tag{display:inline-block;font-family:var(--h);font-size:13px;padding:2px 10px;border-radius:20px;font-weight:600;}
 .tag-teal{background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);}
 .tag-green{background:#E6F4EA;color:#2E7D42;border:1.5px solid #A8D5B2;}
@@ -439,45 +441,52 @@ function renderRecords() {
     return;
   }
 
-  list.innerHTML = filtered.map(function(r) {
-    var idx = records.indexOf(r);
-    var tagClass = TYPE_TAG[r.type] || 'tag-teal';
-    var extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
+  // ── 依客戶姓名分組 ──
+  var groups = {};
+  var groupOrder = [];
+  filtered.forEach(function(r) {
+    if (!groups[r.name]) {
+      groups[r.name] = [];
+      groupOrder.push(r.name);
+    }
+    groups[r.name].push(r);
+  });
 
-    // 組合子項目
-    var subItems = '';
+  list.innerHTML = groupOrder.map(function(name) {
+    var groupRecs = groups[name];
 
-    // 服務類型
-    if (r.type) {
-      subItems += '<div class="sub-row"><span class="sub-label">服務類型</span><span class="sub-val"><span class="tag ' + tagClass + '">' + r.type + '</span></span></div>';
-    }
-    // 保險公司
-    if (r.company) {
-      subItems += '<div class="sub-row"><span class="sub-label">保險公司</span><span class="sub-val">' + r.company + '</span></div>';
-    }
-    // 保單號碼
-    if (r.policy) {
-      subItems += '<div class="sub-row"><span class="sub-label">保單號碼</span><span class="sub-val">' + r.policy + '</span></div>';
-    }
-    // 額外欄位（信用卡/繳費方式）
-    Object.entries(extra).filter(function(e) { return e[1]; }).forEach(function(e) {
-      subItems += '<div class="sub-row"><span class="sub-label">' + e[0] + '</span><span class="sub-val">' + e[1] + '</span></div>';
-    });
-    // 備註
-    if (r.note) {
-      subItems += '<div class="sub-row"><span class="sub-label">備註</span><span class="sub-val">' + r.note + '</span></div>';
-    }
+    var subEntries = groupRecs.map(function(r) {
+      var idx = records.indexOf(r);
+      var tagClass = TYPE_TAG[r.type] || 'tag-teal';
+      var extra = typeof r.extra === 'string' ? JSON.parse(r.extra || '{}') : (r.extra || {});
+      var extraParts = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('　');
 
-    return '<div class="record" id="rec-' + idx + '">'
-      + '<div class="record-header">'
-      + '<span class="record-name">' + r.name + '</span>'
-      + '<span class="record-actions">'
-      + '<span class="record-date-badge">' + fmtDate(r.date) + '</span>'
-      + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')" title="刪除">✕</button>'
-      + '</span>'
+      var details = '';
+      if (r.policy) details += '<div class="sub-detail"><span class="sub-lbl">保單號碼</span>' + r.policy + '</div>';
+      if (extraParts) details += '<div class="sub-detail"><span class="sub-lbl">詳細</span>' + extraParts + '</div>';
+      if (r.note) details += '<div class="sub-detail"><span class="sub-lbl">備註</span>' + r.note + '</div>';
+
+      return '<div class="sub-entry" id="rec-' + idx + '">'
+        + '<div class="sub-entry-top">'
+        + '<div class="sub-entry-tags">'
+        + '<span class="record-date-badge">' + fmtDate(r.date) + '</span>'
+        + (r.type ? '<span class="tag ' + tagClass + '">' + r.type + '</span>' : '')
+        + (r.company ? '<span class="sub-company">' + r.company + '</span>' : '')
+        + '</div>'
+        + '<div class="sub-entry-acts">'
+        + '<button class="edit-btn" onclick="openEditBox(' + idx + ')">✏️ 編輯</button>'
+        + '<button class="del-btn" onclick="deleteRecord(\'' + r.id + '\')" title="刪除">✕</button>'
+        + '</div>'
+        + '</div>'
+        + details
+        + '</div>';
+    }).join('');
+
+    return '<div class="group-card">'
+      + '<div class="group-name">' + name
+      + '<span class="group-count">' + groupRecs.length + ' 筆</span>'
       + '</div>'
-      + '<div class="record-sub">' + subItems + '</div>'
-      + '<button class="edit-btn" onclick="openEditBox(' + idx + ')">✏️ 編輯</button>'
+      + '<div class="group-entries">' + subEntries + '</div>'
       + '</div>';
   }).join('');
 }
