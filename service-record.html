@@ -368,6 +368,8 @@ function openEditBox(idx) {
   box.id = 'edit-box-' + idx;
   box.className = 'edit-box';
   box.innerHTML = '<div class="edit-box-t">編輯記錄</div>'
+    + '<div class="f" style="margin-bottom:10px;"><label>客戶姓名</label>'
+    + '<input id="et-name-' + idx + '" type="text" value="' + (r.name || '') + '" placeholder="客戶姓名"></div>'
     + '<div class="f" style="margin-bottom:10px;"><label>服務類型</label>'
     + '<select id="et-type-' + idx + '" onchange="onEditTypeChange(' + idx + ')">'
     + '<option value="">請選擇</option>' + typeOpts + '</select></div>'
@@ -391,6 +393,9 @@ function onEditTypeChange(idx) {
 async function saveEdit(idx) {
   var r = records[idx];
   if (!r) return;
+  var nameEl = document.getElementById('et-name-' + idx);
+  var name = nameEl ? nameEl.value.trim() : r.name;
+  if (!name) { alert('客戶姓名不能為空'); return; }
   var type = document.getElementById('et-type-' + idx).value;
   var company = document.getElementById('et-company-' + idx).value;
   var policy = document.getElementById('et-policy-' + idx).value.trim();
@@ -399,8 +404,9 @@ async function saveEdit(idx) {
   var extraText = Object.entries(extra).filter(function(e) { return e[1]; }).map(function(e) { return e[0] + '：' + e[1]; }).join('、');
   setSb('sl2', '更新中...');
   try {
-    var url = API + '?action=edit&id=' + encodeURIComponent(r.id) + '&type=' + encodeURIComponent(type) + '&company=' + encodeURIComponent(company) + '&policy=' + encodeURIComponent(policy) + '&note=' + encodeURIComponent(note) + '&extra=' + encodeURIComponent(extraText);
+    var url = API + '?action=edit&id=' + encodeURIComponent(r.id) + '&name=' + encodeURIComponent(name) + '&type=' + encodeURIComponent(type) + '&company=' + encodeURIComponent(company) + '&policy=' + encodeURIComponent(policy) + '&note=' + encodeURIComponent(note) + '&extra=' + encodeURIComponent(extraText);
     await fetch(url);
+    records[idx].name = name;
     records[idx].type = type;
     records[idx].company = company;
     records[idx].policy = policy;
