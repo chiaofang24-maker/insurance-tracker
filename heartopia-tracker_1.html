@@ -1,0 +1,342 @@
+<title>心動小鎮烹飪追蹤</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #FDF6E3;
+  --surface: #FFFEF5;
+  --surface-2: #FBF4DC;
+  --border: #E2CFA0;
+  --text: #3D2B0A;
+  --muted: #8B7040;
+  --accent: #8B6310;
+  --accent-fg: #FFFFFF;
+  --done-bg: #EEF7E8;
+  --done-border: #8DC97A;
+  --done-text: #2D6B1A;
+  --gap-color: #C45C08;
+  --chip-bg: #F5EAC8;
+  --chip-on: #8B6310;
+  --chip-on-fg: #FFFFFF;
+  --r: 14px;
+  --rs: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1E1A0C; --surface: #28230F; --surface-2: #332C14;
+    --border: #4A3E1E; --text: #F0E0B0; --muted: #A08C50;
+    --accent: #C49A28; --accent-fg: #1E1A0C;
+    --done-bg: #0F1E0A; --done-border: #3A7030; --done-text: #6CC45A;
+    --gap-color: #E8854A;
+    --chip-bg: #2A2410; --chip-on: #C49A28; --chip-on-fg: #1E1A0C;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1E1A0C; --surface: #28230F; --surface-2: #332C14;
+  --border: #4A3E1E; --text: #F0E0B0; --muted: #A08C50;
+  --accent: #C49A28; --accent-fg: #1E1A0C;
+  --done-bg: #0F1E0A; --done-border: #3A7030; --done-text: #6CC45A;
+  --gap-color: #E8854A;
+  --chip-bg: #2A2410; --chip-on: #C49A28; --chip-on-fg: #1E1A0C;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Serif TC',Georgia,serif;background:var(--bg);color:var(--text);min-height:100svh;-webkit-text-size-adjust:100%}
+
+/* ── Sticky header ── */
+.hd{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--border);padding:.875rem 1rem 0}
+.hd-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.5rem;gap:.5rem}
+.hd-title{font-family:'Noto Serif TC',Georgia,serif;font-size:1.65rem;font-weight:400;color:var(--accent);white-space:nowrap}
+.hd-stat{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hd-stat strong{color:var(--text);font-weight:600}
+.prog-bar{height:4px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-bottom:.625rem}
+.prog-fill{height:100%;background:var(--done-text);border-radius:99px;transition:width .4s ease}
+.cat-row{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.75rem;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.cat-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:.35rem .8rem;background:var(--chip-bg);border:1px solid var(--border);border-radius:99px;font-size:.85rem;font-weight:400;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;transition:background .15s,color .15s,border-color .15s;font-family:'Noto Serif TC',Georgia,serif}
+.chip.on{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+
+/* ── List ── */
+.list{padding:.5rem 1rem 6rem;display:flex;flex-direction:column;gap:.4rem;max-width:480px;margin:0 auto}
+
+/* ── Card (accordion) ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card.done{background:var(--done-bg);border-color:var(--done-border)}
+
+/* Collapsed header row — always visible, tap to toggle */
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.75rem 1rem;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.cname{font-family:'Noto Serif TC',Georgia,serif;font-size:1.05rem;font-weight:400;color:var(--text);line-height:1.3;flex:1}
+.head-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.ctarget{font-size:.75rem;color:var(--muted);white-space:nowrap}
+.chevron{font-size:.75rem;color:var(--muted);transition:transform .2s;display:inline-block}
+.card.open .chevron{transform:rotate(180deg)}
+
+/* Expandable body */
+.card-body{display:none;padding:0 1rem .875rem;border-top:1px solid var(--border)}
+.card.open .card-body{display:block}
+
+.ing-row{display:flex;flex-wrap:wrap;gap:.3rem;margin:0.625rem 0}
+.ichip{font-size:.75rem;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:.15rem .45rem;white-space:nowrap}
+
+/* Controls */
+.ctrl-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.clabel{font-size:.8rem;color:var(--muted);white-space:nowrap}
+.cinp{height:38px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--rs);font-family:'Noto Serif TC',Georgia,serif;font-size:1.125rem;font-weight:400;font-variant-numeric:tabular-nums;color:var(--text);text-align:center;-webkit-appearance:none;appearance:none;outline:none;width:90px}
+.cinp:focus{border-color:var(--accent)}
+
+/* Result rows */
+.res{display:flex;flex-direction:column;gap:.4rem;margin-top:.375rem}
+.res-row{display:flex;align-items:baseline;gap:.5rem}
+.rlabel{font-size:.75rem;font-weight:500;color:var(--muted);white-space:nowrap;min-width:54px;flex-shrink:0}
+.rval{font-size:.875rem;color:var(--text);line-height:1.4}
+.rval.gap-num{font-family:'Noto Serif TC',Georgia,serif;font-size:1.3rem;font-weight:400;color:var(--gap-color);font-variant-numeric:tabular-nums}
+.rval.mat-txt{color:var(--muted);font-size:.8125rem;word-break:break-all}
+
+/* Done state */
+.done-badge{font-size:.8rem;font-weight:600;color:var(--done-text);background:var(--done-bg);border:1px solid var(--done-border);border-radius:99px;padding:.15rem .55rem;white-space:nowrap}
+</style>
+
+<div class="hd">
+  <div class="hd-top">
+    <span class="hd-title">心動小鎮烹飪追蹤</span>
+    <span class="hd-stat">已達標 <strong id="sDone">0</strong> / <span id="sTotal">76</span></span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="oFill" style="width:0%"></div></div>
+  <div class="cat-row" id="cats"></div>
+</div>
+
+<main class="list" id="list"></main>
+
+<script>
+const RECIPES = [
+  // 菇類料理 (11)
+  {id:'mp1',name:'平菇派',         cat:'菇類料理',ing:'平菇*2、小麥、雞蛋',          target:720},
+  {id:'mp2',name:'蘑菇派',         cat:'菇類料理',ing:'任意菇*2、小麥、雞蛋',        target:720},
+  {id:'mp3',name:'香菇派',         cat:'菇類料理',ing:'香菇*2、小麥、雞蛋',          target:720},
+  {id:'mp4',name:'洋菇派',         cat:'菇類料理',ing:'洋菇*2、小麥、雞蛋',          target:720},
+  {id:'mp5',name:'牛肝箘派',       cat:'菇類料理',ing:'牛肝箘菇*2、小麥、雞蛋',     target:720},
+  {id:'mp6',name:'黑松露派',       cat:'菇類料理',ing:'黑松露*2、小麥、雞蛋',        target:480},
+  {id:'rm1',name:'烤蘑菇',         cat:'菇類料理',ing:'任意菇*4',                    target:720},
+  {id:'rm2',name:'烤香菇',         cat:'菇類料理',ing:'香菇*4',                      target:720},
+  {id:'rm3',name:'烤洋菇',         cat:'菇類料理',ing:'洋菇*4',                      target:720},
+  {id:'rm4',name:'烤平菇',         cat:'菇類料理',ing:'平菇*4',                      target:720},
+  {id:'rm5',name:'烤牛肝箘',       cat:'菇類料理',ing:'牛肝箘*4',                    target:720},
+  // 果醬料理 (10)
+  {id:'jm1',name:'什錦果醬',       cat:'果醬料理',ing:'任意水果*4',                  target:960},
+  {id:'jm2',name:'樹莓果醬',       cat:'果醬料理',ing:'樹莓*4',                      target:960},
+  {id:'jm3',name:'藍莓果醬',       cat:'果醬料理',ing:'藍莓*4',                      target:960},
+  {id:'jm4',name:'番茄醬',         cat:'果醬料理',ing:'番茄*4',                      target:960},
+  {id:'jm5',name:'蘋果果醬',       cat:'果醬料理',ing:'蘋果*4',                      target:960},
+  {id:'jm6',name:'橘子果醬',       cat:'果醬料理',ing:'橘子*4',                      target:960},
+  {id:'jm7',name:'草莓果醬',       cat:'果醬料理',ing:'草莓*4',                      target:960},
+  {id:'jm8',name:'鳳梨果醬',       cat:'果醬料理',ing:'鳳梨*4',                      target:960},
+  {id:'jm9',name:'葡萄果醬',       cat:'果醬料理',ing:'葡萄*4',                      target:960},
+  {id:'jm10',name:'巧克力醬',      cat:'果醬料理',ing:'可可豆*4',                    target:960},
+  // 甜點類 (4)
+  {id:'ds1',name:'奶酪蛋糕',       cat:'甜點類',  ing:'奶酪、牛奶、小麥',            target:960},
+  {id:'ds2',name:'蘋果派',         cat:'甜點類',  ing:'蘋果、小麥、雞蛋、奶油',      target:720},
+  {id:'ds3',name:'胡蘿蔔蛋糕',     cat:'甜點類',  ing:'胡蘿蔔*2、小麥、雞蛋',       target:720},
+  {id:'ds4',name:'提拉米蘇',       cat:'甜點類',  ing:'咖啡豆、雞蛋、牛奶、奶酪',   target:480},
+  // 飲料類 (20)
+  {id:'cf1',name:'咖啡',           cat:'飲料類',  ing:'咖啡豆*4',                    target:960},
+  {id:'cf2',name:'拿鐵咖啡',       cat:'飲料類',  ing:'咖啡豆*2、牛奶*2',            target:960},
+  {id:'te1',name:'紅茶',           cat:'飲料類',  ing:'紅茶*4',                      target:360},
+  {id:'te2',name:'奶茶',           cat:'飲料類',  ing:'紅茶*2、牛奶*2',              target:360},
+  {id:'te3',name:'可可奶茶',       cat:'飲料類',  ing:'紅茶*2、牛奶、可可豆',        target:360},
+  {id:'ms1',name:'奶昔',           cat:'飲料類',  ing:'牛奶*4',                      target:360},
+  {id:'ms2',name:'可可奶昔',       cat:'飲料類',  ing:'牛奶*2、可可豆*2',            target:360},
+  {id:'ms3',name:'樹莓奶昔',       cat:'飲料類',  ing:'牛奶*2、樹莓*2',              target:360},
+  {id:'ms4',name:'藍莓奶昔',       cat:'飲料類',  ing:'牛奶*2、藍莓*2',              target:360},
+  {id:'ms5',name:'蘋果奶昔',       cat:'飲料類',  ing:'牛奶*2、蘋果*2',              target:360},
+  {id:'ms6',name:'橘子奶昔',       cat:'飲料類',  ing:'牛奶*2、橘子*2',              target:360},
+  {id:'ms7',name:'鳳梨奶昔',       cat:'飲料類',  ing:'牛奶*2、鳳梨*2',              target:360},
+  {id:'ms8',name:'草莓奶昔',       cat:'飲料類',  ing:'牛奶*2、草莓*2',              target:360},
+  {id:'ms9',name:'葡萄奶昔',       cat:'飲料類',  ing:'牛奶*2、葡萄*2',              target:360},
+  {id:'ms10',name:'抹茶奶昔',      cat:'飲料類',  ing:'牛奶*2、抹茶粉*2',            target:360},
+  {id:'te4',name:'綠茶',           cat:'飲料類',  ing:'茶葉*4',                      target:360},
+  {id:'te5',name:'清新奶綠',       cat:'飲料類',  ing:'茶葉*2、牛奶*2',              target:360},
+  {id:'te6',name:'抹茶奶綠',       cat:'飲料類',  ing:'茶葉*2、牛奶、抹茶粉',        target:360},
+  {id:'te7',name:'雛菊花茶',       cat:'飲料類',  ing:'茶葉*2、白色雛菊*2',          target:360},
+  {id:'te8',name:'玫瑰花茶',       cat:'飲料類',  ing:'茶葉*2、紅色玫瑰*2',          target:360},
+  // 浮雲捲 (8)
+  {id:'fc1',name:'原味浮雲捲',     cat:'浮雲捲',  ing:'任意彩虹糖*2、雞蛋、牛奶',   target:270},
+  {id:'fc2',name:'紅色浮雲捲',     cat:'浮雲捲',  ing:'紅色糖*2、雞蛋、牛奶',       target:90},
+  {id:'fc3',name:'黃色浮雲捲',     cat:'浮雲捲',  ing:'黃色糖*2、雞蛋、牛奶',       target:90},
+  {id:'fc4',name:'橙色浮雲捲',     cat:'浮雲捲',  ing:'橙色糖*2、雞蛋、牛奶',       target:90},
+  {id:'fc5',name:'綠色浮雲捲',     cat:'浮雲捲',  ing:'綠色糖*2、雞蛋、牛奶',       target:90},
+  {id:'fc6',name:'藍色浮雲捲',     cat:'浮雲捲',  ing:'藍色糖*2、雞蛋、牛奶',       target:270},
+  {id:'fc7',name:'青色浮雲捲',     cat:'浮雲捲',  ing:'青色糖*2、雞蛋、牛奶',       target:270},
+  {id:'fc8',name:'紫色浮雲捲',     cat:'浮雲捲',  ing:'紫色糖*2、雞蛋、牛奶',       target:270},
+  // 其他 (19)
+  {id:'mf1', name:'田園沙拉',         cat:'其他',ing:'任意蔬菜*2',                        target:960},
+  {id:'mf2', name:'炸魚薯條',         cat:'其他',ing:'任意魚*2、馬鈴薯*2',               target:960},
+  {id:'mf3', name:'燻魚貝果',         cat:'其他',ing:'任意魚、奶酪、任意蔬菜、小麥',     target:960},
+  {id:'mf4', name:'海葡萄香菇茶碗蒸', cat:'其他',ing:'海葡萄*2、香菇、無菌蛋',           target:960},
+  {id:'mf5', name:'裙帶菜肉丸湯',     cat:'其他',ing:'裙帶菜*2、肉*2',                   target:960},
+  {id:'mf6', name:'海鮮燴飯',         cat:'其他',ing:'任意海鮮*2、小麥、番茄',           target:720},
+  {id:'mf7', name:'鄉村燉菜',         cat:'其他',ing:'番茄、馬鈴薯、生菜',               target:720},
+  {id:'mf8', name:'黑松露奶油意麵',   cat:'其他',ing:'黑松露、小麥*2、牛奶',             target:480},
+  {id:'mf9', name:'海蘆筍蝦仁炒飯',  cat:'其他',ing:'稻米、海蘆筍*2、海蝦',             target:960},
+  {id:'mf10',name:'海鮮披薩',         cat:'其他',ing:'奶酪、番茄醬、小麥、任意魚',       target:720},
+  {id:'mf11',name:'肉醬義大利麵',     cat:'其他',ing:'肉、小麥、番茄、奶酪',             target:720},
+  {id:'mf12',name:'玉米濃湯',         cat:'其他',ing:'玉米*2、牛奶、奶油',               target:720},
+  {id:'mf13',name:'豪華海鮮拼盤',     cat:'其他',ing:'北歐螯蝦*2、任意魚*2',             target:360},
+  {id:'mf14',name:'鮮肉漢堡',         cat:'其他',ing:'小麥、生菜、肉、番茄醬',           target:480},
+  {id:'mf15',name:'螯蝦冷盤',         cat:'其他',ing:'螯蝦*3、生菜',                     target:360},
+  {id:'mf16',name:'藍色北歐螯蝦冷盤', cat:'其他',ing:'藍色北歐螯蝦*3、生菜',             target:360},
+  {id:'mf17',name:'肉醬焗茄子',       cat:'其他',ing:'茄子、肉、食用油、番茄醬',         target:360},
+  {id:'mf18',name:'清蒸帝王蟹',       cat:'其他',ing:'帝王蟹*3、奶油',                   target:360},
+  {id:'mf19',name:'清蒸黃金帝王蟹',   cat:'其他',ing:'黃金帝王蟹*3、奶油',               target:360},
+  // 套餐 (4)
+  {id:'sm1',name:'露營套餐',     cat:'套餐',ing:'咖啡、披薩、蘋果派、炸魚薯條',          target:480},
+  {id:'sm2',name:'英式下午茶',   cat:'套餐',ing:'提拉米蘇、任意果醬',                    target:480},
+  {id:'sm3',name:'燭光晚餐',     cat:'套餐',ing:'田園沙拉、燻魚貝果、海鮮燴飯、提拉米蘇',target:360},
+  {id:'sm4',name:'精緻下午茶宴', cat:'套餐',ing:'奶酪蛋糕*2、紅茶*2',                    target:360},
+];
+
+// ── State ──────────────────────────────────────────────
+const KEY = 'heartopia-v3';
+let counts = {};
+try { counts = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(counts)); } catch(e){} };
+
+// ── Helpers ────────────────────────────────────────────
+function parseIng(str) {
+  return str.split('、').map(s => {
+    const m = s.trim().match(/^(.+?)\*(\d+)$/);
+    return m ? {name:m[1].trim(), qty:parseInt(m[2])} : {name:s.trim(), qty:1};
+  });
+}
+
+function fmtMats(ingStr, gap) {
+  if (gap <= 0) return '';
+  return parseIng(ingStr).map(i => `${i.name}×${i.qty * gap}`).join('、');
+}
+
+function getC(id) { return counts[id] || 0; }
+
+function setC(id, val, target) {
+  const v = Math.min(Math.max(parseInt(val) || 0, 0), target);
+  counts[id] = v; save(); return v;
+}
+
+let activeCat = '全部';
+let openId = null;
+
+// ── Render ─────────────────────────────────────────────
+function renderHeader() {
+  const done = RECIPES.filter(r => getC(r.id) >= r.target).length;
+  document.getElementById('sDone').textContent = done;
+  document.getElementById('sTotal').textContent = RECIPES.length;
+  document.getElementById('oFill').style.width = (done / RECIPES.length * 100) + '%';
+}
+
+function renderCats() {
+  const cats = ['全部', ...new Set(RECIPES.map(r => r.cat))];
+  document.getElementById('cats').innerHTML = cats.map(c => {
+    const sub = c === '全部' ? RECIPES : RECIPES.filter(r => r.cat === c);
+    const d = sub.filter(r => getC(r.id) >= r.target).length;
+    return `<button class="chip${c===activeCat?' on':''}" data-cat="${c}">${c} ${d}/${sub.length}</button>`;
+  }).join('');
+}
+
+function cardHTML(r, isOpen) {
+  const c = getC(r.id), gap = Math.max(r.target - c, 0), done = gap === 0;
+  const ings = parseIng(r.ing);
+  const ingChips = ings.map(i => `<span class="ichip">${i.name}${i.qty>1?'×'+i.qty:''}</span>`).join('');
+  const mats = fmtMats(r.ing, gap);
+
+  return `<div class="card${done?' done':''}${isOpen?' open':''}" id="card-${r.id}">
+    <div class="card-head" data-id="${r.id}">
+      <span class="cname">${r.name}</span>
+      <div class="head-right">
+        ${done ? '<span class="done-badge">✓ 達標</span>' : `<span class="ctarget">${c}/${r.target}</span>`}
+        <span class="chevron">▾</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="ing-row">${ingChips}</div>
+      ${done
+        ? `<div style="font-size:.9rem;color:var(--done-text);padding:.25rem 0">✓ 已達標精通！</div>`
+        : `<div class="ctrl-row">
+            <span class="clabel">目前數量</span>
+            <input class="cinp" type="number" inputmode="numeric"
+              data-id="${r.id}" data-t="${r.target}" value="${c}" min="0" max="${r.target}">
+          </div>
+          <div class="res">
+            <div class="res-row">
+              <span class="rlabel">達標差額</span>
+              <span class="rval gap-num" id="gap-${r.id}">${gap} 份</span>
+            </div>
+            <div class="res-row">
+              <span class="rlabel">還需材料</span>
+              <span class="rval mat-txt" id="mat-${r.id}">${mats}</span>
+            </div>
+          </div>`
+      }
+    </div>
+  </div>`;
+}
+
+function renderList() {
+  const filtered = activeCat === '全部' ? RECIPES : RECIPES.filter(r => r.cat === activeCat);
+  const inc  = filtered.filter(r => getC(r.id) < r.target);
+  const done = filtered.filter(r => getC(r.id) >= r.target);
+  document.getElementById('list').innerHTML = [...inc, ...done].map(r => cardHTML(r, r.id === openId)).join('');
+}
+
+function renderAll() { renderHeader(); renderCats(); renderList(); }
+
+// Partial update (avoid full re-render when state doesn't flip)
+function updateCard(id, target) {
+  const c = getC(id), gap = Math.max(target - c, 0);
+  const gapEl = document.getElementById('gap-'+id);
+  const matEl = document.getElementById('mat-'+id);
+  if (gapEl) gapEl.textContent = gap + ' 份';
+  if (matEl) {
+    const r = RECIPES.find(x => x.id === id);
+    matEl.textContent = fmtMats(r.ing, gap);
+  }
+  const wasDone = document.getElementById('card-'+id)?.classList.contains('done');
+  const nowDone = gap === 0;
+  if (wasDone !== nowDone) renderAll();
+  else { renderHeader(); renderCats(); }
+}
+
+// ── Events ─────────────────────────────────────────────
+document.addEventListener('click', e => {
+  // Category chip
+  if (e.target.matches('.chip')) {
+    activeCat = e.target.dataset.cat;
+    openId = null;
+    renderAll();
+    return;
+  }
+  // Card header toggle
+  const head = e.target.closest('.card-head');
+  if (head && !e.target.matches('.cinp')) {
+    const id = head.dataset.id;
+    openId = openId === id ? null : id;
+    renderList();
+    // Scroll card into view
+    if (openId) {
+      setTimeout(() => {
+        const el = document.getElementById('card-' + openId);
+        if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+      }, 50);
+    }
+    return;
+  }
+});
+
+document.addEventListener('change', e => {
+  if (e.target.matches('.cinp')) {
+    const {id, t} = e.target.dataset;
+    const target = parseInt(t);
+    const nv = setC(id, e.target.value, target);
+    e.target.value = nv;
+    updateCard(id, target);
+  }
+});
+
+// ── Init ───────────────────────────────────────────────
+renderAll();
+</script>
