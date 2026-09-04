@@ -254,14 +254,14 @@ function cardHTML(r, isOpen) {
     </div>
     <div class="card-body">
       <div class="ing-row">${ingChips}</div>
+      <div class="ctrl-row">
+        <span class="clabel">目前數量</span>
+        <input class="cinp" type="number" inputmode="numeric"
+          data-id="${r.id}" data-t="${r.target}" value="${c}" min="0" max="${r.target}">
+      </div>
       ${done
         ? `<div style="font-size:.9rem;color:var(--done-text);padding:.25rem 0">✓ 已達標精通！</div>`
-        : `<div class="ctrl-row">
-            <span class="clabel">目前數量</span>
-            <input class="cinp" type="number" inputmode="numeric"
-              data-id="${r.id}" data-t="${r.target}" value="${c}" min="0" max="${r.target}">
-          </div>
-          <div class="res">
+        : `<div class="res">
             <div class="res-row">
               <span class="rlabel">達標差額</span>
               <span class="rval gap-num" id="gap-${r.id}">${gap} 份</span>
