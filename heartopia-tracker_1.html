@@ -248,7 +248,7 @@ function cardHTML(r, isOpen) {
     <div class="card-head" data-id="${r.id}">
       <span class="cname">${r.name}</span>
       <div class="head-right">
-        ${done ? '<span class="done-badge">✓ 達標</span>' : `<span class="ctarget">${c}/${r.target}</span>`}
+        ${done ? '<span class="done-badge">✓ 達標</span>' : `<span class="ctarget">還差 ${gap}</span>`}
         <span class="chevron">▾</span>
       </div>
     </div>
