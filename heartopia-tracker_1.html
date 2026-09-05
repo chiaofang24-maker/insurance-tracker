@@ -390,7 +390,7 @@ function allIngredients() {
       if (!map[key]) map[key] = 0;
     });
   });
-  return Object.keys(map).sort((a,b) => a.localeCompare(b, 'zh-Hant'));
+  return Object.keys(map).sort((a,b) => a.length - b.length || a.localeCompare(b, 'zh-Hant'));
 }
 
 function renderIngGrid() {
