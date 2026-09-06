@@ -551,32 +551,35 @@ function renderRecords(){
     var entries=gRecs.map(function(r){
       var idx=records.indexOf(r);
       var tagClass=TYPE_TAG[r.type]||'tag-teal';
+      // 相容舊記錄（中文欄位名）與新記錄（英文欄位名）
+      var rawExtra=r.extra||r['補充資料']||'';
+      var rawNote=r.note||r['備註']||'';
+      var rawPolicy=r.policy||r['保單號碼']||'';
       var ex={},extraLines='';
-      if(typeof r.extra==='string'&&r.extra){
+      if(typeof rawExtra==='string'&&rawExtra){
         try{
-          ex=JSON.parse(r.extra);
+          ex=JSON.parse(rawExtra);
           extraLines=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){
             return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+e[0]+'</span>'+e[1]+'</div>';
           }).join('');
         }catch(e){
-          // 文字格式：用「、」分割逐行顯示
-          extraLines=r.extra.split('、').map(function(p){
+          extraLines=rawExtra.split('、').map(function(p){
             var ci=p.indexOf('：');
             if(ci>-1)return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+p.substring(0,ci)+'</span>'+p.substring(ci+1)+'</div>';
-            return p?'<div>'+p+'</div>':'';
+            return p.trim()?'<div>'+p.trim()+'</div>':'';
           }).join('');
         }
-      }else if(r.extra&&typeof r.extra==='object'){
-        ex=r.extra;
+      }else if(rawExtra&&typeof rawExtra==='object'){
+        ex=rawExtra;
         extraLines=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){
           return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+e[0]+'</span>'+e[1]+'</div>';
         }).join('');
       }
-      var hasDetail=r.policy||extraLines||r.note;
+      var hasDetail=rawPolicy||extraLines||rawNote;
       var details='';
-      if(r.policy)details+='<div class="sub-detail"><span class="sub-lbl">保單號碼</span>'+r.policy+'</div>';
+      if(rawPolicy)details+='<div class="sub-detail"><span class="sub-lbl">保單號碼</span>'+rawPolicy+'</div>';
       if(extraLines)details+='<div class="sub-detail" style="line-height:1.8;">'+extraLines+'</div>';
-      if(r.note)details+='<div class="sub-detail"><span class="sub-lbl">備註</span>'+r.note+'</div>';
+      if(rawNote)details+='<div class="sub-detail"><span class="sub-lbl">備註</span>'+rawNote+'</div>';
       return'<div class="sub-entry" id="rec-'+idx+'">'
         +'<div class="sub-entry-top" style="cursor:pointer;" onclick="togDetail(\'det-'+idx+'\')">'
         +'<div class="sub-entry-tags">'
