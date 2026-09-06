@@ -317,6 +317,8 @@ async function loadAll(){
     var[d1,d2]=await Promise.all([r1.json(),r2.json()]);
     records=Array.isArray(d1)?d1:[];
     expiryRecs=Array.isArray(d2)?d2:[];
+    // 診斷：在 console 顯示第一筆記錄的所有欄位名稱
+    if(records.length>0){console.log('[診斷] 服務記錄第一筆欄位名稱：',Object.keys(records[0]));console.log('[診斷] 服務記錄第一筆完整資料：',JSON.stringify(records[0]));}
     setSb('sok','已連線，資料同步自 Google Sheets');
     updSvcStats();updExpStats();
   }catch(e){setSb('ser','無法連線，請檢查網路');}
@@ -551,10 +553,31 @@ function renderRecords(){
     var entries=gRecs.map(function(r){
       var idx=records.indexOf(r);
       var tagClass=TYPE_TAG[r.type]||'tag-teal';
-      // 相容舊記錄（中文欄位名）與新記錄（英文欄位名）
+      // 已知的基本欄位（不顯示在補充資料區）
+      var KNOWN=['id','name','date','type','company','row','timestamp','extra','note','policy','補充資料','備註','保單號碼'];
+      // 用所有可能的欄位名稱找補充資料
       var rawExtra=r.extra||r['補充資料']||'';
       var rawNote=r.note||r['備註']||'';
       var rawPolicy=r.policy||r['保單號碼']||'';
+      // 如果標準欄位都沒找到，掃描所有未知欄位
+      if(!rawExtra&&!rawNote&&!rawPolicy){
+        Object.keys(r).forEach(function(k){
+          if(KNOWN.indexOf(k)===-1&&r[k]){
+            var v=String(r[k]);
+            // 判斷是否像補充資料（含「銀行」「卡號」「年月」等）
+            if(k.indexOf('補充')>-1||k.indexOf('extra')>-1||v.indexOf('銀行')>-1||v.indexOf('卡號')>-1||v.indexOf('年月')>-1){
+              rawExtra=rawExtra||v;
+            }else if(k.indexOf('備註')>-1||k.indexOf('note')>-1){
+              rawNote=rawNote||v;
+            }else if(k.indexOf('保單')>-1||k.indexOf('policy')>-1){
+              rawPolicy=rawPolicy||v;
+            }else{
+              // 其他未知欄位直接加到備註顯示
+              rawNote=rawNote?(rawNote+' / '+k+'：'+v):(k+'：'+v);
+            }
+          }
+        });
+      }
       var ex={},extraLines='';
       if(typeof rawExtra==='string'&&rawExtra){
         try{
@@ -563,9 +586,9 @@ function renderRecords(){
             return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+e[0]+'</span>'+e[1]+'</div>';
           }).join('');
         }catch(e){
-          extraLines=rawExtra.split('、').map(function(p){
+          extraLines=rawExtra.split(/[、,]/).map(function(p){
             var ci=p.indexOf('：');
-            if(ci>-1)return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+p.substring(0,ci)+'</span>'+p.substring(ci+1)+'</div>';
+            if(ci>-1)return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+p.substring(0,ci).trim()+'</span>'+p.substring(ci+1).trim()+'</div>';
             return p.trim()?'<div>'+p.trim()+'</div>':'';
           }).join('');
         }
