@@ -551,13 +551,31 @@ function renderRecords(){
     var entries=gRecs.map(function(r){
       var idx=records.indexOf(r);
       var tagClass=TYPE_TAG[r.type]||'tag-teal';
-      var ex={},extraParts='';
-      if(typeof r.extra==='string'&&r.extra){try{ex=JSON.parse(r.extra);extraParts=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');}catch(e){extraParts=r.extra;}}
-      else if(r.extra&&typeof r.extra==='object'){ex=r.extra;extraParts=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('　');}
-      var hasDetail=r.policy||extraParts||r.note;
+      var ex={},extraLines='';
+      if(typeof r.extra==='string'&&r.extra){
+        try{
+          ex=JSON.parse(r.extra);
+          extraLines=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){
+            return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+e[0]+'</span>'+e[1]+'</div>';
+          }).join('');
+        }catch(e){
+          // 文字格式：用「、」分割逐行顯示
+          extraLines=r.extra.split('、').map(function(p){
+            var ci=p.indexOf('：');
+            if(ci>-1)return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+p.substring(0,ci)+'</span>'+p.substring(ci+1)+'</div>';
+            return p?'<div>'+p+'</div>':'';
+          }).join('');
+        }
+      }else if(r.extra&&typeof r.extra==='object'){
+        ex=r.extra;
+        extraLines=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){
+          return'<div style="margin-bottom:2px;"><span class="sub-lbl">'+e[0]+'</span>'+e[1]+'</div>';
+        }).join('');
+      }
+      var hasDetail=r.policy||extraLines||r.note;
       var details='';
       if(r.policy)details+='<div class="sub-detail"><span class="sub-lbl">保單號碼</span>'+r.policy+'</div>';
-      if(extraParts)details+='<div class="sub-detail"><span class="sub-lbl">詳細</span>'+extraParts+'</div>';
+      if(extraLines)details+='<div class="sub-detail" style="line-height:1.8;">'+extraLines+'</div>';
       if(r.note)details+='<div class="sub-detail"><span class="sub-lbl">備註</span>'+r.note+'</div>';
       return'<div class="sub-entry" id="rec-'+idx+'">'
         +'<div class="sub-entry-top" style="cursor:pointer;" onclick="togDetail(\'det-'+idx+'\')">'
