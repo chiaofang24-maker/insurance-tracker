@@ -108,10 +108,14 @@ body{background:#F5FAFA;font-family:var(--h);}
 /* 信用卡自動加入提示 */
 .auto-note{font-family:var(--h);font-size:13px;color:var(--tfd);background:var(--tfl);border:1px solid var(--tfm);border-radius:10px;padding:7px 13px;margin-bottom:10px;display:none;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="app">
-<div class="hdr"><h1>保單服務系統</h1><p>服務記錄・到期追蹤・一站管理</p></div>
+<div class="hdr" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+  <div><h1>保單服務系統</h1><p>服務記錄・到期追蹤・一站管理</p></div>
+  <button onclick="exportToExcel()" style="font-family:var(--h);font-size:14px;font-weight:600;padding:8px 16px;border-radius:14px;background:rgba(255,255,255,0.2);color:#fff;border:1.5px solid rgba(255,255,255,0.5);cursor:pointer;white-space:nowrap;">📥 匯出試算表</button>
+</div>
 <div id="sb" class="sb sl2">連線中，載入資料...</div>
 
 <!-- ── Tabs 2×2 ── -->
@@ -640,6 +644,36 @@ function rHTML(r){
   var uid='r'+r.name.replace(/[^a-zA-Z0-9一-鿿]/g,'')+String(r.expiry).replace(/-/g,'')+String(r.type).charAt(0);
   var dbadge=d<0?'<span class="bg br">已過期</span>':d<=30?'<span class="bg br">剩'+d+'天</span>':d<=90?'<span class="bg ba">剩'+d+'天</span>':'<span class="bg bg2">剩'+d+'天</span>';
   var detId='expdet-'+uid;
+  // 解析備註：信用卡類型顯示結構化欄位
+  var noteHtml='';
+  if(r.type==='信用卡效期到期'){
+    var noteBank='',noteCard4='',noteCompany='',noteOther='';
+    if(r.note){r.note.split(' / ').forEach(function(p){
+      if(p.indexOf('銀行：')===0)noteBank=p.replace('銀行：','');
+      else if(p.indexOf('末四碼：')===0)noteCard4=p.replace('末四碼：','');
+      else if(p.indexOf('保險公司：')===0)noteCompany=p.replace('保險公司：','');
+      else if(p.trim())noteOther+=p+' ';
+    });}
+    // 從服務記錄補齊缺少的欄位
+    var svcInfo=getCardInfoFromSvc(r.name);
+    var fromSvc=false;
+    if(svcInfo){
+      if(!noteBank&&svcInfo.bank){noteBank=svcInfo.bank;fromSvc=true;}
+      if(!noteCard4&&svcInfo.card4){noteCard4=svcInfo.card4;fromSvc=true;}
+      if(!noteCompany&&svcInfo.company){noteCompany=svcInfo.company;fromSvc=true;}
+    }
+    noteHtml='<div style="margin-top:8px;padding:8px 10px;background:var(--mint);border-radius:10px;border:1px solid var(--sage);">';
+    if(fromSvc)noteHtml+='<div style="font-size:11px;color:var(--tfm);margin-bottom:4px;">部分資料來自服務記錄</div>';
+    noteHtml+='<div style="font-size:13px;line-height:2;">';
+    if(noteBank)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">銀行</span>'+noteBank+'</div>';
+    if(noteCard4)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">卡號末四碼</span>'+noteCard4+'</div>';
+    if(noteCompany)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">保險公司</span>'+noteCompany+'</div>';
+    if(noteOther.trim())noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">備註</span>'+noteOther.trim()+'</div>';
+    if(!noteBank&&!noteCard4&&!noteCompany&&!noteOther.trim())noteHtml+='<div style="color:#aaa;font-size:13px;">尚無信用卡資料</div>';
+    noteHtml+='</div></div>';
+  }else if(r.note){
+    noteHtml='<div class="rd" style="margin-top:8px;">備註：'+r.note+'</div>';
+  }
   return'<div class="rc '+cls+'" id="'+uid+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togDetail(\''+detId+'\')">'
     +'<div>'
@@ -652,8 +686,9 @@ function rHTML(r){
     +'<button class="del-btn" onclick="event.stopPropagation();delExpR(\''+r.name+'\',\''+r.expiry+'\')">✕</button>'
     +'</div></div>'
     +'<div id="'+detId+'" style="display:none;">'
-    +'<div class="rd" style="margin-top:8px;">到期日：'+fmtDate(r.expiry)+(r.note?'<br>備註：'+r.note:'')+'</div>'
-    +'<button class="edit-btn" style="margin-top:6px;" onclick="openExpEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">✏️ 編輯</button>'
+    +'<div class="rd" style="margin-top:8px;">到期日：'+fmtDate(r.expiry)+'</div>'
+    +noteHtml
+    +'<button class="edit-btn" style="margin-top:8px;" onclick="openExpEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">✏️ 編輯</button>'
     +(r.status!=='已處理'?
       '<button class="cb" onclick="togMsg(\''+uid+'\',\''+r.type+'\',\''+r.name+'\')">產出提醒訊息</button>'
       +'<button class="done-btn" onclick="markDone(\''+uid+'\',\''+r.name+'\',\''+r.expiry+'\')">標記已處理</button>'
@@ -680,6 +715,25 @@ function openExpEdit(name,expiry,type){
   for(var m=1;m<=12;m++){var mv=String(m).padStart(2,'0');mOpts+='<option value="'+mv+'"'+(em===mv?' selected':'')+'>'+ m+'月</option>';}
   var dOpts='<option value="">日</option>';
   for(var dd=1;dd<=31;dd++){var dv=String(dd).padStart(2,'0');dOpts+='<option value="'+dv+'"'+(ed===dv?' selected':'')+'>'+ dd+'日</option>';}
+  // 解析既有備註
+  var noteBank='',noteCard4='',noteCompany='',noteRaw=r.note||'';
+  if(type==='信用卡效期到期'&&noteRaw){
+    noteRaw.split(' / ').forEach(function(p){
+      if(p.indexOf('銀行：')===0)noteBank=p.replace('銀行：','');
+      else if(p.indexOf('末四碼：')===0)noteCard4=p.replace('末四碼：','');
+      else if(p.indexOf('保險公司：')===0)noteCompany=p.replace('保險公司：','');
+    });
+  }
+  var noteFields='';
+  if(type==='信用卡效期到期'){
+    noteFields='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'
+      +'<div class="f"><label>銀行名稱</label><input id="ee-bank-'+uid+'" type="text" value="'+noteBank+'" placeholder="玉山銀行"></div>'
+      +'<div class="f"><label>卡號末四碼</label><input id="ee-card4-'+uid+'" type="text" maxlength="4" value="'+noteCard4+'" placeholder="1234"></div>'
+      +'</div>'
+      +'<div class="f" style="margin-bottom:14px;"><label>保險公司</label><input id="ee-company-'+uid+'" type="text" value="'+noteCompany+'"></div>';
+  }else{
+    noteFields='<div class="f" style="margin-bottom:14px;"><label>備註</label><textarea id="ee-note-'+uid+'" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+noteRaw+'</textarea></div>';
+  }
   var box=document.createElement('div');
   box.id=boxId;box.className='edit-box';
   box.innerHTML='<div class="edit-box-t">編輯到期通知</div>'
@@ -689,14 +743,14 @@ function openExpEdit(name,expiry,type){
     +'<select id="ee-m-'+uid+'" style="'+sel+'">'+mOpts+'</select>'
     +'<select id="ee-d-'+uid+'" style="'+sel+'">'+dOpts+'</select>'
     +'</div></div>'
-    +'<div class="f" style="margin-bottom:14px;"><label>備註</label><textarea id="ee-note-'+uid+'" style="height:60px;resize:none;width:100%;font-family:var(--h);font-size:15px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;outline:none;">'+(r.note||'')+'</textarea></div>'
-    +'<button class="save-edit-btn" onclick="saveExpEdit(\''+name+'\',\''+expiry+'\',\''+uid+'\')">儲存</button>'
+    +noteFields
+    +'<button class="save-edit-btn" onclick="saveExpEdit(\''+name+'\',\''+expiry+'\',\''+uid+'\',\''+type+'\')">儲存</button>'
     +'<button class="cancel-edit-btn" onclick="document.getElementById(\''+boxId+'\').remove()">取消</button>';
   var el=document.getElementById(uid);
   if(el)el.appendChild(box);
 }
 
-async function saveExpEdit(origName,origExpiry,uid){
+async function saveExpEdit(origName,origExpiry,uid,type){
   var newName=(document.getElementById('ee-name-'+uid)||{}).value||'';
   newName=newName.trim();if(!newName){alert('客戶姓名不能為空');return;}
   var y=document.getElementById('ee-y-'+uid).value;
@@ -704,7 +758,15 @@ async function saveExpEdit(origName,origExpiry,uid){
   var dd=document.getElementById('ee-d-'+uid).value;
   if(!y||!m||!dd){alert('請選擇完整的到期日');return;}
   var newExpiry=y+'-'+m+'-'+dd;
-  var note=document.getElementById('ee-note-'+uid).value.trim();
+  var note='';
+  if(type==='信用卡效期到期'){
+    var bank=(document.getElementById('ee-bank-'+uid)||{}).value||'';
+    var card4=(document.getElementById('ee-card4-'+uid)||{}).value||'';
+    var company=(document.getElementById('ee-company-'+uid)||{}).value||'';
+    note=[bank?'銀行：'+bank:'',card4?'末四碼：'+card4:'',company?'保險公司：'+company:''].filter(Boolean).join(' / ');
+  }else{
+    note=(document.getElementById('ee-note-'+uid)||{}).value||'';note=note.trim();
+  }
   setSb('sl2','更新中...');
   try{
     var url=API2+'?action=edit&name='+encodeURIComponent(origName)+'&expiry='+encodeURIComponent(origExpiry)+'&newname='+encodeURIComponent(newName)+'&newexpiry='+encodeURIComponent(newExpiry)+'&note='+encodeURIComponent(note);
@@ -756,6 +818,63 @@ function rendExpList(){
   else if(curExpF!=='all')f=expiryRecs.filter(function(r){return r.type===curExpF;});
   f=f.slice().sort(function(a,b){return new Date(a.expiry)-new Date(b.expiry);});
   document.getElementById('rlist').innerHTML=f.length?f.map(function(r){return rHTML(r);}).join(''):'<div class="emp">沒有符合的記錄</div>';
+}
+
+// ── 從服務記錄補齊信用卡資料 ──
+function getCardInfoFromSvc(name){
+  var svcRecs=records.filter(function(r){return r.name===name&&r.type==='信用卡變更';});
+  if(!svcRecs.length)return null;
+  svcRecs.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  var rec=svcRecs[0];
+  var ex={};
+  if(typeof rec.extra==='string'&&rec.extra){try{ex=JSON.parse(rec.extra);}catch(e){}}
+  else if(rec.extra&&typeof rec.extra==='object'){ex=rec.extra;}
+  return{bank:ex['銀行名稱']||'',card4:ex['卡號後四碼']||'',company:rec.company||''};
+}
+
+// ── 匯出 Excel ──
+function exportToExcel(){
+  if(typeof XLSX==='undefined'){alert('試算表套件尚未載入，請確認網路連線後重試');return;}
+  var wb=XLSX.utils.book_new();
+  // 工作表1：服務記錄
+  var svcData=[['日期','客戶姓名','服務類型','保險公司','保單號碼','詳細資料','備註']];
+  records.forEach(function(r){
+    var ex={};
+    if(typeof r.extra==='string'&&r.extra){try{ex=JSON.parse(r.extra);}catch(e){}}
+    else if(r.extra&&typeof r.extra==='object'){ex=r.extra;}
+    var extraStr=Object.entries(ex).filter(function(e){return e[1];}).map(function(e){return e[0]+'：'+e[1];}).join('、');
+    svcData.push([fmtDate(r.date),r.name||'',r.type||'',r.company||'',r.policy||'',extraStr,r.note||'']);
+  });
+  var ws1=XLSX.utils.aoa_to_sheet(svcData);
+  ws1['!cols']=[{wch:12},{wch:10},{wch:14},{wch:12},{wch:14},{wch:30},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws1,'服務記錄');
+  // 工作表2：到期通知（補齊信用卡資料）
+  var expData=[['到期日','客戶姓名','類型','狀態','銀行','卡號末四碼','保險公司','備註']];
+  expiryRecs.forEach(function(r){
+    var bank='',card4='',company='',noteOther='';
+    if(r.note){r.note.split(' / ').forEach(function(p){
+      if(p.indexOf('銀行：')===0)bank=p.replace('銀行：','');
+      else if(p.indexOf('末四碼：')===0)card4=p.replace('末四碼：','');
+      else if(p.indexOf('保險公司：')===0)company=p.replace('保險公司：','');
+      else if(p.trim())noteOther+=p.trim()+' ';
+    });}
+    if(r.type==='信用卡效期到期'){
+      var svc=getCardInfoFromSvc(r.name);
+      if(svc){
+        if(!bank&&svc.bank)bank=svc.bank;
+        if(!card4&&svc.card4)card4=svc.card4;
+        if(!company&&svc.company)company=svc.company;
+      }
+    }
+    expData.push([fmtDate(r.expiry),r.name||'',r.type||'',r.status||'',bank,card4,company,noteOther.trim()||r.note||'']);
+  });
+  var ws2=XLSX.utils.aoa_to_sheet(expData);
+  ws2['!cols']=[{wch:12},{wch:10},{wch:14},{wch:8},{wch:12},{wch:10},{wch:12},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws2,'到期通知');
+  var now=new Date();
+  var fname='保單服務系統_'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'.xlsx';
+  XLSX.writeFile(wb,fname);
+  setSb('sok','試算表已下載：'+fname);
 }
 
 // ── Init ──
