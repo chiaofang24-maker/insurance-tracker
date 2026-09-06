@@ -359,15 +359,42 @@ function buildExtraHTML(type,prefix,ex){
     html+='</div><div id="'+prefix+'payer-other" style="margin-top:6px;'+(isOther?'':'display:none;')+'">';
     html+='<input id="'+prefix+'payer-other-input" type="text" placeholder="繳款人姓名" value="'+(isOther?ex['繳款人']:'')+'"></div></div></div>';
   }else if(type==='保費繳費方式變更'){
-    html+='<div class="xtra"><div class="xtra-t">繳費資料</div>';
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-    html+='<div class="f" style="grid-column:1/-1"><label>繳費方式</label><select id="'+prefix+'paytype">';
-    ['年繳','半年繳','季繳','月繳'].forEach(function(o){html+='<option'+(ex['繳費方式']===o?' selected':'')+'>'+o+'</option>';});
+    var curSrc=ex['新繳費方式']||'';
+    html+='<div class="xtra"><div class="xtra-t">繳費方式變更</div>';
+    // ── 繳費週期 ──
+    html+='<div style="font-size:13px;color:var(--tfd);font-weight:600;margin-bottom:6px;">繳費週期（選填）</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:14px;">';
+    html+='<div class="f"><label>原繳別</label><select id="'+prefix+'oldfreq">';
+    html+='<option value="">不變更</option>';
+    ['年繳','半年繳','季繳','月繳'].forEach(function(o){html+='<option'+(ex['原繳別']===o?' selected':'')+'>'+o+'</option>';});
     html+='</select></div>';
+    html+='<div style="text-align:center;padding-top:22px;color:var(--tfm);font-size:20px;">→</div>';
+    html+='<div class="f"><label>新繳別</label><select id="'+prefix+'newfreq">';
+    html+='<option value="">不變更</option>';
+    ['年繳','半年繳','季繳','月繳'].forEach(function(o){html+='<option'+(ex['新繳別']===o?' selected':'')+'>'+o+'</option>';});
+    html+='</select></div></div>';
+    // ── 繳費來源 ──
+    html+='<div style="font-size:13px;color:var(--tfd);font-weight:600;margin-bottom:6px;">繳費來源（選填）</div>';
+    html+='<div class="f" style="margin-bottom:10px;"><label>新繳費方式</label><select id="'+prefix+'paysrc" onchange="togPaySrc(\''+prefix+'\')">';
+    html+='<option value="">不變更</option>';
+    ['帳戶扣款','信用卡'].forEach(function(o){html+='<option value="'+o+'"'+(curSrc===o?' selected':'')+'>'+o+'</option>';});
+    html+='</select></div>';
+    // 帳戶扣款欄位
+    html+='<div id="'+prefix+'acct-fields" style="'+(curSrc==='帳戶扣款'?'':'display:none;')+'margin-bottom:10px;">';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
     html+='<div class="f"><label>銀行名稱</label><input id="'+prefix+'paybank" type="text" placeholder="台灣銀行" value="'+(ex['銀行名稱']||'')+'"></div>';
-    html+='<div class="f"><label>帳號末四碼</label><input id="'+prefix+'payacct" type="text" placeholder="####" maxlength="4" value="'+(ex['帳號末四碼']||'')+'"></div></div>';
+    html+='<div class="f"><label>帳號末四碼</label><input id="'+prefix+'payacct" type="text" placeholder="####" maxlength="4" value="'+(ex['帳號末四碼']||'')+'"></div>';
+    html+='</div></div>';
+    // 信用卡欄位
+    html+='<div id="'+prefix+'card-fields" style="'+(curSrc==='信用卡'?'':'display:none;')+'margin-bottom:10px;">';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+    html+='<div class="f"><label>銀行名稱</label><input id="'+prefix+'cardbank" type="text" placeholder="兆豐銀行" value="'+(ex['銀行名稱']||'')+'"></div>';
+    html+='<div class="f"><label>卡號末四碼</label><input id="'+prefix+'card4" type="text" placeholder="####" maxlength="4" value="'+(ex['卡號末四碼']||'')+'"></div>';
+    html+='</div><div class="f"><label>有效年月</label><input id="'+prefix+'cardexpiry" type="month" value="'+(ex['有效年月']||'')+'"></div>';
+    html+='</div>';
+    // 繳款人
     html+='<div class="f"><label>繳款人</label><div class="radio-row">';
-    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="要保人"'+(ex['繳款人']==='要保人'?' checked':'')+'>要保人</label>';
+    html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="要保人"'+((!ex['繳款人']||ex['繳款人']==='要保人')?' checked':'')+'>要保人</label>';
     html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="被保人"'+(ex['繳款人']==='被保人'?' checked':'')+'>被保人</label>';
     var isOther2=ex['繳款人']&&ex['繳款人']!=='要保人'&&ex['繳款人']!=='被保人';
     html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="其他"'+(isOther2?' checked':'')+' onchange="togPO(\''+prefix+'\')">其他</label>';
@@ -381,6 +408,14 @@ function togPO(prefix){
   var v=document.querySelector('input[name="'+prefix+'payer"]:checked');
   var box=document.getElementById(prefix+'payer-other');
   if(box)box.style.display=(v&&v.value==='其他')?'block':'none';
+}
+function togPaySrc(prefix){
+  var v=document.getElementById(prefix+'paysrc');
+  if(!v)return;
+  var acct=document.getElementById(prefix+'acct-fields');
+  var card=document.getElementById(prefix+'card-fields');
+  if(acct)acct.style.display=(v.value==='帳戶扣款')?'block':'none';
+  if(card)card.style.display=(v.value==='信用卡')?'block':'none';
 }
 
 function getExtraVals(prefix,type){
@@ -398,12 +433,27 @@ function getExtraVals(prefix,type){
       else ex['繳款人']=payer.value;
     }
   }else if(type==='保費繳費方式變更'){
-    var pt=document.getElementById(prefix+'paytype');
-    var pb=document.getElementById(prefix+'paybank');
-    var pa=document.getElementById(prefix+'payacct');
-    if(pt)ex['繳費方式']=pt.value;
-    if(pb)ex['銀行名稱']=pb.value;
-    if(pa)ex['帳號末四碼']=pa.value;
+    var oldfreq=document.getElementById(prefix+'oldfreq');
+    var newfreq=document.getElementById(prefix+'newfreq');
+    var paysrc=document.getElementById(prefix+'paysrc');
+    if(oldfreq&&oldfreq.value)ex['原繳別']=oldfreq.value;
+    if(newfreq&&newfreq.value)ex['新繳別']=newfreq.value;
+    if(paysrc&&paysrc.value){
+      ex['新繳費方式']=paysrc.value;
+      if(paysrc.value==='帳戶扣款'){
+        var pb=document.getElementById(prefix+'paybank');
+        var pa=document.getElementById(prefix+'payacct');
+        if(pb&&pb.value)ex['銀行名稱']=pb.value;
+        if(pa&&pa.value)ex['帳號末四碼']=pa.value;
+      }else if(paysrc.value==='信用卡'){
+        var cb=document.getElementById(prefix+'cardbank');
+        var c4=document.getElementById(prefix+'card4');
+        var ce=document.getElementById(prefix+'cardexpiry');
+        if(cb&&cb.value)ex['銀行名稱']=cb.value;
+        if(c4&&c4.value)ex['卡號末四碼']=c4.value;
+        if(ce&&ce.value)ex['有效年月']=ce.value;
+      }
+    }
     var payer=document.querySelector('input[name="'+prefix+'payer"]:checked');
     if(payer){
       if(payer.value==='其他'){var oi=document.getElementById(prefix+'payer-other-input');ex['繳款人']=oi?oi.value.trim()||'其他':'其他';}
