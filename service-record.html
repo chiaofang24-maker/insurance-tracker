@@ -335,7 +335,7 @@ function onTypeChange(){
   else{wrap.innerHTML='';wrap.style.display='none';}
   // 信用卡：監聽有效年月欄位
   var note=document.getElementById('cc-exp-note');
-  if(type==='信用卡變更'){
+  if(type==='信用卡變更'||type==='保費繳費方式變更'){
     note.style.display='block';
   }else{
     note.style.display='none';
@@ -481,16 +481,23 @@ async function addRecord(){
     await fetch(API1,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
     records.unshift(rec);
 
-    // 2. 信用卡變更有填有效年月 → 自動加入到期清單
+    // 2. 信用卡相關服務有填有效年月 → 自動加入到期清單
     var autoExp=false;
+    var cardExpiry_val=null,bank_val='',card4_val='';
     if(type==='信用卡變更'&&extra['有效年月']){
-      var cardExpiry=monthToExpiry(extra['有效年月']);
-      var bank=extra['銀行名稱']||'';
-      var card4=extra['卡號後四碼']||'';
-      var expNote=[bank?'銀行：'+bank:'',card4?'末四碼：'+card4:'',company?'保險公司：'+company:''].filter(Boolean).join(' / ');
-      var expRec={action:'add',name:name,type:'信用卡效期到期',expiry:cardExpiry,note:expNote,status:'待處理'};
+      cardExpiry_val=monthToExpiry(extra['有效年月']);
+      bank_val=extra['銀行名稱']||'';
+      card4_val=extra['卡號後四碼']||'';
+    }else if(type==='保費繳費方式變更'&&extra['新繳費方式']==='信用卡'&&extra['有效年月']){
+      cardExpiry_val=monthToExpiry(extra['有效年月']);
+      bank_val=extra['銀行名稱']||'';
+      card4_val=extra['卡號末四碼']||'';
+    }
+    if(cardExpiry_val){
+      var expNote=[bank_val?'銀行：'+bank_val:'',card4_val?'末四碼：'+card4_val:'',company?'保險公司：'+company:''].filter(Boolean).join(' / ');
+      var expRec={action:'add',name:name,type:'信用卡效期到期',expiry:cardExpiry_val,note:expNote,status:'待處理'};
       await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify(expRec)});
-      expiryRecs.unshift({name:name,type:'信用卡效期到期',expiry:cardExpiry,note:expNote,status:'待處理'});
+      expiryRecs.unshift({name:name,type:'信用卡效期到期',expiry:cardExpiry_val,note:expNote,status:'待處理'});
       updExpStats();
       autoExp=true;
     }
