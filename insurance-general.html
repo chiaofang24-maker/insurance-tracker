@@ -513,6 +513,7 @@ function rendClientCard(name){
     html+='<div class="client-card-row"><span class="client-card-label">統一編號</span>'+(getBest('taxid')||'－')+'</div>';
     html+='<div class="client-card-row"><span class="client-card-label">負責人</span>'+name+'</div>';
     if(getBest('idno'))html+='<div class="client-card-row"><span class="client-card-label">身分證</span>'+getBest('idno')+'</div>';
+    if(getBest('birthday'))html+='<div class="client-card-row"><span class="client-card-label">生日</span>'+fmtDate(getBest('birthday'))+'</div>';
   }else{
     html+='<div class="client-card-row"><span class="client-card-label">身分證</span>'+(getBest('idno')||'－')+'</div>';
     var bday=getBest('birthday');
@@ -540,6 +541,7 @@ function showClientModal(name){
     infoHTML+='<div class="modal-info-row"><span class="modal-info-label">統一編號</span>'+(getBest('taxid')||'－')+'</div>';
     infoHTML+='<div class="modal-info-row"><span class="modal-info-label">負責人</span>'+name+'</div>';
     if(getBest('idno'))infoHTML+='<div class="modal-info-row"><span class="modal-info-label">身分證</span>'+getBest('idno')+'</div>';
+    if(getBest('birthday'))infoHTML+='<div class="modal-info-row"><span class="modal-info-label">生日</span>'+fmtDate(getBest('birthday'))+'</div>';
   }else{
     infoHTML+='<div class="modal-info-row"><span class="modal-info-label">姓名</span>'+name+'</div>';
     infoHTML+='<div class="modal-info-row"><span class="modal-info-label">身分證</span>'+(getBest('idno')||'－')+'</div>';
