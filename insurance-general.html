@@ -610,9 +610,12 @@ function clearFilter(){
   document.getElementById('client-card-area').innerHTML='';
   document.getElementById('slist').innerHTML='<div class="emp">輸入關鍵字開始搜尋</div>';
 }
+function closeRecEdit(){
+  var b=document.getElementById('rec-edit-global');if(b)b.remove();
+  document.querySelectorAll('.e-actions').forEach(function(el){el.style.display='';});
+}
 function openRecEdit(btn,enc){
-  var existing=document.getElementById('rec-edit-global');
-  if(existing)existing.remove();
+  closeRecEdit();
   var r=JSON.parse(decodeURIComponent(enc));
   var existDets=[];
   try{existDets=JSON.parse(r.cardetails||'[]');}catch(e){}
@@ -689,7 +692,8 @@ function openRecEdit(btn,enc){
     +'</select></div>'
     +'<div class="re-f"><label>備註</label><input id="re-note" type="text" value="'+(r.note||'')+'" placeholder="補充說明..."></div>'
     +'<button class="save-edit-btn" onclick="saveRecEdit(\''+r.name+'\',\''+r.expiry+'\',\''+r.type+'\')">儲存</button>'
-    +'<button class="cancel-edit-btn" onclick="document.getElementById(\'rec-edit-global\').remove()">取消</button>';
+    +'<button class="cancel-edit-btn" onclick="closeRecEdit()">取消</button>';
+  var qa=btn.parentNode.querySelector('.e-actions');if(qa)qa.style.display='none';
   btn.parentNode.insertBefore(box,btn.nextSibling);
   if(r.type==='車險')reCalcT();
 }
