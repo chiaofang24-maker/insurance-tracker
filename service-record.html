@@ -767,12 +767,16 @@ function rHTML(r){
     }
     noteHtml='<div style="margin-top:8px;padding:8px 10px;background:var(--mint);border-radius:10px;border:1px solid var(--sage);">';
     if(fromSvc)noteHtml+='<div style="font-size:11px;color:var(--tfm);margin-bottom:4px;">部分資料來自服務記錄</div>';
+    // 合併所有保險公司（備註欄 + 服務記錄）
+    var allCompanies=noteCompany?[noteCompany]:[];
+    if(svcInfo&&svcInfo.companies){svcInfo.companies.forEach(function(co){if(allCompanies.indexOf(co)===-1)allCompanies.push(co);});}
+    var companyDisplay=allCompanies.join('、');
     noteHtml+='<div style="font-size:13px;line-height:2;">';
     if(noteBank)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">銀行</span>'+noteBank+'</div>';
     if(noteCard4)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">卡號末四碼</span>'+noteCard4+'</div>';
-    if(noteCompany)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">保險公司</span>'+noteCompany+'</div>';
+    if(companyDisplay)noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">保險公司</span>'+companyDisplay+'</div>';
     if(noteOther.trim())noteHtml+='<div><span style="color:var(--tfd);font-weight:600;margin-right:6px;">備註</span>'+noteOther.trim()+'</div>';
-    if(!noteBank&&!noteCard4&&!noteCompany&&!noteOther.trim())noteHtml+='<div style="color:#aaa;font-size:13px;">尚無信用卡資料</div>';
+    if(!noteBank&&!noteCard4&&!companyDisplay&&!noteOther.trim())noteHtml+='<div style="color:#aaa;font-size:13px;">尚無信用卡資料</div>';
     noteHtml+='</div></div>';
   }else if(r.note){
     noteHtml='<div class="rd" style="margin-top:8px;">備註：'+r.note+'</div>';
@@ -922,16 +926,42 @@ function rendExpList(){
   document.getElementById('rlist').innerHTML=f.length?f.map(function(r){return rHTML(r);}).join(''):'<div class="emp">沒有符合的記錄</div>';
 }
 
-// ── 從服務記錄補齊信用卡資料 ──
+// ── 從服務記錄補齊信用卡資料（含所有保險公司）──
 function getCardInfoFromSvc(name){
-  var svcRecs=records.filter(function(r){return r.name===name&&r.type==='信用卡變更';});
+  // 找所有信用卡相關服務記錄（含信用卡變更 & 保費繳費方式變更-信用卡）
+  var svcRecs=records.filter(function(r){
+    if(r.name!==name)return false;
+    if(r.type==='信用卡變更')return true;
+    if(r.type==='保費繳費方式變更'){
+      var rex={};
+      if(typeof r.extra==='string'&&r.extra){try{rex=JSON.parse(r.extra);}catch(e){}}
+      else if(r.extra&&typeof r.extra==='object'){rex=r.extra;}
+      return rex['新繳費方式']==='信用卡';
+    }
+    return false;
+  });
   if(!svcRecs.length)return null;
   svcRecs.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-  var rec=svcRecs[0];
-  var ex={};
-  if(typeof rec.extra==='string'&&rec.extra){try{ex=JSON.parse(rec.extra);}catch(e){}}
-  else if(rec.extra&&typeof rec.extra==='object'){ex=rec.extra;}
-  return{bank:ex['銀行名稱']||'',card4:ex['卡號後四碼']||'',company:rec.company||''};
+  // 取最新一筆的銀行與卡號
+  var latestRec=svcRecs[0];
+  var latestEx={};
+  if(typeof latestRec.extra==='string'&&latestRec.extra){try{latestEx=JSON.parse(latestRec.extra);}catch(e){}}
+  else if(latestRec.extra&&typeof latestRec.extra==='object'){latestEx=latestRec.extra;}
+  var latestCard4=latestEx['卡號後四碼']||latestEx['卡號末四碼']||'';
+  var latestBank=latestEx['銀行名稱']||'';
+  // 收集所有使用同一張卡的保險公司
+  var companies=[];
+  svcRecs.forEach(function(r){
+    var rex={};
+    if(typeof r.extra==='string'&&r.extra){try{rex=JSON.parse(r.extra);}catch(e){}}
+    else if(r.extra&&typeof r.extra==='object'){rex=r.extra;}
+    var card4=rex['卡號後四碼']||rex['卡號末四碼']||'';
+    if(!latestCard4||card4===latestCard4){
+      var co=r.company||'';
+      if(co&&companies.indexOf(co)===-1)companies.push(co);
+    }
+  });
+  return{bank:latestBank,card4:latestCard4,company:companies[0]||'',companies:companies};
 }
 
 // ── 匯出 Excel ──
