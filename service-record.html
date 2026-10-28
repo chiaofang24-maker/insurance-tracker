@@ -317,7 +317,6 @@ async function loadAll(){
     var[d1,d2]=await Promise.all([r1.json(),r2.json()]);
     records=Array.isArray(d1)?d1:[];
     expiryRecs=Array.isArray(d2)?d2:[];
-    // 診斷：在 console 顯示第一筆記錄的所有欄位名稱
     if(records.length>0){console.log('[診斷] 服務記錄第一筆欄位名稱：',Object.keys(records[0]));console.log('[診斷] 服務記錄第一筆完整資料：',JSON.stringify(records[0]));}
     setSb('sok','已連線，資料同步自 Google Sheets');
     updSvcStats();updExpStats();
@@ -333,7 +332,6 @@ function onTypeChange(){
   var html=buildExtraHTML(type,'f-',{});
   if(html){wrap.innerHTML=html;wrap.style.display='block';}
   else{wrap.innerHTML='';wrap.style.display='none';}
-  // 信用卡：監聽有效年月欄位
   var note=document.getElementById('cc-exp-note');
   if(type==='信用卡變更'||type==='保費繳費方式變更'){
     note.style.display='block';
@@ -361,7 +359,6 @@ function buildExtraHTML(type,prefix,ex){
   }else if(type==='保費繳費方式變更'){
     var curSrc=ex['新繳費方式']||'';
     html+='<div class="xtra"><div class="xtra-t">繳費方式變更</div>';
-    // ── 繳費週期 ──
     html+='<div style="font-size:13px;color:var(--tfd);font-weight:600;margin-bottom:6px;">繳費週期（選填）</div>';
     html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:14px;">';
     html+='<div class="f"><label>原繳別</label><select id="'+prefix+'oldfreq">';
@@ -373,26 +370,22 @@ function buildExtraHTML(type,prefix,ex){
     html+='<option value="">不變更</option>';
     ['年繳','半年繳','季繳','月繳'].forEach(function(o){html+='<option'+(ex['新繳別']===o?' selected':'')+'>'+o+'</option>';});
     html+='</select></div></div>';
-    // ── 繳費來源 ──
     html+='<div style="font-size:13px;color:var(--tfd);font-weight:600;margin-bottom:6px;">繳費來源（選填）</div>';
     html+='<div class="f" style="margin-bottom:10px;"><label>新繳費方式</label><select id="'+prefix+'paysrc" onchange="togPaySrc(\''+prefix+'\')">';
     html+='<option value="">不變更</option>';
     ['帳戶扣款','信用卡'].forEach(function(o){html+='<option value="'+o+'"'+(curSrc===o?' selected':'')+'>'+o+'</option>';});
     html+='</select></div>';
-    // 帳戶扣款欄位
     html+='<div id="'+prefix+'acct-fields" style="'+(curSrc==='帳戶扣款'?'':'display:none;')+'margin-bottom:10px;">';
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
     html+='<div class="f"><label>銀行名稱</label><input id="'+prefix+'paybank" type="text" placeholder="台灣銀行" value="'+(ex['銀行名稱']||'')+'"></div>';
     html+='<div class="f"><label>帳號末四碼</label><input id="'+prefix+'payacct" type="text" placeholder="####" maxlength="4" value="'+(ex['帳號末四碼']||'')+'"></div>';
     html+='</div></div>';
-    // 信用卡欄位
     html+='<div id="'+prefix+'card-fields" style="'+(curSrc==='信用卡'?'':'display:none;')+'margin-bottom:10px;">';
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
     html+='<div class="f"><label>銀行名稱</label><input id="'+prefix+'cardbank" type="text" placeholder="兆豐銀行" value="'+(ex['銀行名稱']||'')+'"></div>';
     html+='<div class="f"><label>卡號末四碼</label><input id="'+prefix+'card4" type="text" placeholder="####" maxlength="4" value="'+(ex['卡號末四碼']||'')+'"></div>';
     html+='</div><div class="f"><label>有效年月</label><input id="'+prefix+'cardexpiry" type="month" value="'+(ex['有效年月']||'')+'"></div>';
     html+='</div>';
-    // 繳款人
     html+='<div class="f"><label>繳款人</label><div class="radio-row">';
     html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="要保人"'+((!ex['繳款人']||ex['繳款人']==='要保人')?' checked':'')+'>要保人</label>';
     html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="被保人"'+(ex['繳款人']==='被保人'?' checked':'')+'>被保人</label>';
@@ -481,7 +474,7 @@ async function addRecord(){
     await fetch(API1,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
     records.unshift(rec);
 
-    // 2. 信用卡相關服務有填有效年月 → 自動加入到期清單
+    // 2. 信用卡相關服務有填有效年月 → 自動加入到期清單（含重複檢查）
     var autoExp=false;
     var cardExpiry_val=null,bank_val='',card4_val='';
     if(type==='信用卡變更'&&extra['有效年月']){
@@ -494,12 +487,22 @@ async function addRecord(){
       card4_val=extra['卡號末四碼']||'';
     }
     if(cardExpiry_val){
-      var expNote=[bank_val?'銀行：'+bank_val:'',card4_val?'末四碼：'+card4_val:'',company?'保險公司：'+company:''].filter(Boolean).join(' / ');
-      var expRec={action:'add',name:name,type:'信用卡效期到期',expiry:cardExpiry_val,note:expNote,status:'待處理'};
-      await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify(expRec)});
-      expiryRecs.unshift({name:name,type:'信用卡效期到期',expiry:cardExpiry_val,note:expNote,status:'待處理'});
-      updExpStats();
-      autoExp=true;
+      // ✅ 重複檢查：同姓名 + 同月份 已有記錄就不再新增
+      var sameMonth=cardExpiry_val.substring(0,7);
+      var isDuplicate=expiryRecs.some(function(r){
+        return r.name===name&&r.type==='信用卡效期到期'&&r.expiry.substring(0,7)===sameMonth;
+      });
+      if(isDuplicate){
+        setSb('sl2','已有相同月份的信用卡到期記錄，略過自動新增');
+        setTimeout(function(){setSb('sok','已儲存並同步至 Google Sheets');},2000);
+      }else{
+        var expNote=[bank_val?'銀行：'+bank_val:'',card4_val?'末四碼：'+card4_val:'',company?'保險公司：'+company:''].filter(Boolean).join(' / ');
+        var expRec={action:'add',name:name,type:'信用卡效期到期',expiry:cardExpiry_val,note:expNote,status:'待處理'};
+        await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify(expRec)});
+        expiryRecs.unshift({name:name,type:'信用卡效期到期',expiry:cardExpiry_val,note:expNote,status:'待處理'});
+        updExpStats();
+        autoExp=true;
+      }
     }
 
     // 清空表單
@@ -509,8 +512,7 @@ async function addRecord(){
     document.getElementById('extra-wrap').innerHTML='';
     document.getElementById('extra-wrap').style.display='none';
     document.getElementById('cc-exp-note').style.display='none';
-    setSb('sok',autoExp?'已儲存，並自動加入到期清單 ✅':'已儲存並同步至 Google Sheets');
-    updSvcStats();
+    if(autoExp)setSb('sok','已儲存，並自動加入到期清單 ✅');
   }catch(e){setSb('ser','儲存失敗，請重試');}
   btn.disabled=false;btn.textContent='＋ 新增記錄';
 }
@@ -610,18 +612,14 @@ function renderRecords(){
     var entries=gRecs.map(function(r){
       var idx=records.indexOf(r);
       var tagClass=TYPE_TAG[r.type]||'tag-teal';
-      // 已知的基本欄位（不顯示在補充資料區）
       var KNOWN=['id','name','date','type','company','row','timestamp','extra','note','policy','補充資料','備註','保單號碼'];
-      // 用所有可能的欄位名稱找補充資料
       var rawExtra=r.extra||r['補充資料']||'';
       var rawNote=r.note||r['備註']||'';
       var rawPolicy=r.policy||r['保單號碼']||'';
-      // 如果標準欄位都沒找到，掃描所有未知欄位
       if(!rawExtra&&!rawNote&&!rawPolicy){
         Object.keys(r).forEach(function(k){
           if(KNOWN.indexOf(k)===-1&&r[k]){
             var v=String(r[k]);
-            // 判斷是否像補充資料（含「銀行」「卡號」「年月」等）
             if(k.indexOf('補充')>-1||k.indexOf('extra')>-1||v.indexOf('銀行')>-1||v.indexOf('卡號')>-1||v.indexOf('年月')>-1){
               rawExtra=rawExtra||v;
             }else if(k.indexOf('備註')>-1||k.indexOf('note')>-1){
@@ -629,7 +627,6 @@ function renderRecords(){
             }else if(k.indexOf('保單')>-1||k.indexOf('policy')>-1){
               rawPolicy=rawPolicy||v;
             }else{
-              // 其他未知欄位直接加到備註顯示
               rawNote=rawNote?(rawNote+' / '+k+'：'+v):(k+'：'+v);
             }
           }
@@ -702,6 +699,13 @@ async function addExpiry(){
   if(!y||!m||!d)missing.push('・到期日（年/月/日）');
   if(missing.length){box.innerHTML='⚠️ 請補齊：<br>'+missing.join('<br>');box.style.display='block';return;}
   var expiry=y+'-'+m+'-'+d;
+  // ✅ 重複檢查：同姓名 + 同類型 + 同日期
+  var isDup=expiryRecs.some(function(r){return r.name===name&&r.type===type&&r.expiry===expiry;});
+  if(isDup){
+    box.innerHTML='⚠️ 已有相同客戶、類型、到期日的記錄，請確認是否重複輸入';
+    box.style.display='block';
+    return;
+  }
   var note=document.getElementById('ent').value.trim();
   var policy=document.getElementById('epolicy').value.trim();
   var fullNote=(policy?'保單號碼：'+policy+(note?'、'+note:''):note);
@@ -745,7 +749,6 @@ function rHTML(r){
   var uid='r'+r.name.replace(/[^a-zA-Z0-9一-鿿]/g,'')+String(r.expiry).replace(/-/g,'')+String(r.type).charAt(0);
   var dbadge=d<0?'<span class="bg br">已過期</span>':d<=30?'<span class="bg br">剩'+d+'天</span>':d<=90?'<span class="bg ba">剩'+d+'天</span>':'<span class="bg bg2">剩'+d+'天</span>';
   var detId='expdet-'+uid;
-  // 解析備註：信用卡類型顯示結構化欄位
   var noteHtml='';
   if(r.type==='信用卡效期到期'){
     var noteBank='',noteCard4='',noteCompany='',noteOther='';
@@ -755,7 +758,6 @@ function rHTML(r){
       else if(p.indexOf('保險公司：')===0)noteCompany=p.replace('保險公司：','');
       else if(p.trim())noteOther+=p+' ';
     });}
-    // 從服務記錄補齊缺少的欄位
     var svcInfo=getCardInfoFromSvc(r.name);
     var fromSvc=false;
     if(svcInfo){
@@ -816,7 +818,6 @@ function openExpEdit(name,expiry,type){
   for(var m=1;m<=12;m++){var mv=String(m).padStart(2,'0');mOpts+='<option value="'+mv+'"'+(em===mv?' selected':'')+'>'+ m+'月</option>';}
   var dOpts='<option value="">日</option>';
   for(var dd=1;dd<=31;dd++){var dv=String(dd).padStart(2,'0');dOpts+='<option value="'+dv+'"'+(ed===dv?' selected':'')+'>'+ dd+'日</option>';}
-  // 解析既有備註
   var noteBank='',noteCard4='',noteCompany='',noteRaw=r.note||'';
   if(type==='信用卡效期到期'&&noteRaw){
     noteRaw.split(' / ').forEach(function(p){
@@ -937,7 +938,6 @@ function getCardInfoFromSvc(name){
 function exportToExcel(){
   if(typeof XLSX==='undefined'){alert('試算表套件尚未載入，請確認網路連線後重試');return;}
   var wb=XLSX.utils.book_new();
-  // 工作表1：服務記錄
   var svcData=[['日期','客戶姓名','服務類型','保險公司','保單號碼','詳細資料','備註']];
   records.forEach(function(r){
     var ex={};
@@ -949,7 +949,6 @@ function exportToExcel(){
   var ws1=XLSX.utils.aoa_to_sheet(svcData);
   ws1['!cols']=[{wch:12},{wch:10},{wch:14},{wch:12},{wch:14},{wch:30},{wch:20}];
   XLSX.utils.book_append_sheet(wb,ws1,'服務記錄');
-  // 工作表2：到期通知（補齊信用卡資料）
   var expData=[['到期日','客戶姓名','類型','狀態','銀行','卡號末四碼','保險公司','備註']];
   expiryRecs.forEach(function(r){
     var bank='',card4='',company='',noteOther='';
