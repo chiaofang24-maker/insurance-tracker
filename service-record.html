@@ -355,7 +355,16 @@ function buildExtraHTML(type,prefix,ex){
     var isOther=ex['繳款人']&&ex['繳款人']!=='要保人'&&ex['繳款人']!=='被保人';
     html+='<label class="radio-item"><input type="radio" name="'+prefix+'payer" value="其他"'+(isOther?' checked':'')+' onchange="togPO(\''+prefix+'\')">其他</label>';
     html+='</div><div id="'+prefix+'payer-other" style="margin-top:6px;'+(isOther?'':'display:none;')+'">';
-    html+='<input id="'+prefix+'payer-other-input" type="text" placeholder="繳款人姓名" value="'+(isOther?ex['繳款人']:'')+'"></div></div></div>';
+    html+='<input id="'+prefix+'payer-other-input" type="text" placeholder="繳款人姓名" value="'+(isOther?ex['繳款人']:'')+'"></div></div>';
+    // ── 此卡用於哪些保險公司（多選）──
+    var usedCos=(ex['使用保單']||'').split(',').filter(Boolean);
+    html+='<div class="f" style="margin-top:10px;"><label>此卡用於哪些保險公司（可多選）</label>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;">';
+    ['全球人壽','宏泰人壽','凱基人壽','新光人壽','遠雄人壽','台灣人壽','安達人壽','台銀人壽','富邦人壽','第一金人壽','友邦人壽','元大人壽','安聯人壽','保誠人壽','國泰人壽','南山人壽'].forEach(function(co){
+      var chk=usedCos.indexOf(co)>-1?' checked':'';
+      html+='<label class="radio-item"><input type="checkbox" name="'+prefix+'usecompany" value="'+co+'"'+chk+'>'+co+'</label>';
+    });
+    html+='</div></div></div>';
   }else if(type==='保費繳費方式變更'){
     var curSrc=ex['新繳費方式']||'';
     html+='<div class="xtra"><div class="xtra-t">繳費方式變更</div>';
@@ -425,6 +434,10 @@ function getExtraVals(prefix,type){
       if(payer.value==='其他'){var oi=document.getElementById(prefix+'payer-other-input');ex['繳款人']=oi?oi.value.trim()||'其他':'其他';}
       else ex['繳款人']=payer.value;
     }
+    // 此卡使用的保險公司（多選）
+    var useCbs=document.querySelectorAll('input[name="'+prefix+'usecompany"]:checked');
+    var useCoArr=[];useCbs.forEach(function(cb){useCoArr.push(cb.value);});
+    if(useCoArr.length)ex['使用保單']=useCoArr.join(',');
   }else if(type==='保費繳費方式變更'){
     var oldfreq=document.getElementById(prefix+'oldfreq');
     var newfreq=document.getElementById(prefix+'newfreq');
@@ -949,18 +962,22 @@ function getCardInfoFromSvc(name){
   else if(latestRec.extra&&typeof latestRec.extra==='object'){latestEx=latestRec.extra;}
   var latestCard4=latestEx['卡號後四碼']||latestEx['卡號末四碼']||'';
   var latestBank=latestEx['銀行名稱']||'';
-  // 收集所有使用同一張卡的保險公司
-  var companies=[];
-  svcRecs.forEach(function(r){
-    var rex={};
-    if(typeof r.extra==='string'&&r.extra){try{rex=JSON.parse(r.extra);}catch(e){}}
-    else if(r.extra&&typeof r.extra==='object'){rex=r.extra;}
-    var card4=rex['卡號後四碼']||rex['卡號末四碼']||'';
-    if(!latestCard4||card4===latestCard4){
-      var co=r.company||'';
-      if(co&&companies.indexOf(co)===-1)companies.push(co);
-    }
-  });
+  // 優先從「使用保單」欄位取公司清單
+  var useStr=latestEx['使用保單']||'';
+  var companies=useStr?useStr.split(',').filter(Boolean):[];
+  // 若無「使用保單」，退而掃描所有同卡的 company 欄位
+  if(!companies.length){
+    svcRecs.forEach(function(r){
+      var rex={};
+      if(typeof r.extra==='string'&&r.extra){try{rex=JSON.parse(r.extra);}catch(e){}}
+      else if(r.extra&&typeof r.extra==='object'){rex=r.extra;}
+      var card4=rex['卡號後四碼']||rex['卡號末四碼']||'';
+      if(!latestCard4||card4===latestCard4){
+        var co=r.company||'';
+        if(co&&companies.indexOf(co)===-1)companies.push(co);
+      }
+    });
+  }
   return{bank:latestBank,card4:latestCard4,company:companies[0]||'',companies:companies};
 }
 
