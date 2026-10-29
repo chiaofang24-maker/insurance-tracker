@@ -192,9 +192,9 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
   <div id="pnl-split" class="pnl">
     <div class="card">
       <div class="ch">✂️ 分割 PDF</div>
-      <div class="drop-zone" onclick="document.getElementById('splitInput').click()">
+      <div class="drop-zone" id="splitDrop" onclick="document.getElementById('splitInput').click()">
         <span>✂️</span>
-        <p>點此選擇要分割的 PDF</p>
+        <p>點此或拖曳 PDF 至此</p>
       </div>
       <input type="file" id="splitInput" accept=".pdf" style="display:none" onchange="loadSplitFile(this)">
       <div id="splitInfo" style="display:none;">
@@ -238,9 +238,9 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 
       <div class="f">
         <label>① 主檔案（B）— 被插入的檔案</label>
-        <div class="drop-zone" onclick="document.getElementById('insertMainInput').click()">
+        <div class="drop-zone" id="insertMainDrop" onclick="document.getElementById('insertMainInput').click()">
           <span>📄</span>
-          <p id="insertMainName">點此選擇主檔案</p>
+          <p id="insertMainName">點此或拖曳主檔案至此</p>
           <small>插入後以此為基礎</small>
         </div>
         <input type="file" id="insertMainInput" accept=".pdf" style="display:none" onchange="loadInsertMain(this)">
@@ -248,9 +248,9 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 
       <div class="f">
         <label>② 來源檔案（A）— 要插入的頁面來源</label>
-        <div class="drop-zone" onclick="document.getElementById('insertSrcInput').click()">
+        <div class="drop-zone" id="insertSrcDrop" onclick="document.getElementById('insertSrcInput').click()">
           <span>📋</span>
-          <p id="insertSrcName">點此選擇來源檔案</p>
+          <p id="insertSrcName">點此或拖曳來源檔案至此</p>
           <small>從這個檔案取出頁面插入</small>
         </div>
         <input type="file" id="insertSrcInput" accept=".pdf" style="display:none" onchange="loadInsertSrc(this)">
@@ -286,9 +286,9 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
     <div class="card">
       <div class="ch">🖼️ PDF 轉 JPG 圖片</div>
       <p style="font-size:13px;color:#888;margin-bottom:14px;">每一頁轉成一張 JPG，方便傳 Line 使用</p>
-      <div class="drop-zone" onclick="document.getElementById('toimgInput').click()">
+      <div class="drop-zone" id="toimgDrop" onclick="document.getElementById('toimgInput').click()">
         <span>🖼️</span>
-        <p id="toimgFileName">點此選擇 PDF 檔案</p>
+        <p id="toimgFileName">點此或拖曳 PDF 至此</p>
         <small>一次選一個檔案</small>
       </div>
       <input type="file" id="toimgInput" accept=".pdf" style="display:none" onchange="loadToImg(this)">
@@ -514,6 +514,25 @@ async function mergePDFs(){
   prog.style.display='none';
 }
 
+/* ── 分割拖曳 ── */
+(function(){
+  var dz=document.getElementById('splitDrop');
+  ['dragover','dragleave','drop'].forEach(function(evt){
+    dz.addEventListener(evt,function(e){
+      e.preventDefault();
+      if(evt==='dragover') dz.classList.add('dragover');
+      if(evt==='dragleave'||evt==='drop') dz.classList.remove('dragover');
+      if(evt==='drop'&&e.dataTransfer.files.length>0){
+        var f=e.dataTransfer.files[0];
+        if(f.name.toLowerCase().endsWith('.pdf')){
+          var fakeInput={files:[f],value:''};
+          loadSplitFile(fakeInput);
+        }
+      }
+    });
+  });
+})();
+
 /* ════════════════════ 分割 ════════════════════ */
 var splitPdfBytes=null,splitPageCount=0,splitMode='each',selectedPages=[];
 
@@ -615,6 +634,26 @@ async function splitPDF(){
   btn.disabled=false;btn.textContent='分割 PDF';prog.style.display='none';
 }
 
+/* ── 插頁拖曳 ── */
+(function(){
+  function bindInsertDrop(dzId,inputId,loader){
+    var dz=document.getElementById(dzId);
+    ['dragover','dragleave','drop'].forEach(function(evt){
+      dz.addEventListener(evt,function(e){
+        e.preventDefault();
+        if(evt==='dragover') dz.classList.add('dragover');
+        if(evt==='dragleave'||evt==='drop') dz.classList.remove('dragover');
+        if(evt==='drop'&&e.dataTransfer.files.length>0){
+          var f=e.dataTransfer.files[0];
+          if(f.name.toLowerCase().endsWith('.pdf')) loader({files:[f],value:''});
+        }
+      });
+    });
+  }
+  bindInsertDrop('insertMainDrop','insertMainInput',loadInsertMain);
+  bindInsertDrop('insertSrcDrop','insertSrcInput',loadInsertSrc);
+})();
+
 /* ════════════════════ 插頁 ════════════════════ */
 var insertMainBytes=null,insertMainCount=0,insertSrcBytes=null;
 
@@ -698,6 +737,22 @@ async function doInsert(){
   }catch(e){setSb('ser','插頁失敗：'+e.message);}
   btn.disabled=false;prog.style.display='none';
 }
+
+/* ── 轉圖片拖曳 ── */
+(function(){
+  var dz=document.getElementById('toimgDrop');
+  ['dragover','dragleave','drop'].forEach(function(evt){
+    dz.addEventListener(evt,function(e){
+      e.preventDefault();
+      if(evt==='dragover') dz.classList.add('dragover');
+      if(evt==='dragleave'||evt==='drop') dz.classList.remove('dragover');
+      if(evt==='drop'&&e.dataTransfer.files.length>0){
+        var f=e.dataTransfer.files[0];
+        if(f.name.toLowerCase().endsWith('.pdf')) loadToImg({files:[f],value:''});
+      }
+    });
+  });
+})();
 
 /* ════════════════════ 轉圖片 ════════════════════ */
 var toimgPdfBytes=null;
