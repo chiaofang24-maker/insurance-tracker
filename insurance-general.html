@@ -153,6 +153,19 @@ body{background:#F5FAFA;font-family:var(--h);}
 .e-rr-in{font-family:var(--h);font-size:13px;border:1.5px solid var(--sage);border-radius:10px;padding:6px 9px;background:#fff;color:var(--tfdp);outline:none;width:130px;}
 .e-save-btn{font-family:var(--h);font-size:13px;font-weight:600;padding:6px 16px;border-radius:10px;background:var(--tf);color:#fff;border:none;cursor:pointer;}
 .e-edit-btn{font-family:var(--h);font-size:13px;padding:6px 14px;border-radius:10px;background:#fff;color:var(--tfd);border:1.5px solid var(--sage);cursor:pointer;}
+#wa-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:#dfe6e6;overflow:auto;-webkit-overflow-scrolling:touch;}
+.wa-bar{position:sticky;top:0;z-index:2;background:#00897b;color:#fff;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;}
+.wa-bar button{border:none;border-radius:14px;padding:8px 14px;font-size:14px;background:#fff;color:#00695c;font-weight:600;}
+.wa-paper{width:760px;margin:10px auto;background:#fff;padding:14px 16px;font-size:12px;color:#111;font-family:"PingFang TC","Heiti TC",sans-serif;box-sizing:border-box;}
+.wa-paper table{width:100%;border-collapse:collapse;}
+.wa-paper td,.wa-paper th{border:1px solid #333;padding:4px 6px;vertical-align:middle;}
+.wa-paper th.wa-h{background:#444;color:#fff;font-weight:600;text-align:center;padding:3px;}
+.wa-paper td.wa-l{width:150px;font-weight:600;}
+.wa-paper .wa-i{border:none;border-bottom:1px solid #888;background:transparent;font:inherit;color:#1a3fa0;padding:1px 2px;border-radius:0;outline:none;box-sizing:border-box;}
+.wa-paper .wa-c{display:inline-flex;align-items:center;gap:2px;margin-right:8px;white-space:nowrap;}
+.wa-paper .wa-c input{margin:0;width:13px;height:13px;}
+.wa-paper .wa-n{font-size:8.5px;line-height:1.45;color:#222;}
+@media print{body{overflow:visible!important;}body>*:not(#wa-overlay){display:none!important;}#wa-overlay{position:static!important;overflow:visible!important;background:#fff!important;}.wa-bar{display:none!important;}.wa-paper{margin:0!important;box-shadow:none;width:100%!important;zoom:1!important;}@page{size:A4;margin:8mm;}}
 </style>
 </head>
 <body>
@@ -780,6 +793,7 @@ function rHTML(r,cp){
     +(ds?'<br>'+ds:'')+(r.loanbank?'<br>貸款銀行：'+r.loanbank:'')+(r.renewreason?'<br>不續保原因：'+r.renewreason:'')+(r.note?'<br>備註：'+r.note:'')+'</div>'
     +(cp?'<button class="cb" onclick="cpR(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">複製資料</button>':'')
     +'<button class="edit-btn" onclick="openRecEdit(this,\''+encodeURIComponent(JSON.stringify(r))+'\')">編輯</button>'
+    +'<button class="cb" onclick="openWA(\''+encodeURIComponent(JSON.stringify(r))+'\')">書面分析</button>'
     +'<button class="cb" onclick="togRenewEdit(\''+rid+'\',\''+r.name+'\',\''+r.expiry+'\',\''+r.renew+'\')">更新續保狀態</button>'
     +'<div class="renew-edit" id="re-'+rid+'" style="display:none;">'
     +'<div class="renew-edit-t">更新續保狀態</div>'
@@ -886,6 +900,86 @@ function selMonth(m){
   rendE();
 }
 
+/* ── 書面分析報告（財產保險） ── */
+function closeWA(){var o=document.getElementById('wa-overlay');if(o)o.remove();document.body.style.overflow='';}
+function waScale(){var p=document.querySelector('.wa-paper');if(!p)return;var s=Math.min(1,(window.innerWidth-12)/776);p.style.zoom=s;}
+window.addEventListener('beforeprint',function(){var p=document.querySelector('.wa-paper');if(p)p.style.zoom=1;});
+window.addEventListener('afterprint',waScale);
+function openWA(enc){
+  var r=JSON.parse(decodeURIComponent(enc));
+  var esc=function(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');};
+  var ck=function(l,on){return '<label class="wa-c"><input type="checkbox"'+(on?' checked':'')+'>'+l+'</label>';};
+  var ti=function(v,w){return '<input class="wa-i" style="width:'+w+'" value="'+esc(v)+'">';};
+  var isCo=r.identity==='公司';
+  var ty=r.type||'';
+  var fire=/火險|地震/.test(ty),liab=/責任|意外/.test(ty),car=ty==='車險';
+  var other=!(fire||liab||car);
+  var idn=String(r.idno||'');
+  var male=!isCo&&idn.charAt(1)==='1',female=!isCo&&idn.charAt(1)==='2';
+  var bday=r.birthday?fmtDate(r.birthday):'';
+  if(bday==='－')bday='';
+  var dets=[];try{dets=JSON.parse(r.cardetails||'[]');}catch(e){}
+  var amt=r.amount?r.amount+'萬':'';
+  if(!amt&&dets.length){var mx=0;dets.forEach(function(x){var a=parseFloat(x.amount)||0;if(a>mx)mx=a;});if(mx)amt=mx+'萬';}
+  var ex=fmtDate(r.expiry),sy='',sm='',sd='',ey='',em='',ed='';
+  if(ex&&ex!=='－'){
+    var p=ex.split('-'),y=parseInt(p[0],10),m=p[1],d=p[2];
+    if(r.renew==='已續保'){ey=y-1911;em=m;ed=d;sy=y-1-1911;sm=m;sd=d;}
+    else{sy=y-1911;sm=m;sd=d;ey=y+1-1911;em=m;ed=d;}
+  }
+  var prem=r.totalpremium||r.premium||'';
+  var rows=['保險商品/險種名稱','保險金額','保障範圍','保險費及繳費年期'].map(function(t){
+    return '<tr><td class="wa-l">'+t+'</td><td>'+ck('詳建議書',0)+ck('詳要保書',1)+ck('詳報價單',0)+ck('其他：',0)+ti('','70px')+'</td></tr>';
+  }).join('');
+  var notice='看見保險經紀人股份有限公司（下稱本公司）依據個人資料保護法（以下稱個資法）第 8 條第 1 項（如為間接蒐集之個人資料則為第 9 條第 1 項）規定，向您告知下列事項，請您詳閱：一、蒐集之目的：(一)保險經紀。(二)其他經營合於營業登記項目或組織章程所定之業務。二、蒐集之個人資料類別：(一)識別類(例如姓名、性別、出生年月日、國籍、住址、電話、身分證統一編號及其他任何可辨識資料本人等)。(二)特徵類(例如家庭情形、教育程度、職業、財務狀況、健康情況等)。(三)病歷、醫療、健康檢查。(四)其他詳如要保書等相關業務申請書或契約書內容。三、個人資料之來源：(一)要保人/被保險人。(二)當事人之法定代理人、輔助人。(三)於本公司各項業務內所委託往來之第三人。四、個人資料利用之期間、對象、地區、方式：(一)期間：因執行業務所必須及依法令規定應為保存之期。(二)對象：本公司、產、壽險公司、財團法人金融消費評議中心、業務委外機構、依法有調查權機關或金融監理機關。(三)地區：上述對象所在之地區。(四)方式：合於法令規定之利用方式。五、您依據個資法第 3 條規定，個人資料行使權利及方式：(一)得向本公司行使之權利：1.向本公司查詢、請求閱覽或請求製給複製本。2.向本公司請求補充或更正。3.向本公司請求停止蒐集、處理或利用及請求刪除。(二)行使權利之方式：以書面或其他日後可供證明之方式。六、若您未能提供相關個人資料：本公司將可能延後或無法進行必要之審核及處理作業，因此將婉謝、延遲或無法提供相關服務。';
+  var h='<div class="wa-bar"><button onclick="window.print()">列印／存成PDF</button><button onclick="closeWA()">關閉</button><span>藍字欄位可直接修改、方框可點選</span></div>'
+  +'<div class="wa-paper">'
+  +'<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;"><div style="font-weight:700;font-size:13px;">看見保險經紀人</div><div style="text-align:center;"><div style="font-size:16px;font-weight:700;">書面分析報告</div><div>'+ck('人身保險',0)+ck('財產保險',1)+ck('旅行平安保險',0)+'</div></div><div style="font-size:11px;">BX00406-202511</div></div>'
+  +'<table><tr><th class="wa-h" colspan="2">基本資料</th></tr>'
+  +'<tr><td style="width:50%;padding:0;vertical-align:top;"><table style="border:none;"><tr><th class="wa-h" style="border-left:none;border-top:none;">要保人</th></tr>'
+  +'<tr><td style="border-left:none;">姓名　'+ti(isCo?(r.companyname||r.name):r.name,'150px')+'　'+ck('男',male)+ck('女',female)+'</td></tr>'
+  +'<tr><td style="border-left:none;">身份證字號/統一編號<br>'+ti(isCo?(r.taxid||''):idn,'200px')+'</td></tr>'
+  +'<tr><td style="border-left:none;">出生年月日 / 職業<br>'+ti(isCo?'':bday,'110px')+' / '+ti('','90px')+'</td></tr>'
+  +'<tr><td style="border-left:none;border-bottom:none;">風險屬性(投資型或外幣)　'+ck('保守型',0)+ck('穩健型',0)+ck('積極型',0)+'</td></tr></table></td>'
+  +'<td style="width:50%;padding:0;vertical-align:top;"><table style="border:none;"><tr><th class="wa-h" style="border-right:none;border-top:none;">被保險人　'+ck('同要保人',1)+'</th></tr>'
+  +'<tr><td style="border-right:none;">姓名　'+ti('','150px')+'　'+ck('男',0)+ck('女',0)+'</td></tr>'
+  +'<tr><td style="border-right:none;">身份證字號/統一編號<br>'+ti('','200px')+'</td></tr>'
+  +'<tr><td style="border-right:none;">出生年月日 / 職業<br>'+ti('','110px')+' / '+ti('','90px')+'</td></tr>'
+  +'<tr><td style="border-right:none;border-bottom:none;">與要保人關係　'+ti('','110px')+'</td></tr></table></td></tr></table>'
+  +'<table style="margin-top:-1px;"><tr><th class="wa-h" colspan="2">保險需求</th></tr>'
+  +'<tr><td class="wa-l">本次投保之目的及需求(可複選)</td><td>'+ck('保障需求',1)+ck('教育經費',0)+ck('退休規劃',0)+ck('其他：',0)+ti('','60px')+'</td></tr>'
+  +'<tr><td class="wa-l">欲投保之保險種類</td><td>'+ck('壽險/健康險/傷害險',0)+ck('年金險',0)+ck('投資型保險',0)+'<br>'+ck('任意車險',car)+ck('責任保險',liab)+ck('火險/地震險',fire)+ck('其他：',other)+ti(other?ty:'','80px')+'</td></tr>'
+  +'<tr><td class="wa-l">是否有指定之保險公司</td><td>'+ck('否',1)+ck('是',0)+'(保險公司)'+ti('','100px')+'</td></tr>'
+  +'<tr><td class="wa-l">欲投保之保險金額</td><td>保險金額：'+ti(amt,'140px')+'</td></tr>'
+  +'<tr><td class="wa-l">保險期間*</td><td>自 '+ti(sy,'32px')+' 年 '+ti(sm,'24px')+' 月 '+ti(sd,'24px')+' 日　至 '+ti(ey,'32px')+' 年 '+ti(em,'24px')+' 月 '+ti(ed,'24px')+' 日</td></tr>'
+  +'<tr><td colspan="2">是否已有投保其他商業保險之有效保險契約或旅行平安險？'+ck('是',0)+ck('否',1)+'</td></tr>'
+  +'<tr><td colspan="2" style="font-size:10.5px;">要保人已確實瞭解其所繳交保險費係用於購買保險商品、購買外幣收付之保險商品匯率風險承受能力、投資型保險商品風險之承受能力及投資損益由保戶自行承擔，確實依要保人財力狀況提供適合的保險商品。'+ck('是',0)+ck('否',0)+'【非投保外幣收付或投資型商品毋需填報】</td></tr>'
+  +'<tr><td colspan="2" style="font-size:10.5px;">六十五歲(含)以上之客戶是否具有辨識不利其投保權益情形之能力。　'+ck('是(詳評估量表)',0)+ck('否',0)+'【非 65 歲(含)以上客戶毋需填報】</td></tr></table>'
+  +'<table style="margin-top:-1px;"><tr><th class="wa-h" colspan="2">保險費支出</th></tr>'
+  +'<tr><td class="wa-l">繳費方式/預估繳交之保險費金額</td><td>一、'+ck('躉繳',0)+ck('年繳',1)+ck('半年繳',0)+ck('季繳',0)+ck('月繳',0)+'<br>二、幣別：'+ck('NTD',1)+ck('USD',0)+ck('其他：',0)+'　保費：'+ti(prem?Number(prem).toLocaleString().replace(/,/g,''):'','80px')+' 元</td></tr>'
+  +'<tr><td colspan="2" style="text-align:center;font-weight:600;">◎僅壽險_長年期保險填寫：</td></tr>'
+  +'<tr><td class="wa-l">1.繳交保險費之人預估退休剩餘年期</td><td>'+ck('1~10 年',0)+ck('11~20 年',0)+ck('21 年以上',0)+'</td></tr>'
+  +'<tr><td class="wa-l">2.繳交保險費之來源</td><td>'+ck('薪資',0)+ck('投資收入',0)+ck('既有存款',0)+ck('退休金',0)+ck('其他：',0)+ti('','50px')+'</td></tr></table>'
+  +'<table style="margin-top:-1px;"><tr><th class="wa-h" colspan="2">業務人員建議事項及履行個人資料保護法蒐集、處理及利用個人資料暨告知書</th></tr>'
+  +'<tr><td style="width:56%;padding:0;vertical-align:top;"><table style="border:none;">'
+  +'<tr><td class="wa-l" style="border-left:none;border-top:none;">保險公司名稱及概況</td><td style="border-top:none;">一、'+ti(r.company||'','110px')+' 保險公司<br>二、'+ck('參考保險公司網站',1)+ck('同保險公司 DM',0)+'<br>'+ck('其他：',0)+ti('','80px')+'</td></tr>'
+  +rows.replace(/<td class="wa-l">/g,'<td class="wa-l" style="border-left:none;">')
+  +'<tr><td class="wa-l" style="border-left:none;border-bottom:none;">建議投保保險公司理由</td><td style="border-bottom:none;">'+ck('品牌形象',0)+ck('商品優勢',1)+ck('服務良好',0)+ck('其他：',0)+ti('','50px')+'</td></tr></table></td>'
+  +'<td class="wa-n" style="vertical-align:top;">'+notice+'</td></tr>'
+  +'<tr><td colspan="2" style="font-size:10.5px;">◎報酬收取說明：本公司依規定無另行向您收取任何形式報酬，且禁止業務人員代收、繳保費。<br>◎本人同意個人執業經紀人洽訂保險契約，其要保文件轉由看見保險經紀人交付保險公司。</td></tr>'
+  +'<tr><td colspan="2">'+ck('本人已了解看見保險經紀人股份有限公司上述之說明，並同意就本人之個資及特種個資得為蒐集、處理及利用。',1)+'<br><span style="font-size:10.5px;">※如要、被保險人不同一人併檢附病歷時，請由被保險人本人簽名。</span><div style="text-align:right;margin-top:4px;">被保險人簽名：＿＿＿＿＿＿＿＿　法定代理人：＿＿＿＿＿＿＿＿</div></td></tr></table>'
+  +'<div style="margin-top:14px;display:flex;justify-content:space-between;"><div>要　保　人　簽　名　：＿＿＿＿＿＿＿＿＿＿</div><div>法定代理人簽名：＿＿＿＿＿＿＿＿＿＿</div></div>'
+  +'<div style="font-size:9.5px;color:#c00;margin:8px 0;">◎要保人未滿七歲者，由法定代理人代為簽名及法定代理人簽名；七歲（含）以上未滿十八足歲者，由本人及法定代理人簽名。<br>◎要保人受監護宣告者，由監護人代為簽名及監護人簽名；受輔助宣告者，由本人及輔助人簽名。</div>'
+  +'<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div>保險經紀人／業務人員簽名：＿＿＿＿＿＿＿＿＿＿</div><div>保　經　檢　核　章　：＿＿＿＿＿＿＿＿＿＿</div></div>'
+  +'<div>執業證照編號／登錄證字號：'+ti('EB6D762889','150px')+'</div>'
+  +'<div style="font-size:10.5px;margin-top:6px;">看見保險經紀人(股)公司/總公司地址：103 台北市大同區長安西路 287 號 4 樓</div>'
+  +'<div style="margin-top:12px;">中華民國：＿＿＿＿＿ 年 ＿＿＿＿＿ 月 ＿＿＿＿＿ 日</div>'
+  +'</div>';
+  closeWA();
+  var ov=document.createElement('div');ov.id='wa-overlay';ov.innerHTML=h;document.body.appendChild(ov);
+  document.body.style.overflow='hidden';
+  waScale();ov.scrollTop=0;
+}
 function goClient(enc){
   var name=decodeURIComponent(enc);
   sw('search');
