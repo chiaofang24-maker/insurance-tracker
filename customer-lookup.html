@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客戶資料查詢</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--tf:#0ABAB5;--tfl:#E0F7F6;--tfm:#5DCEC9;--tfd:#077B78;--tfdp:#045A58;--mint:#F0FAFA;--sage:#D4F0EE;--h:"Comic Sans MS","Chalkboard SE",cursive;}
+body{background:#F5FAFA;font-family:var(--h);color:var(--tfdp);}
+.app{padding:1rem;max-width:640px;margin:0 auto;}
+.hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;}
+.hdr h1{font-size:26px;font-weight:600;color:#fff;}
+.hdr p{font-size:14px;color:rgba(255,255,255,0.85);margin-top:2px;}
+.hbtns{display:flex;gap:6px;flex-wrap:wrap;}
+.hbtn{font-family:var(--h);font-size:13px;font-weight:600;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,0.2);color:#fff;border:1.5px solid rgba(255,255,255,0.5);cursor:pointer;text-decoration:none;}
+.sb{font-size:14px;padding:8px 14px;border-radius:14px;margin-bottom:10px;text-align:center;}
+.sl2{background:#FFF4E0;color:#8A5C00;border:1px solid #F5CC80;}
+.sok{background:var(--tfl);color:var(--tfd);border:1px solid var(--tfm);}
+.ser{background:#FDECEA;color:#B03030;border:1px solid #F0A8A8;}
+.card{background:#fff;border-radius:22px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1.5px solid var(--sage);}
+.ch{background:var(--mint);border-radius:16px;padding:8px 14px;margin-bottom:14px;border-left:4px solid var(--tf);font-size:17px;font-weight:600;color:var(--tfd);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.si{width:100%;font-family:var(--h);font-size:17px;border:1.5px solid var(--sage);border-radius:14px;padding:11px 14px;background:var(--mint);color:var(--tfdp);outline:none;}
+.si:focus{border-color:var(--tf);background:#fff;}
+.hint{font-size:13px;color:#999;margin-top:6px;}
+.st{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem;}
+.sc{background:var(--tfl);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfm);}
+.sc-link{background:var(--tf);border-radius:20px;padding:12px 8px;text-align:center;border:1.5px solid var(--tfd);cursor:pointer;color:#fff;}
+.sn{font-size:26px;font-weight:600;color:var(--tfd);}
+.sl{font-size:13px;color:var(--tfd);margin-top:2px;}
+.res{display:flex;justify-content:space-between;align-items:center;padding:11px 6px;border-bottom:1px dashed var(--sage);cursor:pointer;gap:8px;}
+.res:last-child{border-bottom:none;}
+.res:hover{background:var(--mint);}
+.res-n{font-size:18px;font-weight:600;}
+.res-s{font-size:13px;color:#888;}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:20px;font-weight:600;background:var(--tfl);color:var(--tfd);border:1.5px solid var(--tfm);margin-left:4px;}
+.tag-amber{background:#FFF4E0;color:#8A5C00;border-color:#F5CC80;}
+.tag-red{background:#FDECEA;color:#B03030;border-color:#F0A8A8;}
+.pname{font-size:28px;font-weight:700;color:var(--tfdp);}
+.psub{font-size:14px;color:#888;margin-top:2px;}
+.sec{margin-top:14px;}
+.sec-t{font-size:14px;font-weight:600;color:var(--tfd);margin-bottom:6px;}
+.row{display:flex;padding:8px 0;border-bottom:1px dashed var(--sage);gap:10px;}
+.row:last-child{border-bottom:none;}
+.lbl{font-size:14px;color:#888;min-width:84px;flex-shrink:0;}
+.val{font-size:15px;font-weight:600;white-space:pre-wrap;word-break:break-word;flex:1;}
+.val a{color:var(--tf);}
+.empty{color:#ccc;font-weight:400;}
+.hl{background:var(--mint);border:1.5px solid var(--sage);border-radius:16px;padding:10px 14px;margin-top:8px;}
+.fam{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{font-family:var(--h);font-size:15px;padding:7px 13px;border-radius:14px;border:1.5px solid var(--sage);background:#fff;color:var(--tfdp);cursor:pointer;}
+.chip.me{background:var(--tf);color:#fff;border-color:var(--tf);}
+.chip small{font-size:12px;opacity:0.75;margin-left:4px;}
+.svc{padding:10px 4px;border-bottom:1px dashed var(--sage);}
+.svc:last-child{border-bottom:none;}
+.svc-top{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.date-b{font-size:13px;color:var(--tfd);background:var(--mint);border:1px solid var(--sage);border-radius:10px;padding:2px 8px;}
+.svc-d{font-size:13px;color:#666;margin-top:5px;padding-left:6px;border-left:2px solid var(--sage);white-space:pre-wrap;}
+.btn{font-family:var(--h);font-size:14px;font-weight:600;padding:8px 16px;border-radius:12px;cursor:pointer;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);}
+.btn-p{background:var(--tf);color:#fff;border-color:var(--tf);}
+.btn-e{background:#FFF4E0;color:#8A5C00;border-color:#F5CC80;}
+.abtn{width:100%;padding:12px;font-family:var(--h);font-size:18px;font-weight:600;cursor:pointer;margin-top:10px;border-radius:18px;background:var(--tf);color:#fff;border:none;}
+.abtn:disabled{opacity:0.5;}
+.f{margin-bottom:10px;}
+.f label{font-size:14px;color:var(--tfd);display:block;margin-bottom:4px;font-weight:600;}
+.f input,.f select,.f textarea{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:var(--mint);color:var(--tfdp);outline:none;}
+.f textarea{height:70px;resize:vertical;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.req{color:#B03030;}
+.emp{font-size:16px;color:var(--tfm);text-align:center;padding:1.5rem 0;}
+.back{font-family:var(--h);font-size:14px;color:var(--tfd);background:none;border:none;cursor:pointer;margin-bottom:8px;padding:4px 0;}
+.hide{display:none;}
+.lock{max-width:380px;margin:3rem auto;text-align:center;}
+.lock .pname{margin-bottom:6px;}
+.chk{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:10px;font-size:14px;color:var(--tfd);}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ 密碼畫面 ═══ -->
+<div id="v-lock" class="hide">
+  <div class="card lock">
+    <div style="font-size:42px;">🔒</div>
+    <div class="pname">客戶資料查詢</div>
+    <div class="psub" style="margin-bottom:16px;">請輸入密碼</div>
+    <input class="si" id="pw" type="password" placeholder="密碼" onkeydown="if(event.key==='Enter')login()">
+    <label class="chk"><input type="checkbox" id="remember" checked> 在這台裝置記住密碼</label>
+    <div id="pw-err" class="sb ser hide" style="margin-top:10px;"></div>
+    <button class="abtn" id="pw-btn" onclick="login()">進入</button>
+  </div>
+</div>
+
+<!-- ═══ 主畫面 ═══ -->
+<div id="v-main" class="hide">
+  <div class="hdr">
+    <div><h1>客戶資料查詢</h1><p>基本資料・意外險・實支・家庭・服務記錄</p></div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="exportXlsx()">📥 匯出</button>
+      <button class="hbtn" onclick="logout()">🔒 登出</button>
+    </div>
+  </div>
+  <div id="sb" class="sb sl2">載入中...</div>
+
+  <!-- 搜尋 -->
+  <div id="p-search">
+    <div class="st">
+      <div class="sc"><div class="sn" id="s-people">—</div><div class="sl">客戶數</div></div>
+      <div class="sc"><div class="sn" id="s-fam">—</div><div class="sl">家庭數</div></div>
+      <div class="sc-link" onclick="openAdd()"><div class="sn" style="color:#fff;">＋</div><div class="sl" style="color:#fff;">新增客戶</div></div>
+    </div>
+    <div class="card">
+      <input class="si" id="q" type="search" placeholder="輸入姓名、電話、編號或家庭代號" oninput="search()" autocomplete="off">
+      <div class="hint">例：王佳怡、0912、C0012、高-04、舊編號 高-04-1</div>
+      <div id="results" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- 客戶資料 -->
+  <div id="p-detail" class="hide"></div>
+
+  <!-- 新增／編輯 -->
+  <div id="p-form" class="hide"></div>
+</div>
+
+</div>
+
+<script>
+// ── 設定 ──
+var API_CUST = 'https://script.google.com/macros/s/AKfycbxJPgo_5m9LhIp2PgPqw1dcXBttAimVBtggNItQ8qNctbuwpkwhui4xHYR9ZW-4kIXa0Q/exec';
+var API_SVC  = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
+var PW_KEY   = 'cust_lookup_pw';
+var REL_ORDER = ['戶長','配偶','子女','子女配偶','孫子女','父母','其他',''];
+var EDIT_FIELDS = ['電話','生日','地址','意外險','實支實付','壽險公司','家庭代號','原家庭','關係','關係確認','分組','備註'];
+
+var password = '';
+var people = [];
+var svcRecords = [];
+var curId = null;
+var lastQuery = '';
+
+// ── 小工具 ──
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function setSb(t,m){var b=$('sb');b.className='sb '+t;b.textContent=m;}
+function store(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+function load(k){try{return localStorage.getItem(k)||'';}catch(e){return'';}}
+function show(view){['p-search','p-detail','p-form'].forEach(function(id){$(id).classList.toggle('hide',id!==view);});window.scrollTo(0,0);}
+function byId(id){for(var i=0;i<people.length;i++)if(people[i]['客戶編號']===id)return people[i];return null;}
+function age(bd){
+  var m=String(bd||'').match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);if(!m)return'';
+  var t=new Date(),a=t.getFullYear()-m[1];
+  if(t.getMonth()+1<+m[2]||(t.getMonth()+1==+m[2]&&t.getDate()<+m[3]))a--;
+  return a;
+}
+function relRank(r){var i=REL_ORDER.indexOf(r||'');return i<0?99:i;}
+
+async function api(action,extra){
+  var body=Object.assign({password:password,action:action},extra||{});
+  var res=await fetch(API_CUST,{method:'POST',body:JSON.stringify(body)});
+  return await res.json();
+}
+
+// ── 登入 ──
+async function login(){
+  var pw=$('pw').value.trim();
+  if(!pw){showPwErr('請輸入密碼');return;}
+  $('pw-btn').disabled=true;$('pw-btn').textContent='確認中...';
+  password=pw;
+  var ok=await loadAll(true);
+  $('pw-btn').disabled=false;$('pw-btn').textContent='進入';
+  if(ok){store(PW_KEY,$('remember').checked?pw:null);}
+}
+function showPwErr(m){var e=$('pw-err');e.textContent=m;e.classList.remove('hide');}
+function logout(){store(PW_KEY,null);password='';people=[];$('pw').value='';$('v-main').classList.add('hide');$('v-lock').classList.remove('hide');}
+
+// ── 載入資料 ──
+async function loadAll(fromLogin){
+  try{
+    var d=await api('list');
+    if(d.status!=='ok'){
+      if(fromLogin){showPwErr(d.msg||'密碼錯誤');}
+      else{logout();showPwErr('密碼已變更，請重新輸入');}
+      return false;
+    }
+    people=d.data||[];
+  }catch(e){
+    if(fromLogin)showPwErr('無法連線，請檢查網路');
+    else setSb('ser','無法連線，請檢查網路');
+    return false;
+  }
+  $('v-lock').classList.add('hide');$('v-main').classList.remove('hide');
+  updStats();
+  setSb('sl2','客戶資料已載入，服務記錄載入中...');
+  try{
+    var r=await fetch(API_SVC);var s=await r.json();
+    svcRecords=Array.isArray(s)?s:[];
+    setSb('sok','已連線，資料同步自 Google Sheets');
+  }catch(e){setSb('sl2','客戶資料已載入（服務記錄暫時無法載入）');}
+  if(curId&&byId(curId)&&!$('p-detail').classList.contains('hide'))openDetail(curId);
+  return true;
+}
+function updStats(){
+  $('s-people').textContent=people.length;
+  var f={};people.forEach(function(p){if(p['家庭代號'])f[p['家庭代號']]=1;});
+  $('s-fam').textContent=Object.keys(f).length;
+}
+
+// ── 搜尋 ──
+function search(){
+  var q=$('q').value.trim();lastQuery=q;
+  var box=$('results');
+  if(!q){box.innerHTML='';return;}
+  var ql=q.toLowerCase().replace(/[\s\-]/g,'');
+  var hits=people.filter(function(p){
+    return [p['姓名'],p['電話'],p['客戶編號'],p['家庭代號'],p['舊編號']].some(function(v){
+      return String(v||'').toLowerCase().replace(/[\s\-]/g,'').indexOf(ql)>-1;
+    });
+  });
+  hits.sort(function(a,b){
+    var ae=a['姓名']===q?0:1,be=b['姓名']===q?0:1;if(ae!==be)return ae-be;
+    if(a['家庭代號']!==b['家庭代號'])return String(a['家庭代號']).localeCompare(String(b['家庭代號']));
+    return relRank(a['關係'])-relRank(b['關係']);
+  });
+  if(!hits.length){box.innerHTML='<div class="emp">找不到符合的客戶</div>';return;}
+  box.innerHTML=hits.slice(0,50).map(function(p){
+    return '<div class="res" onclick="openDetail(\''+esc(p['客戶編號'])+'\')">'
+      +'<div><div class="res-n">'+esc(p['姓名'])+(p['關係']?'<span class="tag">'+esc(p['關係'])+'</span>':'')+'</div>'
+      +'<div class="res-s">'+esc(p['客戶編號'])+(p['家庭代號']?'・'+esc(p['家庭代號']):'')+(p['電話']?'・'+esc(p['電話']):'')+'</div></div>'
+      +'<div style="color:var(--tfm);">›</div></div>';
+  }).join('')+(hits.length>50?'<div class="hint">只顯示前 50 筆，請輸入更完整的關鍵字</div>':'');
+}
+function backToSearch(){show('p-search');$('q').value=lastQuery;search();}
+
+// ── 客戶資料卡 ──
+function row(label,v,html){
+  return '<div class="row"><div class="lbl">'+label+'</div><div class="val">'+(v?(html||esc(v)):'<span class="empty">－</span>')+'</div></div>';
+}
+function openDetail(id){
+  var p=byId(id);if(!p)return;curId=id;
+  var a=age(p['生日']);
+  var bdText=p['生日']?(p['生日']+(p['生日(民國)']?'（民國 '+p['生日(民國)']+'）':'')+(a!==''?'・'+a+' 歲':'')):'';
+  var tel=String(p['電話']||'').split(/[\n,、\/]/)[0].replace(/[^\d+]/g,'');
+  var telHtml=tel?'<a href="tel:'+esc(tel)+'">'+esc(p['電話'])+'</a>':'';
+  var addrHtml=p['地址']?'<a href="https://maps.apple.com/?q='+encodeURIComponent(p['地址'])+'" target="_blank">'+esc(p['地址'])+'</a>':'';
+  var confTag=p['關係確認']==='推測'?'<span class="tag tag-amber">推測</span>':p['關係確認']==='待確認'?'<span class="tag tag-red">待確認</span>':'';
+
+  var h='<button class="back" onclick="backToSearch()">‹ 返回搜尋</button>';
+  h+='<div class="card">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">';
+  h+='<div><div class="pname">'+esc(p['姓名'])+'</div><div class="psub">'+esc(p['客戶編號'])+(p['舊編號']?'・舊編號 '+esc(p['舊編號']):'')+'</div></div>';
+  h+='<button class="btn btn-e" onclick="openEdit(\''+esc(id)+'\')">✏️ 編輯</button></div>';
+
+  h+='<div class="sec"><div class="sec-t">基本資料</div>';
+  h+=row('生日',bdText)+row('電話',p['電話'],telHtml)+row('地址',p['地址'],addrHtml);
+  h+='</div>';
+
+  h+='<div class="sec"><div class="sec-t">保障</div><div class="hl">';
+  h+=row('意外險',p['意外險'])+row('實支實付',p['實支實付'])+row('壽險公司',p['壽險公司']);
+  h+='</div></div>';
+
+  if(p['備註'])h+='<div class="sec"><div class="sec-t">備註</div><div class="val" style="font-weight:400;font-size:14px;">'+esc(p['備註'])+'</div></div>';
+  h+='</div>';
+
+  // 家庭
+  var fam=p['家庭代號'];
+  if(fam){
+    var members=people.filter(function(x){return x['家庭代號']===fam;}).sort(function(a,b){return relRank(a['關係'])-relRank(b['關係']);});
+    var moved=people.filter(function(x){return x['原家庭']===fam;});
+    h+='<div class="card"><div class="ch"><span>家庭 '+esc(fam)+'</span><span style="font-size:13px;font-weight:400;">'+esc(p['關係']||'關係未填')+confTag+'</span></div>';
+    h+='<div class="fam">'+members.map(function(x){return chip(x);}).join('')+'</div>';
+    if(moved.length){
+      h+='<div class="sec-t" style="margin-top:12px;">已獨立的成員</div><div class="fam">'+moved.map(function(x){return chip(x,'→ '+x['家庭代號']);}).join('')+'</div>';
+    }
+    if(p['原家庭']){
+      var origHead=people.filter(function(x){return x['家庭代號']===p['原家庭'];}).sort(function(a,b){return relRank(a['關係'])-relRank(b['關係']);})[0];
+      h+='<div class="sec-t" style="margin-top:12px;">原家庭 '+esc(p['原家庭'])+'</div><div class="fam">'+(origHead?chip(origHead):'<span class="empty">－</span>')+'</div>';
+    }
+    h+='</div>';
+  }
+
+  // 服務記錄
+  var svc=svcRecords.filter(function(r){return r.name===p['姓名'];}).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  h+='<div class="card"><div class="ch"><span>服務記錄</span><span style="font-size:13px;font-weight:400;">'+svc.length+' 筆</span></div>';
+  if(!svc.length)h+='<div class="emp">尚無服務記錄</div>';
+  else h+=svc.map(function(r){
+    var ex=r.extra&&typeof r.extra==='object'?Object.keys(r.extra).filter(function(k){return r.extra[k];}).map(function(k){return k+'：'+r.extra[k];}).join('\n'):String(r.extra||'');
+    var det=[r.policy?'保單號碼：'+r.policy:'',ex,r.note?'備註：'+r.note:''].filter(Boolean).join('\n');
+    return '<div class="svc"><div class="svc-top"><span class="date-b">'+esc(fmtDate(r.date))+'</span>'
+      +(r.type?'<span class="tag">'+esc(r.type)+'</span>':'')
+      +(r.company?'<span style="font-size:14px;color:#555;font-weight:600;">'+esc(r.company)+'</span>':'')+'</div>'
+      +(det?'<div class="svc-d">'+esc(det)+'</div>':'')+'</div>';
+  }).join('');
+  h+='</div>';
+
+  $('p-detail').innerHTML=h;show('p-detail');
+}
+function chip(x,note){
+  var me=x['客戶編號']===curId;
+  return '<button class="chip'+(me?' me':'')+'" onclick="openDetail(\''+esc(x['客戶編號'])+'\')">'+esc(x['姓名'])
+    +'<small>'+esc(note||x['關係']||'')+'</small></button>';
+}
+function fmtDate(d){
+  if(!d)return'－';var s=String(d);
+  if(s.indexOf('T')>-1||s.indexOf('GMT')>-1){var dt=new Date(s);if(!isNaN(dt))return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+  return s.substring(0,10);
+}
+
+// ── 新增／編輯表單 ──
+function field(key,label,val,type){
+  var id='fm-'+key;val=val||'';
+  if(key==='關係'){
+    return '<div class="f"><label>'+label+'</label><select id="'+id+'">'+REL_ORDER.map(function(r){return '<option value="'+r+'"'+(r===val?' selected':'')+'>'+(r||'（未填）')+'</option>';}).join('')+'</select></div>';
+  }
+  if(key==='關係確認'){
+    return '<div class="f"><label>'+label+'</label><select id="'+id+'">'+['','已確認','推測','待確認'].map(function(r){return '<option value="'+r+'"'+(r===val?' selected':'')+'>'+(r||'（未填）')+'</option>';}).join('')+'</select></div>';
+  }
+  if(type==='date'){val=String(val).replace(/\//g,'-');}
+  if(type==='area')return '<div class="f"><label>'+label+'</label><textarea id="'+id+'">'+esc(val)+'</textarea></div>';
+  return '<div class="f"><label>'+label+'</label><input id="'+id+'" type="'+(type||'text')+'" value="'+esc(val)+'"></div>';
+}
+function formHTML(p,isNew){
+  var h='<button class="back" onclick="'+(isNew?'backToSearch()':'openDetail(\''+esc(p['客戶編號'])+'\')')+'">‹ 取消</button>';
+  h+='<div class="card"><div class="ch">'+(isNew?'新增客戶':'編輯：'+esc(p['姓名'])+'（'+esc(p['客戶編號'])+'）')+'</div>';
+  if(isNew)h+='<div class="f"><label>姓名 <span class="req">*</span></label><input id="fm-姓名" type="text" placeholder="王小明"></div>';
+  else h+='<div class="hint" style="margin-bottom:10px;">姓名用來對應服務記錄，如需更改請到 Google 試算表修改。</div>';
+  h+='<div class="g2">'+field('電話','電話',p['電話'],'tel')+field('生日','生日',p['生日'],'date')+'</div>';
+  h+=field('地址','地址',p['地址']);
+  h+=field('意外險','意外險',p['意外險'],'area')+field('實支實付','實支實付',p['實支實付'],'area');
+  h+=field('壽險公司','壽險公司',p['壽險公司'],'area');
+  h+='<div class="g2">'+field('家庭代號','家庭代號',p['家庭代號'])+field('原家庭','原家庭',p['原家庭'])+'</div>';
+  h+='<div class="g2">'+field('關係','關係',p['關係'])+field('關係確認','關係確認',p['關係確認'])+'</div>';
+  h+=field('分組','分組',p['分組']);
+  h+=field('備註','備註',p['備註'],'area');
+  h+='<div class="hint">💡 子女成家／離婚分戶：家庭代號改成新的、關係改「戶長」、原家庭填舊的家庭代號。</div>';
+  h+='<button class="abtn" id="fm-save" onclick="'+(isNew?'saveNew()':'saveEdit(\''+esc(p['客戶編號'])+'\')')+'">'+(isNew?'＋ 新增客戶':'儲存')+'</button></div>';
+  return h;
+}
+function readForm(){
+  var f={};
+  EDIT_FIELDS.forEach(function(k){var el=$('fm-'+k);if(el)f[k]=el.value.trim();});
+  if(f['生日'])f['生日']=f['生日'].replace(/-/g,'/');
+  return f;
+}
+function openEdit(id){var p=byId(id);if(!p)return;$('p-form').innerHTML=formHTML(p,false);show('p-form');}
+function openAdd(){
+  var q=$('q').value.trim();
+  $('p-form').innerHTML=formHTML({'關係確認':'已確認'},true);show('p-form');
+  if(q&&!/\d/.test(q))$('fm-姓名').value=q;
+}
+async function saveEdit(id){
+  var p=byId(id);var f=readForm();
+  var changed={};Object.keys(f).forEach(function(k){if(String(p[k]||'')!==f[k])changed[k]=f[k];});
+  if(!Object.keys(changed).length){openDetail(id);return;}
+  var btn=$('fm-save');btn.disabled=true;btn.textContent='儲存中...';setSb('sl2','儲存至 Google Sheets...');
+  try{
+    var d=await api('update',{id:id,fields:changed});
+    if(d.status!=='ok')throw new Error(d.msg);
+    Object.assign(p,changed);
+    if(changed['生日']!==undefined)p['生日(民國)']=rocOf(changed['生日']);
+    setSb('sok','已儲存');openDetail(id);
+  }catch(e){setSb('ser','儲存失敗：'+(e.message||'請重試'));btn.disabled=false;btn.textContent='儲存';}
+}
+async function saveNew(){
+  var name=$('fm-姓名').value.trim();
+  if(!name){alert('請填寫姓名');return;}
+  var dup=people.filter(function(x){return x['姓名']===name;});
+  if(dup.length&&!confirm('已經有一位「'+name+'」（'+dup[0]['客戶編號']+'），確定還要新增嗎？\n\n同名同姓會讓服務記錄無法分辨。'))return;
+  var f=readForm();f['姓名']=name;
+  var btn=$('fm-save');btn.disabled=true;btn.textContent='新增中...';setSb('sl2','儲存至 Google Sheets...');
+  try{
+    var d=await api('add',{fields:f});
+    if(d.status!=='ok')throw new Error(d.msg);
+    f['客戶編號']=d.id;f['生日(民國)']=rocOf(f['生日']);
+    people.push(f);updStats();
+    setSb('sok','已新增客戶 '+d.id);openDetail(d.id);
+  }catch(e){setSb('ser','新增失敗：'+(e.message||'請重試'));btn.disabled=false;btn.textContent='＋ 新增客戶';}
+}
+function rocOf(s){var m=String(s||'').match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);if(!m)return'';return(m[1]-1911)+'.'+('0'+m[2]).slice(-2)+'.'+('0'+m[3]).slice(-2);}
+
+// ── 匯出 ──
+function exportXlsx(){
+  if(typeof XLSX==='undefined'){alert('試算表套件尚未載入，請確認網路後重試');return;}
+  if(!people.length){alert('沒有資料可以匯出');return;}
+  var cols=Object.keys(people[0]);
+  var data=[cols].concat(people.map(function(p){return cols.map(function(k){return p[k]||'';});}));
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'客戶資料');
+  var n=new Date();var fn='客戶資料備份_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'.xlsx';
+  XLSX.writeFile(wb,fn);setSb('sok','已下載：'+fn);
+}
+
+// ── 啟動 ──
+(function init(){
+  var saved=load(PW_KEY);
+  if(saved){password=saved;loadAll(false).then(function(ok){if(!ok){$('v-lock').classList.remove('hide');}});}
+  else $('v-lock').classList.remove('hide');
+})();
+</script>
+</body>
+</html>
