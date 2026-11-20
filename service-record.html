@@ -157,7 +157,7 @@ body{background:#F5FAFA;font-family:var(--h);}
   </div>
   <div class="row1"><div class="f"><label>保單號碼</label><input id="f-policy" type="text" placeholder="選填"></div></div>
   <div id="extra-wrap" style="display:none;"></div>
-  <div id="cc-exp-note" class="auto-note">✅ 填寫有效年月後，儲存時將自動加入到期清單</div>
+  <div id="cc-exp-note" class="auto-note">✅ 有填保單號碼：自動更新「保單扣款」資料，依扣款日提醒<br>　沒填保單號碼：填寫有效年月後，自動加入到期清單</div>
   <div class="row1"><div class="f"><label>備註說明</label><textarea id="f-note" placeholder="補充細節..."></textarea></div></div>
   <button class="abtn" id="add-btn" onclick="addRecord()">＋ 新增記錄</button>
 </div>
@@ -498,6 +498,16 @@ async function addRecord(){
       cardExpiry_val=monthToExpiry(extra['有效年月']);
       bank_val=extra['銀行名稱']||'';
       card4_val=extra['卡號末四碼']||'';
+    }
+    // 2-1. 有填保單號碼 → 更新「保單扣款」資料（依扣款日提醒），不再另外加入舊的到期清單
+    var acctChange=(type==='保費繳費方式變更'&&extra['新繳費方式']==='帳戶扣款');
+    if(policy&&(cardExpiry_val||acctChange)){
+      var payRec=acctChange
+        ?{action:'pay_card',fromSvc:true,policies:[policy],name:name,company:company,method:'帳戶扣款',bank:extra['銀行名稱']||'',card4:extra['帳號末四碼']||''}
+        :{action:'pay_card',fromSvc:true,policies:[policy],name:name,company:company,method:'信用卡',bank:bank_val,card4:card4_val,cardExp:cardExpiry_val.substring(0,7)};
+      await fetch(API2,{method:'POST',mode:'no-cors',body:JSON.stringify(payRec)});
+      cardExpiry_val=null;
+      setSb('sok','已儲存，並更新保單扣款資料 ✅');
     }
     if(cardExpiry_val){
       // ✅ 重複檢查：同姓名 + 同月份 已有記錄就不再新增

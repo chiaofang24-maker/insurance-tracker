@@ -130,6 +130,7 @@ body{background:#F5FAFA;font-family:var(--h);color:var(--tfdp);}
 // ── 設定 ──
 var API_CUST = 'https://script.google.com/macros/s/AKfycbxJPgo_5m9LhIp2PgPqw1dcXBttAimVBtggNItQ8qNctbuwpkwhui4xHYR9ZW-4kIXa0Q/exec';
 var API_SVC  = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUGLJeRd3NQPXF9U2f4CbMO1rg06PwmHXssWms3lMBGKz1fQ/exec';
+var API_EXP  = 'https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
 var PW_KEY   = 'cust_lookup_pw';
 var REL_ORDER = ['戶長','配偶','子女','子女配偶','孫子女','父母','其他',''];
 var EDIT_FIELDS = ['電話','生日','地址','意外險','實支實付','壽險公司','家庭代號','原家庭','關係','關係確認','分組','備註'];
@@ -137,6 +138,45 @@ var EDIT_FIELDS = ['電話','生日','地址','意外險','實支實付','壽險
 var password = '';
 var people = [];
 var svcRecords = [];
+var payRecords = [];
+function p2(n){ return ('0' + n).slice(-2); }
+var FREQ_MONTHS = {'年繳':12, '半年繳':6, '季繳':3, '月繳':1};
+function pd(s){ var m = String(s || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+function ymd(d){ return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); }
+function md(d){ return d.getFullYear() + '/' + p2(d.getMonth() + 1) + '/' + p2(d.getDate()); }
+function addDays(d, n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+function dayDiff(a, b){ return Math.round((b - a) / 864e5); }
+function monthShift(a, n){
+  var y = a.getFullYear(), m = a.getMonth() + n;
+  var last = new Date(y, m + 1, 0).getDate();
+  return new Date(y, m, Math.min(a.getDate(), last));
+}
+// 「after」之後的第一個扣款日
+function nextPayAfter(anchorStr, freq, after){
+  var a = pd(anchorStr), step = FREQ_MONTHS[freq];
+  if (!a || !step) return null;
+  var diff = (after.getFullYear() - a.getFullYear()) * 12 + (after.getMonth() - a.getMonth());
+  var k = Math.floor(diff / step) - 1, d = monthShift(a, k * step);
+  while (d <= after) { k++; d = monthShift(a, k * step); }
+  return d;
+}
+// 規則：第一次＝扣款日前 60 天；第二次＝扣款日前 40 天（不早於卡片到期月 1 號）；之後每 7 天
+function payPlan(r, today){
+  if (r.method === '帳戶扣款') return null;
+  var m = String(r.cardExp || '').match(/^(\d{4})-(\d{1,2})/);
+  if (!m) return null;
+  var end = new Date(+m[1], +m[2], 0), mStart = new Date(+m[1], +m[2] - 1, 1);
+  var D = nextPayAfter(r.payDate, r.freq, end), noInfo = false;
+  if (!D) { D = addDays(end, 1); noInfo = true; }           // 沒填扣款日：以卡片到期日為準
+  var first = addDays(D, -60), sec = addDays(D, -40);
+  if (sec < mStart) sec = mStart;
+  var left = dayDiff(today, D);
+  var stage = today < first ? 0 : (today < sec ? 1 : 2);
+  return {D:D, first:first, second:sec, left:left, stage:stage, noInfo:noInfo,
+          urgent: stage > 0 && left < 30 && left >= 0, overdue: left < 0};
+}
+
+
 var curId = null;
 var lastQuery = '';
 
@@ -198,6 +238,7 @@ async function loadAll(fromLogin){
     svcRecords=Array.isArray(s)?s:[];
     setSb('sok','已連線，資料同步自 Google Sheets');
   }catch(e){setSb('sl2','客戶資料已載入（服務記錄暫時無法載入）');}
+  try{var r2=await fetch(API_EXP+'?action=pay_list');var d2=await r2.json();payRecords=(d2&&d2.pays)||[];}catch(e){}
   if(curId&&byId(curId)&&!$('p-detail').classList.contains('hide'))openDetail(curId);
   return true;
 }
@@ -278,6 +319,23 @@ function openDetail(id){
       h+='<div class="sec-t" style="margin-top:12px;">原家庭 '+esc(p['原家庭'])+'</div><div class="fam">'+(origHead?chip(origHead):'<span class="empty">－</span>')+'</div>';
     }
     h+='</div>';
+  }
+
+  // 保單扣款
+  var pays=payRecords.filter(function(r){return r.name===p['姓名'];});
+  if(pays.length){
+    var T=new Date();T=new Date(T.getFullYear(),T.getMonth(),T.getDate());
+    var groups={},gk=[];
+    pays.forEach(function(x){var k=x.method==='帳戶扣款'?'帳戶扣款':(x.bank+'|'+x.card4+'|'+x.cardExp);if(!groups[k]){groups[k]=[];gk.push(k);}groups[k].push(x);});
+    h+='<div class="card"><div class="ch"><span>保單扣款</span><span style="font-size:13px;font-weight:400;">'+pays.length+' 張保單</span></div>';
+    h+=gk.map(function(k){var f=groups[k][0];
+      return '<div class="svc"><div style="font-weight:600;color:var(--tfdp);">'+(k==='帳戶扣款'?'🏦 帳戶扣款':'💳 '+esc(f.bank||'未填銀行')+' 末四碼'+esc(f.card4||'－')+'｜'+(f.cardExp?esc(f.cardExp.replace('-','/'))+' 到期':'未填效期'))+'</div>'
+        +groups[k].map(function(x){
+          var nx=nextPayAfter(x.payDate,x.freq,addDays(T,-1)),pl=payPlan(x,T),tag='';
+          if(pl&&pl.stage>0)tag='<span class="tag '+(pl.stage===2?'tag-red':'tag-amber')+'">'+(pl.overdue?'已過扣款日':'剩'+pl.left+'天・'+md(pl.D)+' 扣款會失敗')+'</span>';
+          return '<div class="svc-d">'+esc(x.company||'未填公司')+' '+esc(x.policy)+(x.freq?'（'+esc(x.freq)+'）':'')+'\n'+(nx?'下次扣款 '+md(nx):'未填扣款日')+' '+'</div>'+tag;
+        }).join('')+'</div>';}).join('');
+    h+='<div class="hint" style="margin-top:8px;">修改扣款資料請到「到期通知管理 → 保單扣款」</div></div>';
   }
 
   // 服務記錄

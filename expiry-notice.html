@@ -12,7 +12,7 @@ body{background:#F5FAFA;font-family:var(--h);}
 .hdr{background:var(--tf);border-radius:22px;padding:1.2rem 1.5rem;margin-bottom:1rem;}
 .hdr h1{font-size:26px;font-weight:600;color:#fff;font-family:var(--h);}
 .hdr p{font-size:14px;color:rgba(255,255,255,0.85);font-family:var(--h);margin-top:2px;}
-.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem;}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
 .tab{font-family:var(--h);font-size:16px;font-weight:600;padding:10px;border-radius:16px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;text-align:center;}
 .tab.on{background:var(--tf);color:#fff;border-color:var(--tf);}
 .pnl{display:none;}.pnl.on{display:block;}
@@ -61,16 +61,27 @@ body{background:#F5FAFA;font-family:var(--h);}
 .filter-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .fbtn{font-family:var(--h);font-size:14px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;}
 .fbtn.on{background:var(--tf);color:#fff;border-color:var(--tf);}
+.cg{border-top:1px dashed var(--sage);margin-top:10px;padding-top:8px;}
+.cg-h{font-size:15px;font-weight:600;color:var(--tfdp);margin-bottom:4px;}
+.pr{display:flex;gap:8px;align-items:flex-start;padding:6px 2px;font-size:14px;color:#555;line-height:1.6;}
+.pr input{margin-top:5px;width:18px;height:18px;flex:none;}
+.pr .pt{flex:1;}
+.pr .bg{display:inline-block;line-height:1.5;margin-top:3px;}
+.eb{font-family:var(--h);font-size:12px;color:var(--tfd);background:#fff;border:1px solid var(--sage);border-radius:8px;padding:2px 8px;cursor:pointer;flex:none;}
+.si{width:100%;font-family:var(--h);font-size:16px;border:1.5px solid var(--sage);border-radius:14px;padding:9px 13px;background:#fff;color:var(--tfdp);outline:none;margin-bottom:10px;}
+.btn2{font-family:var(--h);font-size:15px;font-weight:600;padding:9px 12px;border-radius:14px;border:1.5px solid var(--sage);background:#fff;color:var(--tfd);cursor:pointer;}
+.hint{font-size:13px;color:#888;line-height:1.7;margin-bottom:8px;}
 .err-box{background:#FDECEA;border:1.5px solid #F0A8A8;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-family:var(--h);font-size:14px;color:#B03030;display:none;line-height:1.8;}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="hdr"><h1>到期通知管理</h1><p>儲蓄險・生存年金・信用卡</p></div>
+<div class="hdr"><h1>到期通知管理</h1><p>儲蓄險・生存年金・信用卡・保單扣款</p></div>
 <div id="sb" class="sb sl2">連線中，載入資料...</div>
 <div class="tabs">
   <div class="tab on" onclick="sw('input')">新增通知項目</div>
   <div class="tab" onclick="sw('list')">到期清單</div>
+  <div class="tab" onclick="sw('pay')">保單扣款</div>
 </div>
 <div id="pnl-input" class="pnl on">
 <div class="card">
@@ -127,6 +138,69 @@ body{background:#F5FAFA;font-family:var(--h);}
   </div>
   <div id="rlist"><div class="emp">載入中...</div></div>
 </div>
+<div id="pnl-pay" class="pnl">
+  <div class="st">
+    <div class="sc"><div class="sn" id="p-tot">—</div><div class="sl">保單數</div></div>
+    <div class="sc"><div class="sn" id="p-now">—</div><div class="sl">提醒中</div></div>
+    <div class="sc"><div class="sn" id="p-miss">—</div><div class="sl">未填扣款日</div></div>
+  </div>
+  <input class="si" id="p-q" type="text" placeholder="🔍 輸入客戶姓名或保單號碼" oninput="rendPay()">
+  <div class="filter-row">
+    <button class="fbtn on" onclick="setPF('all',this)">全部</button>
+    <button class="fbtn" onclick="setPF('now',this)">提醒中</button>
+    <button class="fbtn" onclick="setPF('miss',this)">未填扣款日</button>
+    <button class="fbtn" style="margin-left:auto;background:var(--tf);color:#fff;border-color:var(--tf);" onclick="openPay(null,'')">＋ 新增保單</button>
+  </div>
+
+  <div id="pay-form" class="card" style="display:none;">
+    <div class="ch" id="pf-title">新增保單扣款</div>
+    <div id="pf-err" class="err-box"></div>
+    <div class="row">
+      <div class="f"><label>客戶姓名</label><input id="pf-name" type="text" list="name-list" placeholder="林先生" oninput="fillCardOpts()"></div>
+      <div class="f"><label>保單號碼</label><input id="pf-policy" type="text" placeholder="必填"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>保險公司</label><select id="pf-company"></select></div>
+      <div class="f"><label>繳別</label><select id="pf-freq"><option value="">請選擇</option><option>年繳</option><option>半年繳</option><option>季繳</option><option>月繳</option></select></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>扣款日（任一次）</label><input id="pf-paydate" type="date"></div>
+      <div class="f"><label>扣款方式</label><select id="pf-method" onchange="togMethod()"><option>信用卡</option><option>帳戶扣款</option></select></div>
+    </div>
+    <div id="pf-cardwrap">
+      <div class="row1"><div class="f"><label>扣款卡</label><select id="pf-cardsel" onchange="pickCard()"></select></div></div>
+      <div class="row">
+        <div class="f"><label>銀行</label><input id="pf-bank" type="text" placeholder="玉山"></div>
+        <div class="f"><label>卡號末四碼</label><input id="pf-card4" type="text" maxlength="4" inputmode="numeric" placeholder="1234"></div>
+      </div>
+      <div class="row1"><div class="f"><label>卡片有效年月</label><input id="pf-cardexp" type="month"></div></div>
+    </div>
+    <div class="row1"><div class="f"><label>備註</label><input id="pf-note" type="text" placeholder="選填"></div></div>
+    <div class="hint">扣款日填過去任何一次扣款的日期都可以，系統會依繳別自動推算下一次。</div>
+    <button class="abtn" id="pf-save" onclick="savePay()">儲存</button>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn2" style="flex:1" onclick="closeForms()">取消</button>
+      <button class="btn2" id="pf-del" style="flex:1;color:#B03030;display:none;" onclick="delPay()">刪除這張保單</button>
+    </div>
+  </div>
+
+  <div id="card-form" class="card" style="display:none;">
+    <div class="ch">換新卡</div>
+    <div class="hint" id="cf-list"></div>
+    <div class="row1"><div class="f"><label>扣款方式</label><select id="cf-method" onchange="togCfMethod()"><option>信用卡</option><option>帳戶扣款</option></select></div></div>
+    <div class="row">
+      <div class="f"><label>銀行</label><input id="cf-bank" type="text" placeholder="玉山"></div>
+      <div class="f"><label id="cf-card4-l">卡號末四碼</label><input id="cf-card4" type="text" maxlength="4" inputmode="numeric" placeholder="1234"></div>
+    </div>
+    <div class="row1" id="cf-expwrap"><div class="f"><label>新卡有效年月</label><input id="cf-cardexp" type="month"></div></div>
+    <div class="hint">儲存後會自動在「保單服務記錄」新增一筆變更記錄（含原卡資料）。</div>
+    <button class="abtn" id="cf-save" onclick="saveCard()">儲存</button>
+    <button class="btn2" style="width:100%;margin-top:8px;" onclick="closeForms()">取消</button>
+  </div>
+
+  <div id="plist"><div class="emp">載入中...</div></div>
+  <datalist id="name-list"></datalist>
+</div>
 </div>
 <script>
 var API='https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
@@ -152,10 +226,11 @@ var TYPE_MSG={
 };
 function setSb(t,m){var b=document.getElementById('sb');b.className='sb '+t;b.textContent=m;}
 function sw(t){
-  document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','list'][i]===t);});
+  document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',['input','list','pay'][i]===t);});
   document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
   document.getElementById('pnl-'+t).classList.add('on');
   if(t==='list') rendList();
+  if(t==='pay') rendPay();
 }
 function updType(){
   var t=document.getElementById('ftp').value;
@@ -326,7 +401,194 @@ async function addR(){
   }catch(e){setSb('ser','儲存失敗，請重試');}
   btn.disabled=false;btn.textContent='＋ 新增';
 }
-initDates();loadR();
+
+// ════════ 保單扣款 ════════
+function p2(n){ return ('0' + n).slice(-2); }
+var FREQ_MONTHS = {'年繳':12, '半年繳':6, '季繳':3, '月繳':1};
+function pd(s){ var m = String(s || '').match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+function ymd(d){ return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); }
+function md(d){ return d.getFullYear() + '/' + p2(d.getMonth() + 1) + '/' + p2(d.getDate()); }
+function addDays(d, n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+function dayDiff(a, b){ return Math.round((b - a) / 864e5); }
+function monthShift(a, n){
+  var y = a.getFullYear(), m = a.getMonth() + n;
+  var last = new Date(y, m + 1, 0).getDate();
+  return new Date(y, m, Math.min(a.getDate(), last));
+}
+// 「after」之後的第一個扣款日
+function nextPayAfter(anchorStr, freq, after){
+  var a = pd(anchorStr), step = FREQ_MONTHS[freq];
+  if (!a || !step) return null;
+  var diff = (after.getFullYear() - a.getFullYear()) * 12 + (after.getMonth() - a.getMonth());
+  var k = Math.floor(diff / step) - 1, d = monthShift(a, k * step);
+  while (d <= after) { k++; d = monthShift(a, k * step); }
+  return d;
+}
+// 規則：第一次＝扣款日前 60 天；第二次＝扣款日前 40 天（不早於卡片到期月 1 號）；之後每 7 天
+function payPlan(r, today){
+  if (r.method === '帳戶扣款') return null;
+  var m = String(r.cardExp || '').match(/^(\d{4})-(\d{1,2})/);
+  if (!m) return null;
+  var end = new Date(+m[1], +m[2], 0), mStart = new Date(+m[1], +m[2] - 1, 1);
+  var D = nextPayAfter(r.payDate, r.freq, end), noInfo = false;
+  if (!D) { D = addDays(end, 1); noInfo = true; }           // 沒填扣款日：以卡片到期日為準
+  var first = addDays(D, -60), sec = addDays(D, -40);
+  if (sec < mStart) sec = mStart;
+  var left = dayDiff(today, D);
+  var stage = today < first ? 0 : (today < sec ? 1 : 2);
+  return {D:D, first:first, second:sec, left:left, stage:stage, noInfo:noInfo,
+          urgent: stage > 0 && left < 30 && left >= 0, overdue: left < 0};
+}
+
+
+var pays=[],payF='all',editPolicy=null,cardPolicies=[];
+var COMPANIES=['全球人壽','宏泰人壽','凱基人壽','新光人壽','遠雄人壽','台灣人壽','安達人壽','台銀人壽','富邦人壽','第一金人壽','友邦人壽','元大人壽','安聯人壽','保誠人壽','國泰人壽','南山人壽','其他'];
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function todayD(){var t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate());}
+function cardKey(p){return p.method==='帳戶扣款'?'帳戶扣款':(p.bank+'|'+p.card4+'|'+p.cardExp);}
+async function loadPay(){
+  try{var res=await fetch(API+'?action=pay_list'),d=await res.json();pays=(d&&d.pays)||[];}
+  catch(e){pays=[];$('plist').innerHTML='<div class="emp">保單扣款資料暫時無法載入</div>';return;}
+  updPaySt();rendPay();
+}
+function updPaySt(){
+  var T=todayD();
+  $('p-tot').textContent=pays.length;
+  $('p-now').textContent=pays.filter(function(p){var pl=payPlan(p,T);return pl&&pl.stage>0;}).length;
+  $('p-miss').textContent=pays.filter(function(p){return !p.payDate||!p.freq;}).length;
+  var names={};recs.forEach(function(r){names[r.name]=1;});pays.forEach(function(p){names[p.name]=1;});
+  $('name-list').innerHTML=Object.keys(names).filter(Boolean).map(function(n){return'<option value="'+esc(n)+'">';}).join('');
+}
+function setPF(f,btn){payF=f;btn.parentNode.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');rendPay();}
+function policyLine(p,T){
+  var pl=payPlan(p,T),b='';
+  if(p.method==='帳戶扣款')b='<span class="bg bx">帳戶扣款</span>';
+  else if(!pl)b='<span class="bg bx">未填卡片效期</span>';
+  else{
+    var info=(pl.noInfo?'未填扣款日・以卡片到期估算 ':'')+md(pl.D)+' 扣款會失敗';
+    if(pl.overdue)b='<span class="bg br">🔴 已過扣款日 '+md(pl.D)+'</span>';
+    else if(pl.stage===2)b='<span class="bg br">'+(pl.urgent?'⚡緊急 ':'')+'剩'+pl.left+'天・'+info+'</span>';
+    else if(pl.stage===1)b='<span class="bg ba">剩'+pl.left+'天・'+info+'</span>';
+    else b='<span class="bg bx">'+(pl.noInfo?'未填扣款日・':'')+'到期後首筆 '+md(pl.D)+'・'+md(pl.first)+' 起提醒</span>';
+  }
+  var nx=nextPayAfter(p.payDate,p.freq,addDays(T,-1));
+  return '<label class="pr"><input type="checkbox" class="pchk" data-name="'+esc(p.name)+'" value="'+esc(p.policy)+'">'
+    +'<span class="pt"><b>'+esc(p.company||'未填公司')+'</b> '+esc(p.policy)+(p.freq?'（'+esc(p.freq)+'）':'')
+    +'<br>'+(nx?'下次扣款 '+md(nx):'<span style="color:#B03030">未填扣款日／繳別</span>')
+    +(p.note?'　'+esc(p.note):'')+'<br>'+b+'</span>'
+    +'<button class="eb" onclick="event.preventDefault();openPay(\''+esc(p.policy)+'\')">修改</button></label>';
+}
+function rendPay(){
+  if(!$('plist'))return;
+  var T=todayD(),q=$('p-q').value.trim(),by={},order=[];
+  pays.forEach(function(p){if(!by[p.name]){by[p.name]=[];order.push(p.name);}by[p.name].push(p);});
+  var items=order.map(function(n){
+    var list=by[n],min=1e9,stage=0;
+    list.forEach(function(p){var pl=payPlan(p,T);if(pl&&pl.stage>0){stage=Math.max(stage,pl.stage);min=Math.min(min,pl.left);}});
+    return{name:n,list:list,min:min,stage:stage};
+  }).filter(function(c){
+    if(q&&c.name.indexOf(q)<0&&!c.list.some(function(p){return p.policy.indexOf(q)>-1;}))return false;
+    if(payF==='now'&&!c.stage)return false;
+    if(payF==='miss'&&!c.list.some(function(p){return!p.payDate||!p.freq;}))return false;
+    return true;
+  }).sort(function(a,b){return(b.stage>0)-(a.stage>0)||a.min-b.min||a.name.localeCompare(b.name);});
+  if(!items.length){$('plist').innerHTML='<div class="emp">'+(pays.length?'沒有符合的保單':'還沒有保單扣款資料，按「＋ 新增保單」開始')+'</div>';return;}
+  $('plist').innerHTML=items.map(function(c){
+    var groups={},gk=[];
+    c.list.forEach(function(p){var k=cardKey(p);if(!groups[k]){groups[k]=[];gk.push(k);}groups[k].push(p);});
+    var nm=esc(c.name);
+    return '<div class="rc '+(c.stage===2?'urgent':c.stage===1?'soon':'')+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;"><span class="rn">'+nm+'</span>'
+      +'<button class="cb" style="margin:0" onclick="openPay(null,\''+nm+'\')">＋ 保單</button></div>'
+      +gk.map(function(k){var f=groups[k][0];
+        return '<div class="cg"><div class="cg-h">'+(k==='帳戶扣款'?'🏦 帳戶扣款':'💳 '+esc(f.bank||'未填銀行')+' 末四碼'+esc(f.card4||'－')+'｜'+(f.cardExp?f.cardExp.replace('-','/')+' 到期':'未填效期'))+'</div>'
+          +groups[k].map(function(p){return policyLine(p,T);}).join('')+'</div>';}).join('')
+      +'<button class="done-btn" onclick="openCard(\''+nm+'\')">💳 勾選的保單換新卡</button>'
+      +(c.stage?'<button class="cb" onclick="togPayMsg(this,\''+nm+'\')">產出客戶訊息</button><div class="msg-box"></div>':'')
+      +'</div>';
+  }).join('');
+}
+function togPayMsg(btn,name){
+  var box=btn.nextElementSibling;
+  if(box.style.display==='block'){box.style.display='none';return;}
+  var T=todayD(),cards={};
+  pays.forEach(function(p){if(p.name!==name)return;var pl=payPlan(p,T);if(pl&&pl.stage>0)cards[(p.bank||'')+' 末四碼'+(p.card4||'')+'（'+p.cardExp.replace('-','/')+' 到期）']=1;});
+  var msg='您好！您用來扣繳保費的信用卡 '+Object.keys(cards).join('、')+' 即將到期，為避免保費扣款失敗，想跟您確認：\n\n1. 是否已收到新卡\n2. 收到新卡後，請提供新卡的「卡號末四碼」與「有效年月」，我協助您辦理扣款卡變更\n\n如果新卡還沒寄到，建議先向銀行確認寄送時間，謝謝您！';
+  box.textContent=msg;box.style.display='block';
+  if(!box.nextElementSibling||box.nextElementSibling.textContent.indexOf('複製')<0){
+    var cp=document.createElement('button');cp.className='cb';cp.textContent='複製訊息';
+    cp.onclick=function(){navigator.clipboard.writeText(msg).then(function(){cp.textContent='已複製！';setTimeout(function(){cp.textContent='複製訊息';},2000);});};
+    box.parentNode.insertBefore(cp,box.nextSibling);
+  }
+}
+function closeForms(){$('pay-form').style.display='none';$('card-form').style.display='none';}
+function fillCardOpts(sel){
+  var name=$('pf-name').value.trim(),seen={},h='<option value="">＋ 新的卡片（下方填寫）</option>';
+  pays.forEach(function(p){if(p.name!==name||p.method==='帳戶扣款'||!p.card4)return;var k=cardKey(p);if(seen[k])return;seen[k]=1;
+    h+='<option value="'+esc(k)+'"'+(sel===k?' selected':'')+'>'+esc(p.bank+' 末四碼'+p.card4+'（'+p.cardExp+'）')+'</option>';});
+  $('pf-cardsel').innerHTML=h;
+}
+function pickCard(){
+  var v=$('pf-cardsel').value;if(!v)return;var a=v.split('|');
+  $('pf-bank').value=a[0];$('pf-card4').value=a[1];$('pf-cardexp').value=a[2];
+}
+function togMethod(){$('pf-cardwrap').style.display=$('pf-method').value==='帳戶扣款'?'none':'block';}
+function openPay(policy,name){
+  closeForms();editPolicy=policy;
+  var p=policy?pays.filter(function(x){return x.policy===policy;})[0]:null;
+  $('pf-company').innerHTML='<option value="">請選擇</option>'+COMPANIES.map(function(c){return'<option'+(p&&p.company===c?' selected':'')+'>'+c+'</option>';}).join('');
+  $('pf-title').textContent=p?'修改保單扣款':'新增保單扣款';
+  $('pf-name').value=p?p.name:(name||'');$('pf-policy').value=p?p.policy:'';
+  $('pf-freq').value=p?p.freq:'';$('pf-paydate').value=p?p.payDate:'';
+  $('pf-method').value=p&&p.method==='帳戶扣款'?'帳戶扣款':'信用卡';
+  $('pf-bank').value=p?p.bank:'';$('pf-card4').value=p?p.card4:'';$('pf-cardexp').value=p?p.cardExp:'';
+  $('pf-note').value=p?p.note:'';
+  fillCardOpts(p?cardKey(p):'');
+  if(!p){var s=$('pf-cardsel');if(s.options.length>1){s.selectedIndex=1;pickCard();}}
+  togMethod();
+  $('pf-del').style.display=p?'block':'none';$('pf-err').style.display='none';
+  $('pay-form').style.display='block';$('pay-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function post(body){await fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify(body)});}
+async function savePay(){
+  var d={action:'pay_save',oldPolicy:editPolicy||'',name:$('pf-name').value.trim(),policy:$('pf-policy').value.trim(),
+    company:$('pf-company').value,freq:$('pf-freq').value,payDate:$('pf-paydate').value,method:$('pf-method').value,
+    bank:$('pf-bank').value.trim(),card4:$('pf-card4').value.trim(),cardExp:$('pf-cardexp').value,note:$('pf-note').value.trim()};
+  var miss=[];
+  if(!d.name)miss.push('・客戶姓名');if(!d.policy)miss.push('・保單號碼');
+  if(d.method==='信用卡'&&!d.cardExp)miss.push('・卡片有效年月');
+  if(!editPolicy||editPolicy!==d.policy){if(pays.some(function(p){return p.policy===d.policy;}))miss.push('・保單號碼「'+d.policy+'」已經存在');}
+  if(miss.length){var e=$('pf-err');e.innerHTML='⚠️ 請確認：<br>'+miss.join('<br>');e.style.display='block';return;}
+  var btn=$('pf-save');btn.disabled=true;btn.textContent='儲存中...';setSb('sl2','儲存至 Google Sheets...');
+  try{await post(d);await loadPay();setSb('sok','已儲存 ✅');closeForms();}
+  catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='儲存';
+}
+async function delPay(){
+  if(!editPolicy||!confirm('確定刪除保單「'+editPolicy+'」的扣款資料？'))return;
+  setSb('sl2','刪除中...');
+  try{await post({action:'pay_delete',policy:editPolicy});await loadPay();setSb('sok','已刪除');closeForms();}
+  catch(e){setSb('ser','刪除失敗');}
+}
+function togCfMethod(){var acct=$('cf-method').value==='帳戶扣款';$('cf-expwrap').style.display=acct?'none':'block';$('cf-card4-l').textContent=acct?'帳號末四碼':'卡號末四碼';}
+function openCard(name){
+  var sel=[].slice.call(document.querySelectorAll('.pchk:checked')).filter(function(c){return c.dataset.name===name;}).map(function(c){return c.value;});
+  if(!sel.length){alert('請先勾選「'+name+'」要換卡的保單');return;}
+  closeForms();cardPolicies=sel;
+  $('cf-list').innerHTML='<b>'+esc(name)+'</b>　要換卡的保單（'+sel.length+' 張）：<br>'+sel.map(function(pol){var p=pays.filter(function(x){return x.policy===pol;})[0];return'・'+esc(p.company)+' '+esc(pol);}).join('<br>');
+  $('cf-method').value='信用卡';$('cf-bank').value='';$('cf-card4').value='';$('cf-cardexp').value='';togCfMethod();
+  $('card-form').style.display='block';$('card-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function saveCard(){
+  var d={action:'pay_card',policies:cardPolicies,method:$('cf-method').value,bank:$('cf-bank').value.trim(),card4:$('cf-card4').value.trim(),cardExp:$('cf-cardexp').value};
+  if(d.method==='信用卡'&&(!d.card4||!d.cardExp)){alert('請填寫新卡的末四碼和有效年月');return;}
+  var btn=$('cf-save');btn.disabled=true;btn.textContent='儲存中...';setSb('sl2','儲存至 Google Sheets...');
+  try{await post(d);await loadPay();setSb('sok','已換卡 ✅，並已新增服務記錄');closeForms();}
+  catch(e){setSb('ser','儲存失敗，請重試');}
+  btn.disabled=false;btn.textContent='儲存';
+}
+initDates();loadR().then(loadPay);
 </script>
 </body>
 </html>
