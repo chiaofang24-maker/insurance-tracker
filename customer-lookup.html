@@ -234,11 +234,11 @@ async function loadAll(fromLogin){
   updStats();
   setSb('sl2','客戶資料已載入，服務記錄載入中...');
   try{
-    var r=await fetch(API_SVC);var s=await r.json();
+    var r=await fetch(API_SVC+'?pw='+encodeURIComponent(password));var s=await r.json();
     svcRecords=Array.isArray(s)?s:[];
     setSb('sok','已連線，資料同步自 Google Sheets');
   }catch(e){setSb('sl2','客戶資料已載入（服務記錄暫時無法載入）');}
-  try{var r2=await fetch(API_EXP+'?action=pay_list');var d2=await r2.json();payRecords=(d2&&d2.pays)||[];}catch(e){}
+  try{var r2=await fetch(API_EXP+'?action=pay_list&pw='+encodeURIComponent(password));var d2=await r2.json();payRecords=(d2&&d2.pays)||[];}catch(e){}
   if(curId&&byId(curId)&&!$('p-detail').classList.contains('hide'))openDetail(curId);
   return true;
 }

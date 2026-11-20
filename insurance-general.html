@@ -1,6 +1,65 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+<script>
+/* ══ 密碼保護（115.11.20）：所有連到 Google 後台的請求都自動帶上密碼 ══ */
+(function(){
+  var KEY='cust_lookup_pw';            // 和「客戶資料查詢」共用，登入一次全部記住
+  var origFetch=window.fetch.bind(window);
+  var waiting=null;
+  function getPw(){try{return localStorage.getItem(KEY)||'';}catch(e){return'';}}
+  function setPw(v){try{if(v)localStorage.setItem(KEY,v);else localStorage.removeItem(KEY);}catch(e){}}
+  function askPw(msg){
+    if(waiting)return waiting;
+    waiting=new Promise(function(resolve){
+      function build(){
+        var o=document.createElement('div');
+        o.style.cssText='position:fixed;inset:0;background:rgba(4,90,88,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+        o.innerHTML='<div style="background:#fff;border-radius:22px;padding:24px 22px;width:100%;max-width:340px;text-align:center;font-family:\'Comic Sans MS\',\'Chalkboard SE\',cursive;">'
+          +'<div style="font-size:34px;">🔒</div><div style="font-size:19px;font-weight:600;color:#077B78;margin:6px 0 4px;">請輸入密碼</div>'
+          +'<div id="pwg-msg" style="font-size:14px;color:#B03030;min-height:20px;margin-bottom:8px;">'+(msg||'')+'</div>'
+          +'<input id="pwg-in" type="password" placeholder="密碼" style="width:100%;font-size:17px;border:1.5px solid #D4F0EE;border-radius:14px;padding:10px 13px;background:#F0FAFA;outline:none;margin-bottom:12px;">'
+          +'<button id="pwg-btn" style="width:100%;padding:11px;font-size:17px;font-weight:600;border:none;border-radius:16px;background:#0ABAB5;color:#fff;font-family:inherit;">確定</button>'
+          +'<div style="font-size:12px;color:#999;margin-top:10px;">這台裝置會記住密碼</div></div>';
+        document.body.appendChild(o);
+        var inp=o.querySelector('#pwg-in');
+        function ok(){var v=inp.value.trim();if(!v)return;setPw(v);o.remove();waiting=null;resolve(v);}
+        o.querySelector('#pwg-btn').onclick=ok;
+        inp.onkeydown=function(e){if(e.key==='Enter')ok();};
+        setTimeout(function(){inp.focus();},100);
+      }
+      if(document.body)build();else document.addEventListener('DOMContentLoaded',build);
+    });
+    return waiting;
+  }
+  function addPw(input,init,pw){
+    var url=String(input);
+    init=init?Object.assign({},init):{};
+    if(init.method&&init.method.toUpperCase()==='POST'&&typeof init.body==='string'){
+      try{var b=JSON.parse(init.body);b.pw=pw;init.body=JSON.stringify(b);}catch(e){}
+    }else{
+      url+=(url.indexOf('?')>-1?'&':'?')+'pw='+encodeURIComponent(pw);
+    }
+    return [url,init];
+  }
+  window.fetch=async function(input,init){
+    if(String(input).indexOf('script.google.com')<0)return origFetch(input,init);
+    for(var tries=0;tries<5;tries++){
+      var pw=getPw()||await askPw('');
+      var a=addPw(input,init,pw);
+      var res=await origFetch(a[0],a[1]);
+      if(res.type==='opaque')return res;
+      try{
+        var d=await res.clone().json();
+        if(d&&d.status==='error'&&d.msg==='密碼錯誤'){setPw('');await askPw('密碼錯誤，請重新輸入');continue;}
+      }catch(e){}
+      return res;
+    }
+    return res;
+  };
+})();
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>產險管理系統</title>
