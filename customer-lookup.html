@@ -133,7 +133,7 @@ var API_SVC  = 'https://script.google.com/macros/s/AKfycbzD78vK29yJM41NOnkLt3VUG
 var API_EXP  = 'https://script.google.com/macros/s/AKfycbySxON3T6IRcZEiM3Eb2WtACMciP1eM_rF11emksjvHgUKIOr8JYqoGl5gJfZO7c2OxBA/exec';
 var PW_KEY   = 'cust_lookup_pw';
 var REL_ORDER = ['戶長','配偶','子女','子女配偶','孫子女','父母','其他',''];
-var EDIT_FIELDS = ['電話','生日','地址','意外險','實支實付','壽險公司','家庭代號','原家庭','關係','關係確認','分組','備註'];
+var EDIT_FIELDS = ['電話','市話','Email','公司','生日','地址','意外險','實支實付','壽險公司','家庭代號','原家庭','關係','關係確認','分組','備註'];
 
 var password = '';
 var people = [];
@@ -255,7 +255,7 @@ function search(){
   if(!q){box.innerHTML='';return;}
   var ql=q.toLowerCase().replace(/[\s\-]/g,'');
   var hits=people.filter(function(p){
-    return [p['姓名'],p['電話'],p['客戶編號'],p['家庭代號'],p['舊編號']].some(function(v){
+    return [p['姓名'],p['電話'],p['市話'],p['客戶編號'],p['家庭代號'],p['舊編號']].some(function(v){
       return String(v||'').toLowerCase().replace(/[\s\-]/g,'').indexOf(ql)>-1;
     });
   });
@@ -284,6 +284,9 @@ function openDetail(id){
   var bdText=p['生日']?(p['生日']+(p['生日(民國)']?'（民國 '+p['生日(民國)']+'）':'')+(a!==''?'・'+a+' 歲':'')):'';
   var tel=String(p['電話']||'').split(/[\n,、\/]/)[0].replace(/[^\d+]/g,'');
   var telHtml=tel?'<a href="tel:'+esc(tel)+'">'+esc(p['電話'])+'</a>':'';
+  var tel2=String(p['市話']||'').replace(/[^\d+]/g,'');
+  var tel2Html=tel2?'<a href="tel:'+esc(tel2)+'">'+esc(p['市話'])+'</a>':'';
+  var mailHtml=p['Email']?'<a href="mailto:'+esc(p['Email'])+'">'+esc(p['Email'])+'</a>':'';
   var addrHtml=p['地址']?'<a href="https://maps.apple.com/?q='+encodeURIComponent(p['地址'])+'" target="_blank">'+esc(p['地址'])+'</a>':'';
   var confTag=p['關係確認']==='推測'?'<span class="tag tag-amber">推測</span>':p['關係確認']==='待確認'?'<span class="tag tag-red">待確認</span>':'';
 
@@ -294,7 +297,7 @@ function openDetail(id){
   h+='<button class="btn btn-e" onclick="openEdit(\''+esc(id)+'\')">✏️ 編輯</button></div>';
 
   h+='<div class="sec"><div class="sec-t">基本資料</div>';
-  h+=row('生日',bdText)+row('電話',p['電話'],telHtml)+row('地址',p['地址'],addrHtml);
+  h+=row('生日',bdText)+row('電話',p['電話'],telHtml)+row('市話',p['市話'],tel2Html)+row('Email',p['Email'],mailHtml)+row('地址',p['地址'],addrHtml)+row('公司',p['公司']);
   h+='</div>';
 
   h+='<div class="sec"><div class="sec-t">保障</div><div class="hl">';
@@ -384,7 +387,9 @@ function formHTML(p,isNew){
   if(isNew)h+='<div class="f"><label>姓名 <span class="req">*</span></label><input id="fm-姓名" type="text" placeholder="王小明"></div>';
   else h+='<div class="hint" style="margin-bottom:10px;">姓名用來對應服務記錄，如需更改請到 Google 試算表修改。</div>';
   h+='<div class="g2">'+field('電話','電話',p['電話'],'tel')+field('生日','生日',p['生日'],'date')+'</div>';
+  h+='<div class="g2">'+field('市話','市話',p['市話'],'tel')+field('Email','Email',p['Email'],'email')+'</div>';
   h+=field('地址','地址',p['地址']);
+  h+=field('公司','公司',p['公司']);
   h+=field('意外險','意外險',p['意外險'],'area')+field('實支實付','實支實付',p['實支實付'],'area');
   h+=field('壽險公司','壽險公司',p['壽險公司'],'area');
   h+='<div class="g2">'+field('家庭代號','家庭代號',p['家庭代號'])+field('原家庭','原家庭',p['原家庭'])+'</div>';
