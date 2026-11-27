@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PDF 工具箱</title>
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/@cantoo/pdf-lib/dist/pdf-lib.min.js"></script>
 <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -521,21 +521,22 @@ async function startEncrypt(){
     badge.className='d-status status-processing';badge.textContent='⚙️ 處理中';
     try{
       var buf=await encryptFiles[i].arrayBuffer();
-      // 先用 pdf-lib 載入，再用 save() 加上加密選項
+      // @cantoo/pdf-lib 有完整加密支援，使用 encrypt() 方法
       var pdfDoc=await PDFLib.PDFDocument.load(buf);
-      var bytes=await pdfDoc.save({
+      await pdfDoc.encrypt({
         userPassword: pw,
-        ownerPassword: pw+'_owner',
+        ownerPassword: pw+'_own',
         permissions:{
           printing:'highResolution',
           modifying:false,
           copying:false,
-          annotating:false,
+          annotating:true,
           fillingForms:true,
           contentAccessibility:true,
           documentAssembly:false
         }
       });
+      var bytes=await pdfDoc.save();
       var blob=new Blob([bytes],{type:'application/pdf'});
       var a=document.createElement('a');
       a.href=URL.createObjectURL(blob);
