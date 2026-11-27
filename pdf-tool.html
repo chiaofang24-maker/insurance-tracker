@@ -110,10 +110,12 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 .page-item{background:var(--mint);border:2px solid var(--sage);border-radius:12px;padding:8px;text-align:center;cursor:pointer;font-size:13px;color:var(--tfd);}
 .page-item.sel{background:var(--tfl);border-color:var(--tf);font-weight:700;}
 
-@media(max-width:480px){
-  .tabs{grid-template-columns:1fr 1fr 1fr;}
-  .tab{font-size:12px;padding:9px 4px;}
-  .navbar{padding:0 12px;}
+@media(max-width:600px){
+  .tabs{grid-template-columns:1fr 1fr 1fr 1fr !important;}
+  .tab{font-size:11px;padding:8px 3px;}
+}
+@media(max-width:400px){
+  .tabs{grid-template-columns:1fr 1fr 1fr !important;}
 }
 </style>
 </head>
@@ -124,13 +126,14 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 
   <div class="hdr">
     <h1>🛠️ PDF 工具箱</h1>
-    <p>解密 ✨ 合併 ✨ 分割 ── 完全在本機處理，檔案不上傳</p>
+    <p>解密 ✨ 加密 ✨ 合併 ✨ 分割 ── 完全在本機處理，檔案不上傳</p>
   </div>
 
   <div id="sb" class="sb sl2" style="display:none;"></div>
 
-  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;">
+  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr 1fr;">
     <div class="tab on" onclick="sw('decrypt')">🔓 解密</div>
+    <div class="tab" onclick="sw('encrypt')">🔒 加密</div>
     <div class="tab" onclick="sw('merge')">📄 合併</div>
     <div class="tab" onclick="sw('split')">✂️ 分割</div>
     <div class="tab" onclick="sw('insert')">📌 插頁</div>
@@ -161,6 +164,38 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
         <span id="decryptCount" style="font-size:12px;color:var(--tfm);"></span>
       </div>
       <div class="decrypt-list" id="decryptList"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 加密 ══════════ -->
+  <div id="pnl-encrypt" class="pnl">
+    <div class="card">
+      <div class="ch">🔒 為 PDF 加上密碼保護</div>
+      <p style="font-size:13px;color:#888;margin-bottom:14px;">加密後開啟 PDF 時需要輸入密碼，支援一次加密多個檔案</p>
+      <div class="drop-zone" id="encryptDrop" onclick="document.getElementById('encryptFiles').click()">
+        <span>🔒</span>
+        <p>點此或拖曳 PDF 至此</p>
+        <small>支援一次選取多個檔案</small>
+        <input type="file" id="encryptFiles" accept="application/pdf" multiple style="display:none;">
+      </div>
+      <div class="f">
+        <label>設定開啟密碼（使用者密碼）</label>
+        <input type="password" id="encryptUserPwd" placeholder="輸入要設定的密碼">
+        <div class="hint">開啟 PDF 時需要輸入此密碼</div>
+      </div>
+      <div class="f">
+        <label>確認密碼</label>
+        <input type="password" id="encryptUserPwd2" placeholder="再次輸入密碼確認">
+      </div>
+      <button class="abtn" id="encryptBtn" onclick="startEncrypt()">🔒 開始加密並下載</button>
+      <div id="encryptStatus"></div>
+    </div>
+    <div class="card" id="encryptListCard" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-weight:700;color:var(--tfd);">📄 任務清單</span>
+        <span id="encryptCount" style="font-size:12px;color:var(--tfm);"></span>
+      </div>
+      <div class="decrypt-list" id="encryptList"></div>
     </div>
   </div>
 
@@ -340,7 +375,7 @@ body{background:linear-gradient(135deg,#b2e8e8 0%,#81d4d4 50%,#5fc7c7 100%);min-
 <script>
 /* ── 分頁切換 ── */
 function sw(t){
-  var tabs=['decrypt','merge','split','insert','toimg','topdf'];
+  var tabs=['decrypt','encrypt','merge','split','insert','toimg','topdf'];
   document.querySelectorAll('.tab').forEach(function(e,i){e.classList.toggle('on',tabs[i]===t);});
   document.querySelectorAll('.pnl').forEach(function(e){e.classList.remove('on');});
   document.getElementById('pnl-'+t).classList.add('on');
@@ -432,6 +467,89 @@ async function startDecrypt(){
     await new Promise(function(r){setTimeout(r,300);});
   }
   status.textContent='🎉 完成！成功解密 '+ok+' 份。';
+  status.style.color='#0abab5';
+  btn.disabled=false;btn.textContent='🔄 重新執行';
+}
+
+/* ════════════════════ 加密 ════════════════════ */
+var encryptFiles=[];
+var encryptDrop=document.getElementById('encryptDrop');
+var encryptFileInput=document.getElementById('encryptFiles');
+
+encryptFileInput.addEventListener('change',function(e){handleEncryptFiles(e.target.files);});
+['dragover','dragleave','drop'].forEach(function(evt){
+  encryptDrop.addEventListener(evt,function(e){
+    e.preventDefault();
+    if(evt==='dragover') encryptDrop.classList.add('dragover');
+    if(evt==='dragleave'||evt==='drop') encryptDrop.classList.remove('dragover');
+    if(evt==='drop'&&e.dataTransfer.files.length>0) handleEncryptFiles(e.dataTransfer.files);
+  });
+});
+
+function handleEncryptFiles(files){
+  encryptFiles=Array.from(files).filter(function(f){return f.name.toLowerCase().endsWith('.pdf');});
+  if(!encryptFiles.length) return;
+  var card=document.getElementById('encryptListCard');
+  var list=document.getElementById('encryptList');
+  var count=document.getElementById('encryptCount');
+  card.style.display='block';
+  count.textContent=encryptFiles.length+' 個檔案';
+  list.innerHTML='';
+  encryptFiles.forEach(function(f,i){
+    var el=document.createElement('div');
+    el.className='d-item';
+    el.innerHTML='<span class="d-name" title="'+f.name+'">'+f.name+'</span>'
+      +'<span class="d-status status-waiting" id="est-'+i+'">等待中...</span>';
+    list.appendChild(el);
+  });
+}
+
+async function startEncrypt(){
+  var pw=document.getElementById('encryptUserPwd').value;
+  var pw2=document.getElementById('encryptUserPwd2').value;
+  var status=document.getElementById('encryptStatus');
+  var btn=document.getElementById('encryptBtn');
+  if(!encryptFiles.length){alert('請先選取 PDF 檔案！');return;}
+  if(!pw){alert('請輸入要設定的密碼！');return;}
+  if(pw!==pw2){alert('兩次輸入的密碼不一致，請重新確認！');return;}
+  btn.disabled=true;
+  status.textContent='⚙️ 加密中，請勿關閉視窗...';
+  status.style.color='var(--tfd)';
+  var ok=0;
+  for(var i=0;i<encryptFiles.length;i++){
+    var badge=document.getElementById('est-'+i);
+    badge.className='d-status status-processing';badge.textContent='⚙️ 處理中';
+    try{
+      var buf=await encryptFiles[i].arrayBuffer();
+      // 先用 pdf-lib 載入，再用 save() 加上加密選項
+      var pdfDoc=await PDFLib.PDFDocument.load(buf);
+      var bytes=await pdfDoc.save({
+        userPassword: pw,
+        ownerPassword: pw+'_owner',
+        permissions:{
+          printing:'highResolution',
+          modifying:false,
+          copying:false,
+          annotating:false,
+          fillingForms:true,
+          contentAccessibility:true,
+          documentAssembly:false
+        }
+      });
+      var blob=new Blob([bytes],{type:'application/pdf'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=encryptFiles[i].name.replace(/\.[pP][dD][fF]$/,'_已加密.pdf');
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      badge.className='d-status status-success';badge.textContent='✅ 成功';ok++;
+    }catch(e){
+      console.error(e);
+      badge.className='d-status status-error';badge.textContent='❌ 失敗：'+(e.message||'加密錯誤');
+    }
+    await new Promise(function(r){setTimeout(r,300);});
+  }
+  status.textContent='🎉 完成！成功加密 '+ok+' 份。';
   status.style.color='#0abab5';
   btn.disabled=false;btn.textContent='🔄 重新執行';
 }
